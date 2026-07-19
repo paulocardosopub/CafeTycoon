@@ -18,9 +18,12 @@ def configure_scene():
     scene.render.engine = "BLENDER_EEVEE_NEXT" if "BLENDER_EEVEE_NEXT" in engines else "BLENDER_EEVEE"
     scene.render.film_transparent = True; scene.render.image_settings.file_format = "PNG"; scene.render.image_settings.color_mode = "RGBA"
     scene.render.resolution_percentage = 100
+    scene.render.image_settings.color_depth = "8"
+    scene.render.filter_size = 0.01
+    scene.render.use_freestyle = True; scene.render.line_thickness = 1.0
     scene.view_settings.look = "AgX - Medium High Contrast"
     setup_camera(scene); setup_lighting(scene)
-    scene["bistroAssetSourceVersion"] = "0.0.3"
+    scene["bistroAssetSourceVersion"] = "0.0.3"; scene["qualityProfile"] = "reference-hd-v2"
     return scene
 
 def build_family(project_root: Path, definitions, relative_path: str, builder):

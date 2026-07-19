@@ -1,10 +1,13 @@
 {
-  "version": "0.0.3-blender-1",
+  "version": "0.0.3-blender-2",
+  "qualityProfile": "reference-hd-v2",
   "camera": {
     "projection": "orthographic",
     "horizontalAngle": 45,
     "inclination": 35.264,
-    "frameGrid": "64x32"
+    "frameGrid": "64x32",
+    "pixelFilter": "nearest",
+    "supersampling": 1
   },
   "assets": [
     {
@@ -16,6 +19,8 @@
       "hair": "hair_dark",
       "outfit": "sage",
       "accessory": "apron",
+      "pants": "denim",
+      "accent": "cream_light",
       "sourceBlend": "assets/blender/characters/characters_base.blend",
       "sourceCollection": "player-style-0",
       "visualLevel": 1,
@@ -24,8 +29,8 @@
         1
       ],
       "anchor": [
-        32,
-        88
+        48,
+        136
       ],
       "orientations": [
         "ne",
@@ -49,15 +54,18 @@
       },
       "interactionPoints": [],
       "frameSize": [
-        64,
-        96
+        96,
+        144
       ],
+      "qualityProfile": "reference-hd-v2",
+      "nativeScale": 1.0,
+      "logicalHeightBlocks": 1.9,
       "renderedFile": "/assets/pixel/rendered/characters/player/player-style-0.png",
       "spriteSheet": "/assets/pixel/rendered/characters/player/player-style-0.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/player-style-0.png",
       "frameCount": 36,
-      "paletteVersion": "bistro-bloom-v1",
-      "renderVersion": "0.0.3-blender-1",
+      "paletteVersion": "bistro-bloom-reference-hd-v2",
+      "renderVersion": "0.0.3-blender-2",
       "transparent": true
     },
     {
@@ -69,6 +77,8 @@
       "hair": "wood",
       "outfit": "blue",
       "accessory": "vest",
+      "pants": "denim",
+      "accent": "cream_light",
       "sourceBlend": "assets/blender/characters/characters_base.blend",
       "sourceCollection": "player-style-1",
       "visualLevel": 1,
@@ -77,8 +87,8 @@
         1
       ],
       "anchor": [
-        32,
-        88
+        48,
+        136
       ],
       "orientations": [
         "ne",
@@ -102,15 +112,18 @@
       },
       "interactionPoints": [],
       "frameSize": [
-        64,
-        96
+        96,
+        144
       ],
+      "qualityProfile": "reference-hd-v2",
+      "nativeScale": 1.0,
+      "logicalHeightBlocks": 1.9,
       "renderedFile": "/assets/pixel/rendered/characters/player/player-style-1.png",
       "spriteSheet": "/assets/pixel/rendered/characters/player/player-style-1.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/player-style-1.png",
       "frameCount": 36,
-      "paletteVersion": "bistro-bloom-v1",
-      "renderVersion": "0.0.3-blender-1",
+      "paletteVersion": "bistro-bloom-reference-hd-v2",
+      "renderVersion": "0.0.3-blender-2",
       "transparent": true
     },
     {
@@ -120,8 +133,10 @@
       "style": "bun-chef",
       "skin": "skin_dark",
       "hair": "hair_dark",
-      "outfit": "cream",
-      "accessory": "chef-hat",
+      "outfit": "white",
+      "accessory": "chef-scarf",
+      "pants": "blue_dark",
+      "accent": "red",
       "sourceBlend": "assets/blender/characters/characters_base.blend",
       "sourceCollection": "player-style-2",
       "visualLevel": 1,
@@ -130,8 +145,8 @@
         1
       ],
       "anchor": [
-        32,
-        88
+        48,
+        136
       ],
       "orientations": [
         "ne",
@@ -155,15 +170,18 @@
       },
       "interactionPoints": [],
       "frameSize": [
-        64,
-        96
+        96,
+        144
       ],
+      "qualityProfile": "reference-hd-v2",
+      "nativeScale": 1.0,
+      "logicalHeightBlocks": 1.9,
       "renderedFile": "/assets/pixel/rendered/characters/player/player-style-2.png",
       "spriteSheet": "/assets/pixel/rendered/characters/player/player-style-2.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/player-style-2.png",
       "frameCount": 36,
-      "paletteVersion": "bistro-bloom-v1",
-      "renderVersion": "0.0.3-blender-1",
+      "paletteVersion": "bistro-bloom-reference-hd-v2",
+      "renderVersion": "0.0.3-blender-2",
       "transparent": true
     },
     {
@@ -175,6 +193,8 @@
       "hair": "terracotta",
       "outfit": "gold",
       "accessory": "scarf",
+      "pants": "denim",
+      "accent": "cream_light",
       "sourceBlend": "assets/blender/characters/characters_base.blend",
       "sourceCollection": "player-style-3",
       "visualLevel": 1,
@@ -183,8 +203,8 @@
         1
       ],
       "anchor": [
-        32,
-        88
+        48,
+        136
       ],
       "orientations": [
         "ne",
@@ -208,26 +228,31 @@
       },
       "interactionPoints": [],
       "frameSize": [
-        64,
-        96
+        96,
+        144
       ],
+      "qualityProfile": "reference-hd-v2",
+      "nativeScale": 1.0,
+      "logicalHeightBlocks": 1.9,
       "renderedFile": "/assets/pixel/rendered/characters/player/player-style-3.png",
       "spriteSheet": "/assets/pixel/rendered/characters/player/player-style-3.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/player-style-3.png",
       "frameCount": 36,
-      "paletteVersion": "bistro-bloom-v1",
-      "renderVersion": "0.0.3-blender-1",
+      "paletteVersion": "bistro-bloom-reference-hd-v2",
+      "renderVersion": "0.0.3-blender-2",
       "transparent": true
     },
     {
       "assetId": "customer-0",
       "kind": "character",
       "category": "characters/customers",
-      "style": "wave-dress",
-      "skin": "skin_light",
+      "style": "curly-jacket",
+      "skin": "skin_dark",
       "hair": "hair_dark",
-      "outfit": "blue",
-      "accessory": "none",
+      "outfit": "gold",
+      "accessory": "jacket",
+      "pants": "denim",
+      "accent": "cream_light",
       "sourceBlend": "assets/blender/characters/characters_base.blend",
       "sourceCollection": "customer-0",
       "visualLevel": 1,
@@ -236,8 +261,8 @@
         1
       ],
       "anchor": [
-        32,
-        88
+        48,
+        136
       ],
       "orientations": [
         "ne",
@@ -261,15 +286,18 @@
       },
       "interactionPoints": [],
       "frameSize": [
-        64,
-        96
+        96,
+        144
       ],
+      "qualityProfile": "reference-hd-v2",
+      "nativeScale": 1.0,
+      "logicalHeightBlocks": 1.9,
       "renderedFile": "/assets/pixel/rendered/characters/customers/customer-0.png",
       "spriteSheet": "/assets/pixel/rendered/characters/customers/customer-0.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/customer-0.png",
       "frameCount": 36,
-      "paletteVersion": "bistro-bloom-v1",
-      "renderVersion": "0.0.3-blender-1",
+      "paletteVersion": "bistro-bloom-reference-hd-v2",
+      "renderVersion": "0.0.3-blender-2",
       "transparent": true
     },
     {
@@ -281,6 +309,8 @@
       "hair": "wood",
       "outfit": "terracotta",
       "accessory": "none",
+      "pants": "denim",
+      "accent": "cream_light",
       "sourceBlend": "assets/blender/characters/characters_base.blend",
       "sourceCollection": "customer-1",
       "visualLevel": 1,
@@ -289,8 +319,8 @@
         1
       ],
       "anchor": [
-        32,
-        88
+        48,
+        136
       ],
       "orientations": [
         "ne",
@@ -314,15 +344,18 @@
       },
       "interactionPoints": [],
       "frameSize": [
-        64,
-        96
+        96,
+        144
       ],
+      "qualityProfile": "reference-hd-v2",
+      "nativeScale": 1.0,
+      "logicalHeightBlocks": 1.9,
       "renderedFile": "/assets/pixel/rendered/characters/customers/customer-1.png",
       "spriteSheet": "/assets/pixel/rendered/characters/customers/customer-1.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/customer-1.png",
       "frameCount": 36,
-      "paletteVersion": "bistro-bloom-v1",
-      "renderVersion": "0.0.3-blender-1",
+      "paletteVersion": "bistro-bloom-reference-hd-v2",
+      "renderVersion": "0.0.3-blender-2",
       "transparent": true
     },
     {
@@ -334,6 +367,8 @@
       "hair": "hair_dark",
       "outfit": "sage",
       "accessory": "none",
+      "pants": "denim",
+      "accent": "cream_light",
       "sourceBlend": "assets/blender/characters/characters_base.blend",
       "sourceCollection": "customer-2",
       "visualLevel": 1,
@@ -342,8 +377,8 @@
         1
       ],
       "anchor": [
-        32,
-        88
+        48,
+        136
       ],
       "orientations": [
         "ne",
@@ -367,15 +402,18 @@
       },
       "interactionPoints": [],
       "frameSize": [
-        64,
-        96
+        96,
+        144
       ],
+      "qualityProfile": "reference-hd-v2",
+      "nativeScale": 1.0,
+      "logicalHeightBlocks": 1.9,
       "renderedFile": "/assets/pixel/rendered/characters/customers/customer-2.png",
       "spriteSheet": "/assets/pixel/rendered/characters/customers/customer-2.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/customer-2.png",
       "frameCount": 36,
-      "paletteVersion": "bistro-bloom-v1",
-      "renderVersion": "0.0.3-blender-1",
+      "paletteVersion": "bistro-bloom-reference-hd-v2",
+      "renderVersion": "0.0.3-blender-2",
       "transparent": true
     },
     {
@@ -387,6 +425,8 @@
       "hair": "terracotta",
       "outfit": "gold",
       "accessory": "glasses",
+      "pants": "denim",
+      "accent": "cream_light",
       "sourceBlend": "assets/blender/characters/characters_base.blend",
       "sourceCollection": "customer-3",
       "visualLevel": 1,
@@ -395,8 +435,8 @@
         1
       ],
       "anchor": [
-        32,
-        88
+        48,
+        136
       ],
       "orientations": [
         "ne",
@@ -420,15 +460,18 @@
       },
       "interactionPoints": [],
       "frameSize": [
-        64,
-        96
+        96,
+        144
       ],
+      "qualityProfile": "reference-hd-v2",
+      "nativeScale": 1.0,
+      "logicalHeightBlocks": 1.9,
       "renderedFile": "/assets/pixel/rendered/characters/customers/customer-3.png",
       "spriteSheet": "/assets/pixel/rendered/characters/customers/customer-3.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/customer-3.png",
       "frameCount": 36,
-      "paletteVersion": "bistro-bloom-v1",
-      "renderVersion": "0.0.3-blender-1",
+      "paletteVersion": "bistro-bloom-reference-hd-v2",
+      "renderVersion": "0.0.3-blender-2",
       "transparent": true
     },
     {
@@ -440,6 +483,8 @@
       "hair": "wood",
       "outfit": "sage_dark",
       "accessory": "none",
+      "pants": "denim",
+      "accent": "cream_light",
       "sourceBlend": "assets/blender/characters/characters_base.blend",
       "sourceCollection": "customer-4",
       "visualLevel": 1,
@@ -448,8 +493,8 @@
         1
       ],
       "anchor": [
-        32,
-        88
+        48,
+        136
       ],
       "orientations": [
         "ne",
@@ -473,15 +518,18 @@
       },
       "interactionPoints": [],
       "frameSize": [
-        64,
-        96
+        96,
+        144
       ],
+      "qualityProfile": "reference-hd-v2",
+      "nativeScale": 1.0,
+      "logicalHeightBlocks": 1.9,
       "renderedFile": "/assets/pixel/rendered/characters/customers/customer-4.png",
       "spriteSheet": "/assets/pixel/rendered/characters/customers/customer-4.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/customer-4.png",
       "frameCount": 36,
-      "paletteVersion": "bistro-bloom-v1",
-      "renderVersion": "0.0.3-blender-1",
+      "paletteVersion": "bistro-bloom-reference-hd-v2",
+      "renderVersion": "0.0.3-blender-2",
       "transparent": true
     },
     {
@@ -493,6 +541,8 @@
       "hair": "hair_dark",
       "outfit": "blue",
       "accessory": "moustache",
+      "pants": "denim",
+      "accent": "cream_light",
       "sourceBlend": "assets/blender/characters/characters_base.blend",
       "sourceCollection": "customer-5",
       "visualLevel": 1,
@@ -501,8 +551,8 @@
         1
       ],
       "anchor": [
-        32,
-        88
+        48,
+        136
       ],
       "orientations": [
         "ne",
@@ -526,15 +576,18 @@
       },
       "interactionPoints": [],
       "frameSize": [
-        64,
-        96
+        96,
+        144
       ],
+      "qualityProfile": "reference-hd-v2",
+      "nativeScale": 1.0,
+      "logicalHeightBlocks": 1.9,
       "renderedFile": "/assets/pixel/rendered/characters/customers/customer-5.png",
       "spriteSheet": "/assets/pixel/rendered/characters/customers/customer-5.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/customer-5.png",
       "frameCount": 36,
-      "paletteVersion": "bistro-bloom-v1",
-      "renderVersion": "0.0.3-blender-1",
+      "paletteVersion": "bistro-bloom-reference-hd-v2",
+      "renderVersion": "0.0.3-blender-2",
       "transparent": true
     },
     {
@@ -546,6 +599,8 @@
       "hair": "hair_dark",
       "outfit": "terracotta",
       "accessory": "bag",
+      "pants": "denim",
+      "accent": "cream_light",
       "sourceBlend": "assets/blender/characters/characters_base.blend",
       "sourceCollection": "customer-6",
       "visualLevel": 1,
@@ -554,8 +609,8 @@
         1
       ],
       "anchor": [
-        32,
-        88
+        48,
+        136
       ],
       "orientations": [
         "ne",
@@ -579,15 +634,18 @@
       },
       "interactionPoints": [],
       "frameSize": [
-        64,
-        96
+        96,
+        144
       ],
+      "qualityProfile": "reference-hd-v2",
+      "nativeScale": 1.0,
+      "logicalHeightBlocks": 1.9,
       "renderedFile": "/assets/pixel/rendered/characters/customers/customer-6.png",
       "spriteSheet": "/assets/pixel/rendered/characters/customers/customer-6.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/customer-6.png",
       "frameCount": 36,
-      "paletteVersion": "bistro-bloom-v1",
-      "renderVersion": "0.0.3-blender-1",
+      "paletteVersion": "bistro-bloom-reference-hd-v2",
+      "renderVersion": "0.0.3-blender-2",
       "transparent": true
     },
     {
@@ -599,6 +657,8 @@
       "hair": "terracotta",
       "outfit": "sage",
       "accessory": "hat",
+      "pants": "denim",
+      "accent": "cream_light",
       "sourceBlend": "assets/blender/characters/characters_base.blend",
       "sourceCollection": "customer-7",
       "visualLevel": 1,
@@ -607,8 +667,8 @@
         1
       ],
       "anchor": [
-        32,
-        88
+        48,
+        136
       ],
       "orientations": [
         "ne",
@@ -632,15 +692,18 @@
       },
       "interactionPoints": [],
       "frameSize": [
-        64,
-        96
+        96,
+        144
       ],
+      "qualityProfile": "reference-hd-v2",
+      "nativeScale": 1.0,
+      "logicalHeightBlocks": 1.9,
       "renderedFile": "/assets/pixel/rendered/characters/customers/customer-7.png",
       "spriteSheet": "/assets/pixel/rendered/characters/customers/customer-7.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/customer-7.png",
       "frameCount": 36,
-      "paletteVersion": "bistro-bloom-v1",
-      "renderVersion": "0.0.3-blender-1",
+      "paletteVersion": "bistro-bloom-reference-hd-v2",
+      "renderVersion": "0.0.3-blender-2",
       "transparent": true
     },
     {
@@ -650,8 +713,10 @@
       "style": "chef-bun",
       "skin": "skin_dark",
       "hair": "hair_dark",
-      "outfit": "cream",
-      "accessory": "chef-hat",
+      "outfit": "white",
+      "accessory": "chef-scarf",
+      "pants": "blue_dark",
+      "accent": "red",
       "sourceBlend": "assets/blender/characters/characters_base.blend",
       "sourceCollection": "cook-0",
       "visualLevel": 1,
@@ -660,8 +725,8 @@
         1
       ],
       "anchor": [
-        32,
-        88
+        48,
+        136
       ],
       "orientations": [
         "ne",
@@ -685,15 +750,18 @@
       },
       "interactionPoints": [],
       "frameSize": [
-        64,
-        96
+        96,
+        144
       ],
+      "qualityProfile": "reference-hd-v2",
+      "nativeScale": 1.0,
+      "logicalHeightBlocks": 1.9,
       "renderedFile": "/assets/pixel/rendered/characters/employees/cooks/cook-0.png",
       "spriteSheet": "/assets/pixel/rendered/characters/employees/cooks/cook-0.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/cook-0.png",
       "frameCount": 36,
-      "paletteVersion": "bistro-bloom-v1",
-      "renderVersion": "0.0.3-blender-1",
+      "paletteVersion": "bistro-bloom-reference-hd-v2",
+      "renderVersion": "0.0.3-blender-2",
       "transparent": true
     },
     {
@@ -705,6 +773,8 @@
       "hair": "wood",
       "outfit": "white",
       "accessory": "chef-hat",
+      "pants": "blue_dark",
+      "accent": "red",
       "sourceBlend": "assets/blender/characters/characters_base.blend",
       "sourceCollection": "cook-1",
       "visualLevel": 1,
@@ -713,8 +783,8 @@
         1
       ],
       "anchor": [
-        32,
-        88
+        48,
+        136
       ],
       "orientations": [
         "ne",
@@ -738,15 +808,18 @@
       },
       "interactionPoints": [],
       "frameSize": [
-        64,
-        96
+        96,
+        144
       ],
+      "qualityProfile": "reference-hd-v2",
+      "nativeScale": 1.0,
+      "logicalHeightBlocks": 1.9,
       "renderedFile": "/assets/pixel/rendered/characters/employees/cooks/cook-1.png",
       "spriteSheet": "/assets/pixel/rendered/characters/employees/cooks/cook-1.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/cook-1.png",
       "frameCount": 36,
-      "paletteVersion": "bistro-bloom-v1",
-      "renderVersion": "0.0.3-blender-1",
+      "paletteVersion": "bistro-bloom-reference-hd-v2",
+      "renderVersion": "0.0.3-blender-2",
       "transparent": true
     },
     {
@@ -758,6 +831,8 @@
       "hair": "hair_dark",
       "outfit": "terracotta",
       "accessory": "tray",
+      "pants": "denim",
+      "accent": "cream_light",
       "sourceBlend": "assets/blender/characters/characters_base.blend",
       "sourceCollection": "waiter-0",
       "visualLevel": 1,
@@ -766,8 +841,8 @@
         1
       ],
       "anchor": [
-        32,
-        88
+        48,
+        136
       ],
       "orientations": [
         "ne",
@@ -791,15 +866,18 @@
       },
       "interactionPoints": [],
       "frameSize": [
-        64,
-        96
+        96,
+        144
       ],
+      "qualityProfile": "reference-hd-v2",
+      "nativeScale": 1.0,
+      "logicalHeightBlocks": 1.9,
       "renderedFile": "/assets/pixel/rendered/characters/employees/waiters/waiter-0.png",
       "spriteSheet": "/assets/pixel/rendered/characters/employees/waiters/waiter-0.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/waiter-0.png",
       "frameCount": 36,
-      "paletteVersion": "bistro-bloom-v1",
-      "renderVersion": "0.0.3-blender-1",
+      "paletteVersion": "bistro-bloom-reference-hd-v2",
+      "renderVersion": "0.0.3-blender-2",
       "transparent": true
     },
     {
@@ -811,6 +889,8 @@
       "hair": "hair_dark",
       "outfit": "blue",
       "accessory": "tray",
+      "pants": "denim",
+      "accent": "cream_light",
       "sourceBlend": "assets/blender/characters/characters_base.blend",
       "sourceCollection": "waiter-1",
       "visualLevel": 1,
@@ -819,8 +899,8 @@
         1
       ],
       "anchor": [
-        32,
-        88
+        48,
+        136
       ],
       "orientations": [
         "ne",
@@ -844,15 +924,18 @@
       },
       "interactionPoints": [],
       "frameSize": [
-        64,
-        96
+        96,
+        144
       ],
+      "qualityProfile": "reference-hd-v2",
+      "nativeScale": 1.0,
+      "logicalHeightBlocks": 1.9,
       "renderedFile": "/assets/pixel/rendered/characters/employees/waiters/waiter-1.png",
       "spriteSheet": "/assets/pixel/rendered/characters/employees/waiters/waiter-1.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/waiter-1.png",
       "frameCount": 36,
-      "paletteVersion": "bistro-bloom-v1",
-      "renderVersion": "0.0.3-blender-1",
+      "paletteVersion": "bistro-bloom-reference-hd-v2",
+      "renderVersion": "0.0.3-blender-2",
       "transparent": true
     },
     {
@@ -864,6 +947,8 @@
       "hair": "hair_dark",
       "outfit": "sage",
       "accessory": "cloth",
+      "pants": "denim",
+      "accent": "cream_light",
       "sourceBlend": "assets/blender/characters/characters_base.blend",
       "sourceCollection": "cleaner-0",
       "visualLevel": 1,
@@ -872,8 +957,8 @@
         1
       ],
       "anchor": [
-        32,
-        88
+        48,
+        136
       ],
       "orientations": [
         "ne",
@@ -897,15 +982,18 @@
       },
       "interactionPoints": [],
       "frameSize": [
-        64,
-        96
+        96,
+        144
       ],
+      "qualityProfile": "reference-hd-v2",
+      "nativeScale": 1.0,
+      "logicalHeightBlocks": 1.9,
       "renderedFile": "/assets/pixel/rendered/characters/employees/cleaners/cleaner-0.png",
       "spriteSheet": "/assets/pixel/rendered/characters/employees/cleaners/cleaner-0.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/cleaner-0.png",
       "frameCount": 36,
-      "paletteVersion": "bistro-bloom-v1",
-      "renderVersion": "0.0.3-blender-1",
+      "paletteVersion": "bistro-bloom-reference-hd-v2",
+      "renderVersion": "0.0.3-blender-2",
       "transparent": true
     },
     {
@@ -917,6 +1005,8 @@
       "hair": "wood",
       "outfit": "blue",
       "accessory": "crate",
+      "pants": "denim",
+      "accent": "cream_light",
       "sourceBlend": "assets/blender/characters/characters_base.blend",
       "sourceCollection": "stocker-0",
       "visualLevel": 1,
@@ -925,8 +1015,8 @@
         1
       ],
       "anchor": [
-        32,
-        88
+        48,
+        136
       ],
       "orientations": [
         "ne",
@@ -950,15 +1040,18 @@
       },
       "interactionPoints": [],
       "frameSize": [
-        64,
-        96
+        96,
+        144
       ],
+      "qualityProfile": "reference-hd-v2",
+      "nativeScale": 1.0,
+      "logicalHeightBlocks": 1.9,
       "renderedFile": "/assets/pixel/rendered/characters/employees/stockers/stocker-0.png",
       "spriteSheet": "/assets/pixel/rendered/characters/employees/stockers/stocker-0.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/stocker-0.png",
       "frameCount": 36,
-      "paletteVersion": "bistro-bloom-v1",
-      "renderVersion": "0.0.3-blender-1",
+      "paletteVersion": "bistro-bloom-reference-hd-v2",
+      "renderVersion": "0.0.3-blender-2",
       "transparent": true
     },
     {
@@ -994,16 +1087,18 @@
         ]
       ],
       "frameSize": [
-        128,
-        160
+        192,
+        192
       ],
       "nextLevelAssetId": null,
+      "qualityProfile": "reference-hd-v2",
+      "nativeScale": 1.0,
       "renderedFile": "/assets/pixel/rendered/furniture/tables/table_two.png",
       "spriteSheet": "/assets/pixel/rendered/furniture/tables/table_two.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/table_two.png",
       "frameCount": 1,
-      "paletteVersion": "bistro-bloom-v1",
-      "renderVersion": "0.0.3-blender-1",
+      "paletteVersion": "bistro-bloom-reference-hd-v2",
+      "renderVersion": "0.0.3-blender-2",
       "transparent": true
     },
     {
@@ -1039,16 +1134,18 @@
         ]
       ],
       "frameSize": [
-        128,
-        160
+        192,
+        192
       ],
       "nextLevelAssetId": null,
+      "qualityProfile": "reference-hd-v2",
+      "nativeScale": 1.0,
       "renderedFile": "/assets/pixel/rendered/furniture/tables/table_four.png",
       "spriteSheet": "/assets/pixel/rendered/furniture/tables/table_four.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/table_four.png",
       "frameCount": 1,
-      "paletteVersion": "bistro-bloom-v1",
-      "renderVersion": "0.0.3-blender-1",
+      "paletteVersion": "bistro-bloom-reference-hd-v2",
+      "renderVersion": "0.0.3-blender-2",
       "transparent": true
     },
     {
@@ -1084,16 +1181,18 @@
         ]
       ],
       "frameSize": [
-        128,
-        160
+        192,
+        192
       ],
       "nextLevelAssetId": null,
+      "qualityProfile": "reference-hd-v2",
+      "nativeScale": 1.0,
       "renderedFile": "/assets/pixel/rendered/furniture/chairs/chair.png",
       "spriteSheet": "/assets/pixel/rendered/furniture/chairs/chair.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/chair.png",
       "frameCount": 1,
-      "paletteVersion": "bistro-bloom-v1",
-      "renderVersion": "0.0.3-blender-1",
+      "paletteVersion": "bistro-bloom-reference-hd-v2",
+      "renderVersion": "0.0.3-blender-2",
       "transparent": true
     },
     {
@@ -1129,16 +1228,18 @@
         ]
       ],
       "frameSize": [
-        128,
-        160
+        192,
+        192
       ],
       "nextLevelAssetId": null,
+      "qualityProfile": "reference-hd-v2",
+      "nativeScale": 1.0,
       "renderedFile": "/assets/pixel/rendered/furniture/counters/pickup_counter.png",
       "spriteSheet": "/assets/pixel/rendered/furniture/counters/pickup_counter.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/pickup_counter.png",
       "frameCount": 1,
-      "paletteVersion": "bistro-bloom-v1",
-      "renderVersion": "0.0.3-blender-1",
+      "paletteVersion": "bistro-bloom-reference-hd-v2",
+      "renderVersion": "0.0.3-blender-2",
       "transparent": true
     },
     {
@@ -1174,16 +1275,18 @@
         ]
       ],
       "frameSize": [
-        128,
-        160
+        192,
+        192
       ],
       "nextLevelAssetId": null,
+      "qualityProfile": "reference-hd-v2",
+      "nativeScale": 1.0,
       "renderedFile": "/assets/pixel/rendered/furniture/counters/prep_counter.png",
       "spriteSheet": "/assets/pixel/rendered/furniture/counters/prep_counter.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/prep_counter.png",
       "frameCount": 1,
-      "paletteVersion": "bistro-bloom-v1",
-      "renderVersion": "0.0.3-blender-1",
+      "paletteVersion": "bistro-bloom-reference-hd-v2",
+      "renderVersion": "0.0.3-blender-2",
       "transparent": true
     },
     {
@@ -1219,16 +1322,18 @@
         ]
       ],
       "frameSize": [
-        128,
-        160
+        192,
+        192
       ],
       "nextLevelAssetId": null,
+      "qualityProfile": "reference-hd-v2",
+      "nativeScale": 1.0,
       "renderedFile": "/assets/pixel/rendered/furniture/storage/shelf.png",
       "spriteSheet": "/assets/pixel/rendered/furniture/storage/shelf.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/shelf.png",
       "frameCount": 1,
-      "paletteVersion": "bistro-bloom-v1",
-      "renderVersion": "0.0.3-blender-1",
+      "paletteVersion": "bistro-bloom-reference-hd-v2",
+      "renderVersion": "0.0.3-blender-2",
       "transparent": true
     },
     {
@@ -1264,16 +1369,18 @@
         ]
       ],
       "frameSize": [
-        128,
-        160
+        192,
+        192
       ],
       "nextLevelAssetId": null,
+      "qualityProfile": "reference-hd-v2",
+      "nativeScale": 1.0,
       "renderedFile": "/assets/pixel/rendered/furniture/storage/storage_cabinet.png",
       "spriteSheet": "/assets/pixel/rendered/furniture/storage/storage_cabinet.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/storage_cabinet.png",
       "frameCount": 1,
-      "paletteVersion": "bistro-bloom-v1",
-      "renderVersion": "0.0.3-blender-1",
+      "paletteVersion": "bistro-bloom-reference-hd-v2",
+      "renderVersion": "0.0.3-blender-2",
       "transparent": true
     },
     {
@@ -1309,16 +1416,18 @@
         ]
       ],
       "frameSize": [
-        128,
-        160
+        192,
+        192
       ],
       "nextLevelAssetId": null,
+      "qualityProfile": "reference-hd-v2",
+      "nativeScale": 1.0,
       "renderedFile": "/assets/pixel/rendered/furniture/decorations/bin.png",
       "spriteSheet": "/assets/pixel/rendered/furniture/decorations/bin.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/bin.png",
       "frameCount": 1,
-      "paletteVersion": "bistro-bloom-v1",
-      "renderVersion": "0.0.3-blender-1",
+      "paletteVersion": "bistro-bloom-reference-hd-v2",
+      "renderVersion": "0.0.3-blender-2",
       "transparent": true
     },
     {
@@ -1354,16 +1463,18 @@
         ]
       ],
       "frameSize": [
-        128,
-        160
+        192,
+        192
       ],
       "nextLevelAssetId": null,
+      "qualityProfile": "reference-hd-v2",
+      "nativeScale": 1.0,
       "renderedFile": "/assets/pixel/rendered/furniture/decorations/plant.png",
       "spriteSheet": "/assets/pixel/rendered/furniture/decorations/plant.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/plant.png",
       "frameCount": 1,
-      "paletteVersion": "bistro-bloom-v1",
-      "renderVersion": "0.0.3-blender-1",
+      "paletteVersion": "bistro-bloom-reference-hd-v2",
+      "renderVersion": "0.0.3-blender-2",
       "transparent": true
     },
     {
@@ -1401,16 +1512,18 @@
         ]
       ],
       "frameSize": [
-        128,
-        160
+        192,
+        192
       ],
       "nextLevelAssetId": "stove_level_2",
+      "qualityProfile": "reference-hd-v2",
+      "nativeScale": 1.0,
       "renderedFile": "/assets/pixel/rendered/equipment/stoves/stove_level_1.png",
       "spriteSheet": "/assets/pixel/rendered/equipment/stoves/stove_level_1.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/stove_level_1.png",
       "frameCount": 4,
-      "paletteVersion": "bistro-bloom-v1",
-      "renderVersion": "0.0.3-blender-1",
+      "paletteVersion": "bistro-bloom-reference-hd-v2",
+      "renderVersion": "0.0.3-blender-2",
       "transparent": true
     },
     {
@@ -1448,16 +1561,18 @@
         ]
       ],
       "frameSize": [
-        128,
-        160
+        192,
+        192
       ],
       "nextLevelAssetId": "oven_level_2",
+      "qualityProfile": "reference-hd-v2",
+      "nativeScale": 1.0,
       "renderedFile": "/assets/pixel/rendered/equipment/ovens/oven_level_1.png",
       "spriteSheet": "/assets/pixel/rendered/equipment/ovens/oven_level_1.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/oven_level_1.png",
       "frameCount": 4,
-      "paletteVersion": "bistro-bloom-v1",
-      "renderVersion": "0.0.3-blender-1",
+      "paletteVersion": "bistro-bloom-reference-hd-v2",
+      "renderVersion": "0.0.3-blender-2",
       "transparent": true
     },
     {
@@ -1484,8 +1599,8 @@
         "sw"
       ],
       "animations": {
-        "off": 1,
-        "active": 2,
+        "closed": 1,
+        "open": 2,
         "complete": 1
       },
       "interactionPoints": [
@@ -1495,16 +1610,18 @@
         ]
       ],
       "frameSize": [
-        128,
-        160
+        192,
+        192
       ],
       "nextLevelAssetId": "refrigerator_level_2",
+      "qualityProfile": "reference-hd-v2",
+      "nativeScale": 1.0,
       "renderedFile": "/assets/pixel/rendered/equipment/refrigerators/refrigerator_level_1.png",
       "spriteSheet": "/assets/pixel/rendered/equipment/refrigerators/refrigerator_level_1.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/refrigerator_level_1.png",
       "frameCount": 4,
-      "paletteVersion": "bistro-bloom-v1",
-      "renderVersion": "0.0.3-blender-1",
+      "paletteVersion": "bistro-bloom-reference-hd-v2",
+      "renderVersion": "0.0.3-blender-2",
       "transparent": true
     },
     {
@@ -1542,16 +1659,18 @@
         ]
       ],
       "frameSize": [
-        128,
-        160
+        192,
+        192
       ],
       "nextLevelAssetId": "grill_level_2",
+      "qualityProfile": "reference-hd-v2",
+      "nativeScale": 1.0,
       "renderedFile": "/assets/pixel/rendered/equipment/grills/grill_level_1.png",
       "spriteSheet": "/assets/pixel/rendered/equipment/grills/grill_level_1.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/grill_level_1.png",
       "frameCount": 4,
-      "paletteVersion": "bistro-bloom-v1",
-      "renderVersion": "0.0.3-blender-1",
+      "paletteVersion": "bistro-bloom-reference-hd-v2",
+      "renderVersion": "0.0.3-blender-2",
       "transparent": true
     },
     {
@@ -1589,16 +1708,18 @@
         ]
       ],
       "frameSize": [
-        128,
-        160
+        192,
+        192
       ],
       "nextLevelAssetId": "coffee_machine_level_2",
+      "qualityProfile": "reference-hd-v2",
+      "nativeScale": 1.0,
       "renderedFile": "/assets/pixel/rendered/equipment/coffee-machines/coffee_machine_level_1.png",
       "spriteSheet": "/assets/pixel/rendered/equipment/coffee-machines/coffee_machine_level_1.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/coffee_machine_level_1.png",
       "frameCount": 4,
-      "paletteVersion": "bistro-bloom-v1",
-      "renderVersion": "0.0.3-blender-1",
+      "paletteVersion": "bistro-bloom-reference-hd-v2",
+      "renderVersion": "0.0.3-blender-2",
       "transparent": true
     },
     {
@@ -1636,16 +1757,18 @@
         ]
       ],
       "frameSize": [
-        128,
-        160
+        192,
+        192
       ],
       "nextLevelAssetId": "preparation_level_2",
+      "qualityProfile": "reference-hd-v2",
+      "nativeScale": 1.0,
       "renderedFile": "/assets/pixel/rendered/equipment/preparation/preparation_level_1.png",
       "spriteSheet": "/assets/pixel/rendered/equipment/preparation/preparation_level_1.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/preparation_level_1.png",
       "frameCount": 4,
-      "paletteVersion": "bistro-bloom-v1",
-      "renderVersion": "0.0.3-blender-1",
+      "paletteVersion": "bistro-bloom-reference-hd-v2",
+      "renderVersion": "0.0.3-blender-2",
       "transparent": true
     },
     {
@@ -1683,16 +1806,18 @@
         ]
       ],
       "frameSize": [
-        128,
-        160
+        192,
+        192
       ],
       "nextLevelAssetId": "sink_level_2",
+      "qualityProfile": "reference-hd-v2",
+      "nativeScale": 1.0,
       "renderedFile": "/assets/pixel/rendered/equipment/sinks/sink_level_1.png",
       "spriteSheet": "/assets/pixel/rendered/equipment/sinks/sink_level_1.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/sink_level_1.png",
       "frameCount": 4,
-      "paletteVersion": "bistro-bloom-v1",
-      "renderVersion": "0.0.3-blender-1",
+      "paletteVersion": "bistro-bloom-reference-hd-v2",
+      "renderVersion": "0.0.3-blender-2",
       "transparent": true
     },
     {
@@ -1730,16 +1855,18 @@
         ]
       ],
       "frameSize": [
-        128,
-        160
+        192,
+        192
       ],
       "nextLevelAssetId": "cauldron_level_2",
+      "qualityProfile": "reference-hd-v2",
+      "nativeScale": 1.0,
       "renderedFile": "/assets/pixel/rendered/equipment/cauldrons/cauldron_level_1.png",
       "spriteSheet": "/assets/pixel/rendered/equipment/cauldrons/cauldron_level_1.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/cauldron_level_1.png",
       "frameCount": 4,
-      "paletteVersion": "bistro-bloom-v1",
-      "renderVersion": "0.0.3-blender-1",
+      "paletteVersion": "bistro-bloom-reference-hd-v2",
+      "renderVersion": "0.0.3-blender-2",
       "transparent": true
     },
     {
@@ -1777,16 +1904,18 @@
         ]
       ],
       "frameSize": [
-        128,
-        160
+        192,
+        192
       ],
       "nextLevelAssetId": "assembly_level_2",
+      "qualityProfile": "reference-hd-v2",
+      "nativeScale": 1.0,
       "renderedFile": "/assets/pixel/rendered/equipment/preparation/assembly_level_1.png",
       "spriteSheet": "/assets/pixel/rendered/equipment/preparation/assembly_level_1.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/assembly_level_1.png",
       "frameCount": 4,
-      "paletteVersion": "bistro-bloom-v1",
-      "renderVersion": "0.0.3-blender-1",
+      "paletteVersion": "bistro-bloom-reference-hd-v2",
+      "renderVersion": "0.0.3-blender-2",
       "transparent": true
     }
   ]

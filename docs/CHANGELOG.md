@@ -2,6 +2,14 @@
 
 ## 0.0.3 — 2026-07-19
 
+- Elevado o padrão visual da própria 0.0.3 para `reference-hd-v2`, sem alterar a versão do jogo.
+- Personagens passaram de 64×96 para 96×144, com altura útil próxima de dois blocos, anchor centralizado nos pés e escala 1:1 no Phaser.
+- Refeitos todos os personagens, móveis e equipamentos Blender para evitar mistura com os antigos blocos simplificados.
+- Adicionados seis frames distintos de caminhada por direção, identidade e roupa consistentes, rostos, mãos, cabelos e acessórios mais detalhados.
+- Refeito o fogão 2×1 com quatro orientações, forno duplo, seis queimadores e estados desligado/funcionando.
+- Refeita a geladeira 2×1 com quatro orientações, portas articuladas e estados fechada/aberta com interior abastecido.
+- Atualizados manifest, anchors, filtro nearest, escala e ordenação por pés; adicionada validação de cobertura visual do footprint.
+
 - Corrigidos NPCs presos em `leaving`: zona de saída ampliada, metadados de recuperação, espera entre recálculos, rotas alternativas e limpeza segura de todas as referências.
 - Corrigida a seleção de mesa que insistia numa primeira mesa temporariamente bloqueada e fazia clientes seguintes desistirem apesar de haver lugares alcançáveis.
 - Reestruturadas mesas para 10 assentos independentes; grupos reservam lugares atomicamente, pedidos/pratos pertencem ao assento e a limpeza libera cada lugar separadamente.

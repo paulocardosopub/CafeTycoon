@@ -14,7 +14,8 @@ def build_materials():
             material.node_tree.links.new(shader.outputs["BSDF"], output.inputs["Surface"])
         shader.inputs["Base Color"].default_value = color
         shader.inputs["Roughness"].default_value = 0.82
-        shader.inputs["Metallic"].default_value = 0.35 if "steel" in name else 0.0
+        shader.inputs["Metallic"].default_value = 0.72 if name == "chrome" else 0.42 if "steel" in name else 0.0
+        shader.inputs["Specular IOR Level"].default_value = 0.34
         materials[name] = material
     shadow = bpy.data.materials.get("BB_shadow") or bpy.data.materials.new("BB_shadow")
     shadow.diffuse_color = (0.03, 0.02, 0.02, 0.28)

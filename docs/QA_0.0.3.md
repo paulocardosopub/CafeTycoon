@@ -6,10 +6,12 @@ Data: 19 de julho de 2026
 
 A versão 0.0.3 foi aprovada para publicação. O escopo permanece um jogo Phaser 2D; o Blender é usado somente como pipeline de autoria e renderização de pixel art, sem carregar arquivos `.blend` em tempo de execução.
 
+Reauditoria visual: o perfil `reference-hd-v2` substitui o lote simplificado sem mudar a versão do jogo. Personagens usam 96×144 em escala nativa; móveis e equipamentos usam 192×192.
+
 ## Verificações automatizadas
 
 - 10 arquivos de teste executados.
-- 55 testes aprovados, sem falhas.
+- 57 testes aprovados, sem falhas.
 - Compilação TypeScript e build de produção aprovados.
 - 36 ativos Blender validados, incluindo dimensões, RGBA, direções, animações, miniaturas, cópias públicas, manifest e arquivos-fonte editáveis.
 - Exercícios de stress com 20 clientes simultâneos e 50 ciclos de entrada/saída.

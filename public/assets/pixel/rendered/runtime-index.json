@@ -2,8 +2,8 @@
   "player-style-0": {
     "sheet": "/assets/pixel/rendered/characters/player/player-style-0.png",
     "frameSize": [
-      64,
-      96
+      96,
+      144
     ],
     "animations": {
       "idle": 2,
@@ -29,8 +29,8 @@
   "player-style-1": {
     "sheet": "/assets/pixel/rendered/characters/player/player-style-1.png",
     "frameSize": [
-      64,
-      96
+      96,
+      144
     ],
     "animations": {
       "idle": 2,
@@ -56,8 +56,8 @@
   "player-style-2": {
     "sheet": "/assets/pixel/rendered/characters/player/player-style-2.png",
     "frameSize": [
-      64,
-      96
+      96,
+      144
     ],
     "animations": {
       "idle": 2,
@@ -83,8 +83,8 @@
   "player-style-3": {
     "sheet": "/assets/pixel/rendered/characters/player/player-style-3.png",
     "frameSize": [
-      64,
-      96
+      96,
+      144
     ],
     "animations": {
       "idle": 2,
@@ -110,8 +110,8 @@
   "customer-0": {
     "sheet": "/assets/pixel/rendered/characters/customers/customer-0.png",
     "frameSize": [
-      64,
-      96
+      96,
+      144
     ],
     "animations": {
       "idle": 2,
@@ -137,8 +137,8 @@
   "customer-1": {
     "sheet": "/assets/pixel/rendered/characters/customers/customer-1.png",
     "frameSize": [
-      64,
-      96
+      96,
+      144
     ],
     "animations": {
       "idle": 2,
@@ -164,8 +164,8 @@
   "customer-2": {
     "sheet": "/assets/pixel/rendered/characters/customers/customer-2.png",
     "frameSize": [
-      64,
-      96
+      96,
+      144
     ],
     "animations": {
       "idle": 2,
@@ -191,8 +191,8 @@
   "customer-3": {
     "sheet": "/assets/pixel/rendered/characters/customers/customer-3.png",
     "frameSize": [
-      64,
-      96
+      96,
+      144
     ],
     "animations": {
       "idle": 2,
@@ -218,8 +218,8 @@
   "customer-4": {
     "sheet": "/assets/pixel/rendered/characters/customers/customer-4.png",
     "frameSize": [
-      64,
-      96
+      96,
+      144
     ],
     "animations": {
       "idle": 2,
@@ -245,8 +245,8 @@
   "customer-5": {
     "sheet": "/assets/pixel/rendered/characters/customers/customer-5.png",
     "frameSize": [
-      64,
-      96
+      96,
+      144
     ],
     "animations": {
       "idle": 2,
@@ -272,8 +272,8 @@
   "customer-6": {
     "sheet": "/assets/pixel/rendered/characters/customers/customer-6.png",
     "frameSize": [
-      64,
-      96
+      96,
+      144
     ],
     "animations": {
       "idle": 2,
@@ -299,8 +299,8 @@
   "customer-7": {
     "sheet": "/assets/pixel/rendered/characters/customers/customer-7.png",
     "frameSize": [
-      64,
-      96
+      96,
+      144
     ],
     "animations": {
       "idle": 2,
@@ -326,8 +326,8 @@
   "cook-0": {
     "sheet": "/assets/pixel/rendered/characters/employees/cooks/cook-0.png",
     "frameSize": [
-      64,
-      96
+      96,
+      144
     ],
     "animations": {
       "idle": 2,
@@ -353,8 +353,8 @@
   "cook-1": {
     "sheet": "/assets/pixel/rendered/characters/employees/cooks/cook-1.png",
     "frameSize": [
-      64,
-      96
+      96,
+      144
     ],
     "animations": {
       "idle": 2,
@@ -380,8 +380,8 @@
   "waiter-0": {
     "sheet": "/assets/pixel/rendered/characters/employees/waiters/waiter-0.png",
     "frameSize": [
-      64,
-      96
+      96,
+      144
     ],
     "animations": {
       "idle": 2,
@@ -407,8 +407,8 @@
   "waiter-1": {
     "sheet": "/assets/pixel/rendered/characters/employees/waiters/waiter-1.png",
     "frameSize": [
-      64,
-      96
+      96,
+      144
     ],
     "animations": {
       "idle": 2,
@@ -434,8 +434,8 @@
   "cleaner-0": {
     "sheet": "/assets/pixel/rendered/characters/employees/cleaners/cleaner-0.png",
     "frameSize": [
-      64,
-      96
+      96,
+      144
     ],
     "animations": {
       "idle": 2,
@@ -461,8 +461,8 @@
   "stocker-0": {
     "sheet": "/assets/pixel/rendered/characters/employees/stockers/stocker-0.png",
     "frameSize": [
-      64,
-      96
+      96,
+      144
     ],
     "animations": {
       "idle": 2,
@@ -488,8 +488,8 @@
   "table_two": {
     "sheet": "/assets/pixel/rendered/furniture/tables/table_two.png",
     "frameSize": [
-      128,
-      160
+      192,
+      192
     ],
     "animations": {
       "idle": 1
@@ -504,8 +504,8 @@
   "table_four": {
     "sheet": "/assets/pixel/rendered/furniture/tables/table_four.png",
     "frameSize": [
-      128,
-      160
+      192,
+      192
     ],
     "animations": {
       "idle": 1
@@ -520,8 +520,8 @@
   "chair": {
     "sheet": "/assets/pixel/rendered/furniture/chairs/chair.png",
     "frameSize": [
-      128,
-      160
+      192,
+      192
     ],
     "animations": {
       "idle": 1
@@ -536,8 +536,8 @@
   "pickup_counter": {
     "sheet": "/assets/pixel/rendered/furniture/counters/pickup_counter.png",
     "frameSize": [
-      128,
-      160
+      192,
+      192
     ],
     "animations": {
       "idle": 1
@@ -552,8 +552,8 @@
   "prep_counter": {
     "sheet": "/assets/pixel/rendered/furniture/counters/prep_counter.png",
     "frameSize": [
-      128,
-      160
+      192,
+      192
     ],
     "animations": {
       "idle": 1
@@ -568,8 +568,8 @@
   "shelf": {
     "sheet": "/assets/pixel/rendered/furniture/storage/shelf.png",
     "frameSize": [
-      128,
-      160
+      192,
+      192
     ],
     "animations": {
       "idle": 1
@@ -584,8 +584,8 @@
   "storage_cabinet": {
     "sheet": "/assets/pixel/rendered/furniture/storage/storage_cabinet.png",
     "frameSize": [
-      128,
-      160
+      192,
+      192
     ],
     "animations": {
       "idle": 1
@@ -600,8 +600,8 @@
   "bin": {
     "sheet": "/assets/pixel/rendered/furniture/decorations/bin.png",
     "frameSize": [
-      128,
-      160
+      192,
+      192
     ],
     "animations": {
       "idle": 1
@@ -616,8 +616,8 @@
   "plant": {
     "sheet": "/assets/pixel/rendered/furniture/decorations/plant.png",
     "frameSize": [
-      128,
-      160
+      192,
+      192
     ],
     "animations": {
       "idle": 1
@@ -632,8 +632,8 @@
   "stove_level_1": {
     "sheet": "/assets/pixel/rendered/equipment/stoves/stove_level_1.png",
     "frameSize": [
-      128,
-      160
+      192,
+      192
     ],
     "animations": {
       "off": 1,
@@ -650,8 +650,8 @@
   "oven_level_1": {
     "sheet": "/assets/pixel/rendered/equipment/ovens/oven_level_1.png",
     "frameSize": [
-      128,
-      160
+      192,
+      192
     ],
     "animations": {
       "off": 1,
@@ -668,12 +668,12 @@
   "refrigerator_level_1": {
     "sheet": "/assets/pixel/rendered/equipment/refrigerators/refrigerator_level_1.png",
     "frameSize": [
-      128,
-      160
+      192,
+      192
     ],
     "animations": {
-      "off": 1,
-      "active": 2,
+      "closed": 1,
+      "open": 2,
       "complete": 1
     },
     "orientations": [
@@ -686,8 +686,8 @@
   "grill_level_1": {
     "sheet": "/assets/pixel/rendered/equipment/grills/grill_level_1.png",
     "frameSize": [
-      128,
-      160
+      192,
+      192
     ],
     "animations": {
       "off": 1,
@@ -704,8 +704,8 @@
   "coffee_machine_level_1": {
     "sheet": "/assets/pixel/rendered/equipment/coffee-machines/coffee_machine_level_1.png",
     "frameSize": [
-      128,
-      160
+      192,
+      192
     ],
     "animations": {
       "off": 1,
@@ -722,8 +722,8 @@
   "preparation_level_1": {
     "sheet": "/assets/pixel/rendered/equipment/preparation/preparation_level_1.png",
     "frameSize": [
-      128,
-      160
+      192,
+      192
     ],
     "animations": {
       "off": 1,
@@ -740,8 +740,8 @@
   "sink_level_1": {
     "sheet": "/assets/pixel/rendered/equipment/sinks/sink_level_1.png",
     "frameSize": [
-      128,
-      160
+      192,
+      192
     ],
     "animations": {
       "off": 1,
@@ -758,8 +758,8 @@
   "cauldron_level_1": {
     "sheet": "/assets/pixel/rendered/equipment/cauldrons/cauldron_level_1.png",
     "frameSize": [
-      128,
-      160
+      192,
+      192
     ],
     "animations": {
       "off": 1,
@@ -776,8 +776,8 @@
   "assembly_level_1": {
     "sheet": "/assets/pixel/rendered/equipment/preparation/assembly_level_1.png",
     "frameSize": [
-      128,
-      160
+      192,
+      192
     ],
     "animations": {
       "off": 1,

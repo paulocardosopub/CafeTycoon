@@ -60,6 +60,7 @@ export class RestaurantScene extends Phaser.Scene {
 
   create(): void {
     installPixelAtlases(this, this.simulation.state.profile?.appearance);
+    for (const asset of BLENDER_RENDERED_ASSETS) this.textures.get(`blender:${asset.assetId}`).setFilter(Phaser.Textures.FilterMode.NEAREST);
     this.cameras.main.setBackgroundColor('#294b3a');
     this.cameras.main.setBounds(-920, -250, 1840, 1250);
     this.cameras.main.centerOn(0, 320).setZoom(ZOOM_LEVELS[this.zoomIndex]);
@@ -191,8 +192,10 @@ export class RestaurantScene extends Phaser.Scene {
     const stationDepth = station.id === 'pickup' ? isoDepth(station.position, 18) : isoDepth(base, 30);
     const blenderId = station.renderedAssetId ?? WORLD_BLENDER_ASSET[station.asset];
     const useBlender = Boolean(blenderId && this.textures.exists(`blender:${blenderId}`));
+    const rendered = blenderId ? blenderAsset(blenderId) : undefined;
+    const origin = useBlender && rendered ? { x: rendered.anchor[0], y: rendered.anchor[1] } : definition.anchor;
     const sprite = this.add.image(Math.round(point.x), Math.round(point.y), useBlender ? `blender:${blenderId}` : 'world-atlas', useBlender ? worldRenderedFrame(station.orientation, 0, blenderId!) : definition.frame)
-      .setOrigin(definition.anchor.x, definition.anchor.y).setDepth(stationDepth).setInteractive({ useHandCursor: true });
+      .setOrigin(origin.x, origin.y).setScale(useBlender ? rendered?.nativeScale ?? 1 : 1).setDepth(stationDepth).setInteractive({ useHandCursor: true });
     sprite.on('pointerdown', (_pointer: Phaser.Input.Pointer, _x: number, _y: number, event: Phaser.Types.Input.EventData) => {
       event.stopPropagation();
       const ok = this.simulation.prioritizeWorldTarget('station', station.id);
@@ -201,7 +204,8 @@ export class RestaurantScene extends Phaser.Scene {
     const effect = this.add.sprite(Math.round(point.x), Math.round(point.y), 'world-atlas', effectFrame('steam', 0))
       .setOrigin(.5, 1).setDepth(station.id === 'pickup' ? stationDepth + 4 : isoDepth(base, 34)).setVisible(false);
     const progress = this.add.graphics().setDepth(isoDepth(base, 95));
-    const label = this.add.text(Math.round(point.x), Math.round(point.y - station.visualHeight - 16), station.name, this.pixelTextStyle('#fff8e9', '#294b3ae6'))
+    const labelOffset = useBlender && rendered ? Math.round(rendered.frameSize[1] * .72) : station.visualHeight + 16;
+    const label = this.add.text(Math.round(point.x), Math.round(point.y - labelOffset), station.name, this.pixelTextStyle('#fff8e9', '#294b3ae6'))
       .setOrigin(.5).setDepth(isoDepth(base, 96)).setVisible(false);
     const plates = station.id === 'pickup' ? [-28, 0, 28].map((offset) => this.add.image(Math.round(point.x + offset), Math.round(point.y - 37), 'world-atlas', WORLD_ASSETS.dish.frame)
       .setOrigin(.5, 1).setDepth(stationDepth + 6).setScale(.58).setVisible(false)) : [];
@@ -212,10 +216,12 @@ export class RestaurantScene extends Phaser.Scene {
     const variant = actor.assetId;
     const point = gridToWorld(actor.position);
     const useBlender = this.textures.exists(`blender:${variant}`);
-    const sprite = this.add.sprite(Math.round(point.x), Math.round(point.y), useBlender ? `blender:${variant}` : 'character-atlas', useBlender ? renderedCharacterFrame('idle', actor.direction, 0) : characterFrame(variant, 'idle', actor.direction, 0))
-      .setOrigin(.5, 88 / 96).setDepth(isoDepth(actor.position, 50)).setInteractive({ useHandCursor: actor.kind === 'player' });
+    const rendered = blenderAsset(variant);
+    const origin = characterOrigin(variant);
+    const sprite = this.add.sprite(Math.round(point.x), Math.round(point.y), useBlender ? `blender:${variant}` : 'character-atlas', useBlender ? renderedCharacterFrame(variant, 'idle', actor.direction, 0) : characterFrame(variant, 'idle', actor.direction, 0))
+      .setOrigin(origin.x, origin.y).setScale(useBlender ? rendered?.nativeScale ?? 1 : 1).setDepth(isoDepth(actor.position, 50)).setInteractive({ useHandCursor: actor.kind === 'player' });
     if (actor.kind === 'player') sprite.on('pointerdown', (_pointer: Phaser.Input.Pointer, _x: number, _y: number, event: Phaser.Types.Input.EventData) => { event.stopPropagation(); gameEvents.emit('ui:open-player', undefined); });
-    const bubble = this.add.text(Math.round(point.x), Math.round(point.y - 77), '', this.pixelTextStyle('#294b3a', '#fff8e9ee'))
+    const bubble = this.add.text(Math.round(point.x), Math.round(point.y - characterUiOffset(variant)), '', this.pixelTextStyle('#294b3a', '#fff8e9ee'))
       .setOrigin(.5).setDepth(isoDepth(actor.position, 98));
     this.actorVisuals.set(actor.id, { sprite, bubble });
   }
@@ -230,11 +236,11 @@ export class RestaurantScene extends Phaser.Scene {
     else if (actor.carrying === 'dish') animation = 'carry-dish';
     else if (actor.carrying === 'ingredients') animation = 'carry-ingredients';
     const frame = this.animationFrame(animation);
-    if (this.textures.exists(`blender:${variant}`)) visual.sprite.setTexture(`blender:${variant}`, renderedCharacterFrame(animation, actor.direction, frame));
+    if (this.textures.exists(`blender:${variant}`)) visual.sprite.setTexture(`blender:${variant}`, renderedCharacterFrame(variant, animation, actor.direction, frame));
     else visual.sprite.setTexture('character-atlas', characterFrame(variant, animation, actor.direction, frame));
     const point = gridToWorld(actor.visual);
     visual.sprite.setPosition(Math.round(point.x), Math.round(point.y)).setDepth(isoDepth(actor.visual, 50));
-    visual.bubble.setPosition(Math.round(point.x), Math.round(point.y - 77)).setDepth(isoDepth(actor.visual, 98))
+    visual.bubble.setPosition(Math.round(point.x), Math.round(point.y - characterUiOffset(variant))).setDepth(isoDepth(actor.visual, 98))
       .setText(actor.activity === 'Sem tarefa' ? actor.name : `${actor.name} · ${actor.activity}`)
       .setVisible(actor.kind === 'player' || actor.activity !== 'Sem tarefa');
   }
@@ -258,26 +264,28 @@ export class RestaurantScene extends Phaser.Scene {
     const point = gridToWorld(position);
     visual.sprite.setPosition(Math.round(point.x), Math.round(point.y)).setDepth(isoDepth(position, seated ? 32 : 50));
     const assetId = `customer-${customer.variant}`; const animationIndex = this.animationFrame(animation);
-    if (this.textures.exists(`blender:${assetId}`)) visual.sprite.setTexture(`blender:${assetId}`, renderedCharacterFrame(animation, customer.direction, animationIndex));
+    if (this.textures.exists(`blender:${assetId}`)) visual.sprite.setTexture(`blender:${assetId}`, renderedCharacterFrame(assetId, animation, customer.direction, animationIndex));
     else visual.sprite.setTexture('character-atlas', characterFrame(assetId, animation, customer.direction, animationIndex));
-    visual.bubble.setPosition(Math.round(point.x), Math.round(point.y - 73)).setDepth(isoDepth(position, 99));
+    const uiOffset = characterUiOffset(assetId);
+    visual.bubble.setPosition(Math.round(point.x), Math.round(point.y - uiOffset)).setDepth(isoDepth(position, 99));
     const recipe = customer.orderId ? this.simulation.orders.find((order) => order.id === customer.orderId)?.recipeId : undefined;
     const label = customer.partySize > 1 ? `${this.simulation.customerLabel(customer)} · grupo ${customer.partySize}` : this.simulation.customerLabel(customer);
     visual.bubble.setText(recipe ? `${RECIPE_LABEL[recipe] ?? ''} ${label}` : label).setVisible(customer.state !== 'eating');
     visual.patience.clear().setDepth(isoDepth(position, 100));
     if (['queueing', 'waiting_order', 'waiting_food', 'waiting_payment'].includes(customer.state)) {
       const ratio = Phaser.Math.Clamp(customer.patience / customer.maxPatience, 0, 1);
-      visual.patience.fillStyle(0x241a18, .65).fillRect(Math.round(point.x - 20), Math.round(point.y - 62), 40, 5);
-      visual.patience.fillStyle(ratio > .45 ? 0x7d9b68 : ratio > .2 ? 0xf1c45b : 0xc94b3c, 1).fillRect(Math.round(point.x - 19), Math.round(point.y - 61), Math.round(38 * ratio), 3);
+      visual.patience.fillStyle(0x241a18, .65).fillRect(Math.round(point.x - 20), Math.round(point.y - uiOffset + 12), 40, 5);
+      visual.patience.fillStyle(ratio > .45 ? 0x7d9b68 : ratio > .2 ? 0xf1c45b : 0xc94b3c, 1).fillRect(Math.round(point.x - 19), Math.round(point.y - uiOffset + 13), Math.round(38 * ratio), 3);
     }
   }
 
   private createCustomer(customer: CustomerRuntime): void {
     const point = gridToWorld(customer.position);
     const assetId = `customer-${customer.variant}`; const useBlender = this.textures.exists(`blender:${assetId}`);
-    const sprite = this.add.sprite(Math.round(point.x), Math.round(point.y), useBlender ? `blender:${assetId}` : 'character-atlas', useBlender ? renderedCharacterFrame('idle', customer.direction, 0) : characterFrame(assetId, 'idle', customer.direction, 0))
-      .setOrigin(.5, 88 / 96).setDepth(isoDepth(customer.position, 50));
-    const bubble = this.add.text(Math.round(point.x), Math.round(point.y - 73), '', this.pixelTextStyle('#294b3a', '#fff8e9ee')).setOrigin(.5);
+    const rendered = blenderAsset(assetId); const origin = characterOrigin(assetId);
+    const sprite = this.add.sprite(Math.round(point.x), Math.round(point.y), useBlender ? `blender:${assetId}` : 'character-atlas', useBlender ? renderedCharacterFrame(assetId, 'idle', customer.direction, 0) : characterFrame(assetId, 'idle', customer.direction, 0))
+      .setOrigin(origin.x, origin.y).setScale(useBlender ? rendered?.nativeScale ?? 1 : 1).setDepth(isoDepth(customer.position, 50));
+    const bubble = this.add.text(Math.round(point.x), Math.round(point.y - characterUiOffset(assetId)), '', this.pixelTextStyle('#294b3a', '#fff8e9ee')).setOrigin(.5);
     const patience = this.add.graphics();
     this.customerVisuals.set(customer.id, { sprite, bubble, patience, previousState: customer.state, transitionStartedAt: 0 });
   }
@@ -389,8 +397,8 @@ function blenderAsset(assetId: string) {
   return BLENDER_RENDERED_ASSETS.find((asset) => asset.assetId === assetId);
 }
 
-function renderedCharacterFrame(animation: PixelAnimationName, direction: Direction, frame: number): number {
-  const asset = BLENDER_RENDERED_ASSETS.find((item) => item.kind === 'character');
+function renderedCharacterFrame(assetId: string, animation: PixelAnimationName, direction: Direction, frame: number): number {
+  const asset = blenderAsset(assetId);
   if (!asset) return 0;
   let animationOffset = 0;
   for (const [name, frames] of Object.entries(asset.animations)) {
@@ -400,6 +408,17 @@ function renderedCharacterFrame(animation: PixelAnimationName, direction: Direct
   const frameCount = asset.animations[animation] ?? 1;
   const directionIndex = Math.max(0, asset.orientations.indexOf(direction));
   return directionIndex * asset.frameCount + animationOffset + (frame % frameCount);
+}
+
+function characterOrigin(assetId: string): { x: number; y: number } {
+  const asset = blenderAsset(assetId);
+  if (!asset || asset.kind !== 'character') return { x: .5, y: 88 / 96 };
+  return { x: asset.anchor[0] / asset.frameSize[0], y: asset.anchor[1] / asset.frameSize[1] };
+}
+
+function characterUiOffset(assetId: string): number {
+  const asset = blenderAsset(assetId);
+  return asset?.kind === 'character' ? Math.round(asset.anchor[1] - 4) : 77;
 }
 
 function worldRenderedFrame(direction: Direction, stateFrame: number, assetId: string): number {

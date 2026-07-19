@@ -1,6 +1,8 @@
 # Regras confirmadas
 
 - Versão atual: **0.0.3**. O jogo continua 2D; Blender é apenas a ferramenta de produção dos PNGs.
+- Personagens continuam em footprint 1×1, mas são exibidos em 96×144, escala 1:1 e altura visual próxima de dois blocos; a profundidade é ordenada pelos pés.
+- Fogão e geladeira continuam em 2×1, com quatro orientações e estados desligado/funcionando ou fechado/aberto sem alterar pontos de interação.
 - O restaurante tem 10 vagas, calculadas pelas cadeiras acessíveis. Cada cadeira reserva um cliente, pedido, prato e sujeira independentemente.
 - Um grupo só senta quando encontra lugares suficientes na mesma mesa. Se não houver, aguarda na fila.
 - Pessoas terminam no centro dos blocos e não atravessam paredes, móveis, ocupações ou reservas alheias.

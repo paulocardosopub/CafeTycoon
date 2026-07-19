@@ -18,6 +18,10 @@ def cylinder(name, location, radius, depth, material, collection, vertices=8):
     bpy.ops.mesh.primitive_cylinder_add(vertices=vertices, radius=radius, depth=depth, location=location)
     obj = bpy.context.object; obj.name = name; obj.data.materials.append(material); return link_only(obj, collection)
 
+def cone(name, location, radius1, radius2, depth, material, collection, vertices=8):
+    bpy.ops.mesh.primitive_cone_add(vertices=vertices, radius1=radius1, radius2=radius2, depth=depth, location=location)
+    obj = bpy.context.object; obj.name = name; obj.data.materials.append(material); return link_only(obj, collection)
+
 def sphere(name, location, scale, material, collection):
     bpy.ops.mesh.primitive_uv_sphere_add(segments=12, ring_count=6, location=location)
     obj = bpy.context.object; obj.name = name; obj.scale = scale
@@ -27,6 +31,13 @@ def sphere(name, location, scale, material, collection):
 def root_empty(asset_id, collection):
     root = bpy.data.objects.new(f"{asset_id}:root", None); root.empty_display_type = "PLAIN_AXES"; root.hide_render = True
     collection.objects.link(root); root["assetId"] = asset_id; return root
+
+def pivot(name, location, collection, parent=None):
+    obj = bpy.data.objects.new(name, None); obj.empty_display_type = "PLAIN_AXES"; obj.hide_render = True
+    collection.objects.link(obj); obj.location = location; obj.parent = parent; return obj
+
+def parent_local(obj, parent, location):
+    obj.parent = parent; obj.location = location; return obj
 
 def parent_parts(root, objects):
     for obj in objects: obj.parent = root

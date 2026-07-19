@@ -7,11 +7,12 @@ interface ManifestAsset {
   assetId: string; kind: 'character' | 'furniture' | 'equipment'; category: string; sourceBlend: string;
   renderedFile: string; thumbnail: string; orientations: string[]; animations: Record<string, number>;
   frameCount: number; frameSize: number[]; footprint: number[]; anchor: number[]; visualLevel: number;
-  transparent: boolean; nextLevelAssetId?: string | null;
+  transparent: boolean; nextLevelAssetId?: string | null; qualityProfile: string; nativeScale: number;
 }
 
 interface AssetManifest {
   version: string;
+  qualityProfile: string;
   camera: { projection: string; horizontalAngle: number; inclination: number; frameGrid: string };
   assets: ManifestAsset[];
 }
@@ -30,6 +31,11 @@ function pngHeader(path: string): { width: number; height: number; colorType: nu
 }
 
 describe('pipeline Blender 0.0.3', () => {
+  it('mantÃ©m a versÃ£o do jogo e evolui apenas a revisÃ£o visual', () => {
+    expect(manifest.version).toBe('0.0.3-blender-2');
+    expect(manifest.qualityProfile).toBe('reference-hd-v2');
+  });
+
   it('mantém câmera isométrica ortográfica padronizada', () => {
     expect(manifest.camera).toMatchObject({ projection: 'orthographic', horizontalAngle: 45, frameGrid: '64x32' });
     expect(manifest.camera.inclination).toBeCloseTo(35.264, 3);
@@ -53,15 +59,34 @@ describe('pipeline Blender 0.0.3', () => {
     for (const asset of manifest.assets) {
       expect(asset.orientations).toEqual(['ne', 'nw', 'se', 'sw']);
       expect(asset.visualLevel).toBe(1);
+      expect(asset.qualityProfile).toBe('reference-hd-v2');
+      expect(asset.nativeScale).toBe(1);
       expect(asset.transparent).toBe(true);
       expect(asset.footprint[0]).toBeGreaterThan(0);
       const header = pngHeader(canonicalPng(asset));
       expect(header).toMatchObject({ width: asset.frameSize[0] * asset.frameCount, height: asset.frameSize[1] * 4, colorType: 6 });
       if (asset.kind === 'character') {
-        expect(asset.anchor).toEqual([32, 88]);
+        expect(asset.frameSize).toEqual([96, 144]);
+        expect(asset.anchor).toEqual([48, 136]);
+        expect(asset.animations.walk).toBe(6);
         expect(Object.keys(asset.animations)).toEqual(expect.arrayContaining(required));
+      } else {
+        expect(asset.frameSize).toEqual([192, 192]);
       }
     }
+  });
+
+  it('implementa os estados e footprints das quatro referÃªncias visuais', () => {
+    const cook = manifest.assets.find((item) => item.assetId === 'cook-0')!;
+    const customer = manifest.assets.find((item) => item.assetId === 'customer-0')!;
+    const stove = manifest.assets.find((item) => item.assetId === 'stove_level_1')!;
+    const refrigerator = manifest.assets.find((item) => item.assetId === 'refrigerator_level_1')!;
+    for (const character of [cook, customer]) {
+      expect(character.orientations).toHaveLength(4);
+      expect(character.animations.walk).toBe(6);
+    }
+    expect(stove).toMatchObject({ footprint: [2, 1], animations: { off: 1, active: 2, complete: 1 } });
+    expect(refrigerator).toMatchObject({ footprint: [2, 1], animations: { closed: 1, open: 2, complete: 1 } });
   });
 
   it('mantém dados visuais separados e troca futura sem mover a estação', () => {
@@ -80,7 +105,8 @@ describe('pipeline Blender 0.0.3', () => {
   it('oferece renderização por categoria e por ID', () => {
     const buildScript = readFileSync(resolve(projectRoot, 'tools/blender/build_assets.py'), 'utf8');
     expect(buildScript).toContain('parser.add_argument("--asset")');
+    expect(buildScript).toContain('parser.add_argument("--assets")');
     expect(buildScript).toContain('--category');
-    expect(buildScript).toContain('selected or item["assetId"] == selected');
+    expect(buildScript).toContain('item["assetId"] in selected_ids');
   });
 });
