@@ -20,6 +20,7 @@ export function migrateAndSanitizeSave(raw: GameState | null, now = Date.now()):
     productionQueue: Array.isArray(raw.productionQueue) ? raw.productionQueue.slice(0, 20) : [],
     upgrades: { ...fallback.upgrades, ...(raw.upgrades ?? {}) },
     stats: { ...fallback.stats, ...(raw.stats ?? {}) },
+    graphics: raw.graphics?.dataVersion === 2 && Array.isArray(raw.graphics.objects) ? raw.graphics : fallback.graphics,
   };
   for (const key of Object.keys(state.readyDishes) as (keyof typeof state.readyDishes)[]) state.readyDishes[key] = Math.max(0, Math.floor(Number(state.readyDishes[key]) || 0));
   return state;

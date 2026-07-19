@@ -1,5 +1,5 @@
-export const GAME_VERSION = '0.0.1';
-export const SAVE_SCHEMA_VERSION = 1;
+export const GAME_VERSION = '0.0.2';
+export const SAVE_SCHEMA_VERSION = 2;
 
 export const BALANCE = {
   startingCoins: 260,
@@ -9,6 +9,8 @@ export const BALANCE = {
   customerSpawnSeconds: 12,
   customerEatSeconds: 9,
   customerBasePatienceSeconds: 120,
+  movementSpeedMultiplier: 2,
+  cookingSpeedMultiplier: 2,
   actionSeconds: {
     takeOrder: 3.2,
     deliver: 2.4,

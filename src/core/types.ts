@@ -1,16 +1,22 @@
 export type GridPoint = { x: number; y: number };
+export type Direction = 'ne' | 'nw' | 'se' | 'sw';
+export type Orientation = Direction;
+export type PixelAnimationName = 'idle' | 'walk' | 'carry-dish' | 'carry-ingredients' | 'work' | 'sit' | 'seated' | 'eat';
+export type WorldAssetId = 'floor_dining' | 'floor_kitchen' | 'floor_outside' | 'floor_grass_alt' | 'floor_road' | 'wall_nw' | 'wall_ne' | 'door' |
+  'table' | 'chair_ne' | 'chair_nw' | 'chair_se' | 'chair_sw' | 'prep' | 'stove' | 'grill' | 'cauldron' |
+  'coffee_machine' | 'assembly' | 'pickup' | 'fridge' | 'oven' | 'sink' | 'storage' | 'plant' | 'shelf' | 'bin' | 'dish';
 export type Presentation = 'masculina' | 'feminina';
 export type HelpRole = 'kitchen' | 'service' | 'cleaning' | 'stock';
 export type ProfessionId = 'cook' | 'waiter' | 'cleaner' | 'stocker';
 export type IngredientId = 'bread' | 'beef' | 'cheese' | 'egg' | 'tomato' | 'coffee' | 'water' | 'vegetables' | 'seasoning';
 export type RecipeId = 'coffee' | 'omelette' | 'burger' | 'soup';
-export type StationId = 'prep' | 'stove' | 'grill' | 'cauldron' | 'coffee_machine' | 'assembly' | 'pickup';
+export type StationId = 'prep' | 'stove' | 'grill' | 'cauldron' | 'coffee_machine' | 'assembly' | 'pickup' | 'fridge' | 'oven' | 'sink' | 'storage';
 export type TableState = 'free' | 'reserved' | 'occupied' | 'waiting_order' | 'waiting_food' | 'eating' | 'waiting_cleaning' | 'unavailable';
 export type ChairState = 'free' | 'reserved' | 'occupied' | 'blocked';
 export type StationState = 'free' | 'reserved' | 'in_use' | 'waiting_worker' | 'complete' | 'blocked' | 'no_ingredients';
 export type CustomerState = 'entering' | 'queueing' | 'walking_to_seat' | 'waiting_order' | 'waiting_food' | 'eating' | 'waiting_payment' | 'leaving' | 'gone' | 'gave_up';
 export type TaskKind = 'take_order' | 'cook_step' | 'deliver' | 'payment' | 'clean' | 'stock_support';
-export type ActorKind = 'player' | 'cook' | 'waiter';
+export type ActorKind = 'player' | 'cook' | 'waiter' | 'assistant';
 
 export interface IngredientDefinition {
   id: IngredientId;
@@ -49,6 +55,15 @@ export interface StationDefinition {
   size: GridPoint;
   interaction: GridPoint;
   color: number;
+  orientation: Orientation;
+  front: Direction;
+  interactionPoints: GridPoint[];
+  asset: WorldAssetId;
+  anchor: GridPoint;
+  visualHeight: number;
+  blocksMovement: boolean;
+  rotatable: boolean;
+  serviceInteraction?: GridPoint;
 }
 
 export interface StationRuntime extends StationDefinition {
@@ -65,6 +80,10 @@ export interface ChairRuntime {
   position: GridPoint;
   approach: GridPoint;
   state: ChairState;
+  orientation: Direction;
+  tableId: string;
+  sitPoint: GridPoint;
+  customerId?: string;
 }
 
 export interface TableRuntime {
@@ -78,7 +97,29 @@ export interface TableRuntime {
   state: TableState;
   customerId?: string;
   accessible: boolean;
+  orientation: Orientation;
+  asset: WorldAssetId;
+  occupiedCells: GridPoint[];
 }
+
+export interface PersistedWorldObject {
+  id: string;
+  position: GridPoint;
+  footprint: { width: number; depth: number };
+  orientation: Orientation;
+  occupiedCells: GridPoint[];
+  front: Direction;
+  interactionPoints: GridPoint[];
+  requiredFreeCells: GridPoint[];
+  rotatable: boolean;
+  asset: WorldAssetId;
+  anchor: GridPoint;
+  visualHeight: number;
+  blocksMovement: boolean;
+  linkedTableId?: string;
+}
+
+export interface GraphicsSaveState { dataVersion: 2; objects: PersistedWorldObject[] }
 
 export interface CharacterAppearance {
   presentation: Presentation;
@@ -131,6 +172,7 @@ export interface GameState {
   lastActiveAt: number;
   offlineClaimId: string;
   stats: { customersServed: number; customersLost: number; dishesProduced: number; coinsEarned: number };
+  graphics: GraphicsSaveState;
 }
 
 export interface OfflineReport {

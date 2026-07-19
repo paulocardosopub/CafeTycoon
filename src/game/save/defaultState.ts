@@ -3,6 +3,7 @@ import { INGREDIENTS } from '../../content/ingredients/ingredients';
 import { RECIPES } from '../../content/recipes/recipes';
 import type { GameState, IngredientId, RecipeId } from '../../core/types';
 import { createPersistentId } from '../../core/id';
+import { createGraphicsSaveState } from '../map/initialMap';
 
 export function createDefaultState(now = Date.now()): GameState {
   return {
@@ -21,5 +22,6 @@ export function createDefaultState(now = Date.now()): GameState {
     lastActiveAt: now,
     offlineClaimId: '',
     stats: { customersServed: 0, customersLost: 0, dishesProduced: 0, coinsEarned: 0 },
+    graphics: createGraphicsSaveState(),
   };
 }

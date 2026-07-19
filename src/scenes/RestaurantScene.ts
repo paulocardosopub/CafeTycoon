@@ -1,46 +1,89 @@
 import Phaser from 'phaser';
-import { CHARACTER_OPTIONS } from '../content/characters/options';
+import { installPixelAtlases } from '../assets/pixel/PixelAtlasFactory';
+import { REQUIRED_CHARACTER_ANIMATIONS, WORLD_ASSETS, characterFrame, effectFrame } from '../assets/pixel/manifest';
 import { gameEvents } from '../core/events';
-import type { GridPoint, StationRuntime, TableRuntime } from '../core/types';
+import type { GridPoint, PixelAnimationName, StationRuntime, TableRuntime, WorldAssetId } from '../core/types';
+import { gridToWorld, isoDepth } from '../game/grid/IsoGrid';
+import { DECORATIONS, ENTRANCE, MAP_SIZE, RESTAURANT_SIZE } from '../game/map/initialMap';
 import type { CustomerRuntime, RestaurantSimulation, WorkerActor } from '../game/simulation/RestaurantSimulation';
 
-const TILE_WIDTH = 64;
-const TILE_HEIGHT = 32;
+interface ActorVisual {
+  sprite: Phaser.GameObjects.Sprite;
+  bubble: Phaser.GameObjects.Text;
+}
 
-const iso = (point: GridPoint) => ({ x: (point.x - point.y) * TILE_WIDTH / 2, y: (point.x + point.y) * TILE_HEIGHT / 2 });
-const colorNumber = (value: string, fallback: number) => {
-  const parsed = Number.parseInt(value.replace('#', ''), 16);
-  return Number.isFinite(parsed) ? parsed : fallback;
-};
+interface CustomerVisual {
+  sprite: Phaser.GameObjects.Sprite;
+  bubble: Phaser.GameObjects.Text;
+  patience: Phaser.GameObjects.Graphics;
+  previousState: string;
+  transitionStartedAt: number;
+}
 
-interface ActorVisual { root: Phaser.GameObjects.Container; bubble: Phaser.GameObjects.Text; body: Phaser.GameObjects.Graphics }
-interface CustomerVisual { root: Phaser.GameObjects.Container; bubble: Phaser.GameObjects.Text; patience: Phaser.GameObjects.Graphics }
-interface StationVisual { root: Phaser.GameObjects.Container; progress: Phaser.GameObjects.Graphics; label: Phaser.GameObjects.Text }
+interface StationVisual {
+  sprite: Phaser.GameObjects.Image;
+  effect: Phaser.GameObjects.Sprite;
+  progress: Phaser.GameObjects.Graphics;
+  label: Phaser.GameObjects.Text;
+  plates: Phaser.GameObjects.Image[];
+}
+
+interface TableVisual {
+  pieces: Phaser.GameObjects.Image[];
+  stateIcon: Phaser.GameObjects.Text;
+}
+
+const ZOOM_LEVELS = [0.5, 1, 2] as const;
+const SEATED_STATES = ['waiting_order', 'waiting_food', 'eating', 'waiting_payment'];
 
 export class RestaurantScene extends Phaser.Scene {
   private actorVisuals = new Map<string, ActorVisual>();
   private customerVisuals = new Map<string, CustomerVisual>();
   private stationVisuals = new Map<string, StationVisual>();
-  private tableVisuals = new Map<string, Phaser.GameObjects.Container>();
+  private tableVisuals = new Map<string, TableVisual>();
+  private technicalOverlay?: Phaser.GameObjects.Graphics;
+  private technicalMode = false;
   private dragging = false;
+  private zoomIndex = 1;
   private dragOrigin = { x: 0, y: 0, scrollX: 0, scrollY: 0 };
 
   constructor(private readonly simulation: RestaurantSimulation) { super('restaurant'); }
 
   create(): void {
-    this.cameras.main.setBackgroundColor('#173a36');
-    this.cameras.main.setBounds(-900, -140, 1800, 1100);
-    this.cameras.main.centerOn(0, 320);
+    installPixelAtlases(this, this.simulation.state.profile?.appearance);
+    this.cameras.main.setBackgroundColor('#294b3a');
+    this.cameras.main.setBounds(-920, -250, 1840, 1250);
+    this.cameras.main.centerOn(0, 320).setZoom(ZOOM_LEVELS[this.zoomIndex]);
     this.drawEnvironment();
     this.simulation.tables.forEach((table) => this.drawTable(table));
     this.simulation.stations.forEach((station) => this.drawStation(station));
     this.simulation.actors.forEach((actor) => this.createActor(actor));
+    this.technicalOverlay = this.add.graphics().setDepth(50_000).setVisible(false);
+    this.bindCameraControls();
+    this.input.keyboard?.on('keydown-D', () => this.toggleTechnicalMode());
+    this.input.keyboard?.on('keydown-PLUS', () => this.setZoomIndex(this.zoomIndex + 1));
+    this.input.keyboard?.on('keydown-MINUS', () => this.setZoomIndex(this.zoomIndex - 1));
+    gameEvents.on('technical:toggle', () => this.toggleTechnicalMode());
+    gameEvents.emit('camera:zoom', this.cameras.main.zoom);
+  }
 
-    this.input.on('wheel', (_pointer: Phaser.Input.Pointer, _objects: unknown, _dx: number, dy: number) => {
-      const camera = this.cameras.main;
-      camera.setZoom(Phaser.Math.Clamp(camera.zoom - dy * 0.001, 0.62, 1.42));
-      gameEvents.emit('camera:zoom', camera.zoom);
-    });
+  update(_time: number, deltaMs: number): void {
+    this.simulation.update(deltaMs / 1000);
+    this.simulation.actors.forEach((actor) => this.syncActor(actor));
+    this.simulation.customers.forEach((customer) => this.syncCustomer(customer));
+    const activeCustomerIds = new Set(this.simulation.customers.map((customer) => customer.id));
+    for (const [customerId, visual] of this.customerVisuals) {
+      if (activeCustomerIds.has(customerId)) continue;
+      visual.sprite.destroy(); visual.bubble.destroy(); visual.patience.destroy();
+      this.customerVisuals.delete(customerId);
+    }
+    this.simulation.stations.forEach((station) => this.syncStation(station));
+    this.simulation.tables.forEach((table) => this.syncTable(table));
+    if (this.technicalMode) this.drawTechnicalOverlay();
+  }
+
+  private bindCameraControls(): void {
+    this.input.on('wheel', (_pointer: Phaser.Input.Pointer, _objects: unknown, _dx: number, dy: number) => this.setZoomIndex(this.zoomIndex + (dy > 0 ? -1 : 1)));
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
       this.dragging = true;
       this.dragOrigin = { x: pointer.x, y: pointer.y, scrollX: this.cameras.main.scrollX, scrollY: this.cameras.main.scrollY };
@@ -48,242 +91,231 @@ export class RestaurantScene extends Phaser.Scene {
     this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
       if (!this.dragging || !pointer.isDown) return;
       const camera = this.cameras.main;
-      camera.scrollX = this.dragOrigin.scrollX - (pointer.x - this.dragOrigin.x) / camera.zoom;
-      camera.scrollY = this.dragOrigin.scrollY - (pointer.y - this.dragOrigin.y) / camera.zoom;
+      camera.scrollX = Math.round(this.dragOrigin.scrollX - (pointer.x - this.dragOrigin.x) / camera.zoom);
+      camera.scrollY = Math.round(this.dragOrigin.scrollY - (pointer.y - this.dragOrigin.y) / camera.zoom);
     });
     this.input.on('pointerup', () => { this.dragging = false; });
     this.input.on('pointerupoutside', () => { this.dragging = false; });
+  }
+
+  private setZoomIndex(index: number): void {
+    const next = Phaser.Math.Clamp(index, 0, ZOOM_LEVELS.length - 1);
+    if (next === this.zoomIndex) return;
+    const center = { x: this.cameras.main.midPoint.x, y: this.cameras.main.midPoint.y };
+    this.zoomIndex = next;
+    this.cameras.main.setZoom(ZOOM_LEVELS[this.zoomIndex]).centerOn(center.x, center.y);
     gameEvents.emit('camera:zoom', this.cameras.main.zoom);
   }
 
-  update(_time: number, deltaMs: number): void {
-    this.simulation.update(deltaMs / 1000);
-    for (const actor of this.simulation.actors) this.syncActor(actor);
-    for (const customer of this.simulation.customers) this.syncCustomer(customer);
-    const activeCustomerIds = new Set(this.simulation.customers.map((customer) => customer.id));
-    for (const [customerId, visual] of this.customerVisuals) {
-      if (activeCustomerIds.has(customerId)) continue;
-      visual.root.destroy(true);
-      this.customerVisuals.delete(customerId);
-    }
-    for (const station of this.simulation.stations) this.syncStation(station);
-    for (const table of this.simulation.tables) this.syncTable(table);
+  private toggleTechnicalMode(): void {
+    this.technicalMode = !this.technicalMode;
+    this.technicalOverlay?.setVisible(this.technicalMode);
+    gameEvents.emit('technical:changed', this.technicalMode);
+    gameEvents.emit('toast', { message: this.technicalMode ? 'Modo técnico ativado.' : 'Modo técnico desativado.', tone: 'info' });
   }
 
   private drawEnvironment(): void {
-    const floor = this.add.graphics();
-    for (let y = -2; y < 20; y += 1) {
-      for (let x = -2; x < 20; x += 1) {
-        const point = iso({ x, y });
-        const inside = x >= 0 && y >= 0 && x < 18 && y < 18;
-        const kitchen = inside && y <= 7;
-        const outside = !inside || y >= 17;
-        const shade = outside ? ((x + y) % 2 ? 0x315d4b : 0x356653) : kitchen ? ((x + y) % 2 ? 0xd9cdb9 : 0xe2d6c3) : ((x + y) % 2 ? 0xc5dfd1 : 0xd2e8da);
-        floor.fillStyle(shade, 1);
-        floor.lineStyle(1, outside ? 0x3b715b : kitchen ? 0xc9bca8 : 0xb1d2c2, 0.85);
-        floor.beginPath();
-        floor.moveTo(point.x, point.y);
-        floor.lineTo(point.x + TILE_WIDTH / 2, point.y + TILE_HEIGHT / 2);
-        floor.lineTo(point.x, point.y + TILE_HEIGHT);
-        floor.lineTo(point.x - TILE_WIDTH / 2, point.y + TILE_HEIGHT / 2);
-        floor.closePath(); floor.fillPath(); floor.strokePath();
+    for (let y = -2; y < MAP_SIZE.height + 2; y += 1) {
+      for (let x = -2; x < MAP_SIZE.width + 2; x += 1) {
+        const inside = x >= 0 && y >= 0 && x < RESTAURANT_SIZE.width && y < RESTAURANT_SIZE.height - 1;
+        const entrancePath = Math.abs(x - ENTRANCE.x) <= 1 && y >= RESTAURANT_SIZE.height - 1;
+        const farOutside = x <= -2 || y <= -2 || x >= RESTAURANT_SIZE.width + 1 || y >= RESTAURANT_SIZE.height + 1;
+        const asset: WorldAssetId = inside
+          ? y <= 7 ? 'floor_kitchen' : 'floor_dining'
+          : entrancePath || farOutside ? 'floor_road' : (x + y) % 2 ? 'floor_grass_alt' : 'floor_outside';
+        const point = gridToWorld({ x, y });
+        this.add.image(Math.round(point.x), Math.round(point.y), 'world-atlas', WORLD_ASSETS[asset].frame)
+          .setOrigin(.5).setDepth(-10_000 + x + y);
       }
     }
-
-    const decor = this.add.graphics();
-    for (let i = 0; i < 12; i += 1) {
-      const p = iso({ x: -1 + (i % 6) * 4, y: 18 + Math.floor(i / 6) * 2 });
-      decor.fillStyle(i % 2 ? 0xf2c14e : 0xf28f6b, 0.9).fillCircle(p.x, p.y + 8, 3);
-      decor.fillStyle(0x2e7d59, 1).fillTriangle(p.x, p.y + 12, p.x - 5, p.y + 24, p.x + 5, p.y + 24);
-    }
-
-    this.drawWalls();
-    const kitchenSign = this.add.text(0, 89, 'COZINHA  ·  BISTRÔ BLOOM', { fontFamily: 'Trebuchet MS', fontSize: '15px', fontStyle: 'bold', color: '#315b52', backgroundColor: '#f8e8c7', padding: { x: 12, y: 5 } }).setOrigin(0.5).setDepth(16);
-    kitchenSign.setShadow(0, 3, '#173a3630', 2);
+    for (let x = 0; x < RESTAURANT_SIZE.width; x += 1) this.addWorldAsset('wall_nw', { x, y: 0 }, 8);
+    for (let y = 1; y < RESTAURANT_SIZE.height; y += 1) this.addWorldAsset('wall_ne', { x: 0, y }, 8);
+    DECORATIONS.forEach((item) => this.addWorldAsset(item.asset, item.position, item.asset === 'door' ? 9 : 18));
   }
 
-  private drawWalls(): void {
-    const walls = this.add.graphics().setDepth(500);
-    for (let x = 0; x < 18; x += 1) {
-      const top = iso({ x, y: 0 });
-      walls.fillStyle(0xf7e7c8, 1).fillPoints([
-        new Phaser.Geom.Point(top.x, top.y), new Phaser.Geom.Point(top.x + 32, top.y + 16),
-        new Phaser.Geom.Point(top.x + 32, top.y - 22), new Phaser.Geom.Point(top.x, top.y - 38),
-      ], true);
-      walls.lineStyle(1, 0xd8b98c, 1).strokePoints([
-        new Phaser.Geom.Point(top.x, top.y), new Phaser.Geom.Point(top.x + 32, top.y + 16),
-        new Phaser.Geom.Point(top.x + 32, top.y - 22), new Phaser.Geom.Point(top.x, top.y - 38),
-      ], true);
-    }
-    for (let y = 0; y < 18; y += 1) {
-      const left = iso({ x: 0, y });
-      walls.fillStyle(0xe8cfaa, 1).fillPoints([
-        new Phaser.Geom.Point(left.x, left.y), new Phaser.Geom.Point(left.x - 32, left.y + 16),
-        new Phaser.Geom.Point(left.x - 32, left.y - 22), new Phaser.Geom.Point(left.x, left.y - 38),
-      ], true);
-    }
+  private addWorldAsset(asset: WorldAssetId, position: GridPoint, layer: number): Phaser.GameObjects.Image {
+    const definition = WORLD_ASSETS[asset];
+    const point = gridToWorld(position);
+    return this.add.image(Math.round(point.x), Math.round(point.y), 'world-atlas', definition.frame)
+      .setOrigin(definition.anchor.x, definition.anchor.y).setDepth(isoDepth(position, layer));
   }
 
   private drawTable(table: TableRuntime): void {
-    const p = iso({ x: table.position.x + 0.5, y: table.position.y + 0.5 });
-    const root = this.add.container(p.x, p.y).setDepth((table.position.x + table.position.y) * 20 + 200);
-    const art = this.add.graphics();
-    art.fillStyle(0x173a36, 0.2).fillEllipse(0, 31, 91, 28);
-    table.chairs.forEach((chair) => {
-      const cp = iso(chair.position);
-      const relative = { x: cp.x - p.x, y: cp.y - p.y };
-      art.fillStyle(0xc76b4d, 1).fillRoundedRect(relative.x - 14, relative.y + 5, 28, 13, 5);
-      art.fillStyle(0x8e4936, 1).fillRect(relative.x - 11, relative.y + 17, 4, 10).fillRect(relative.x + 7, relative.y + 17, 4, 10);
-    });
-    art.fillStyle(0x8a5638, 1).fillRect(-5, 16, 10, 28);
-    art.fillStyle(0xe4a960, 1).fillEllipse(0, 12, table.maxCustomers === 4 ? 93 : 73, 47);
-    art.lineStyle(4, 0xb97343, 1).strokeEllipse(0, 12, table.maxCustomers === 4 ? 93 : 73, 47);
-    art.fillStyle(0xfff1bd, 1).fillCircle(0, 8, 8);
-    const flower = this.add.text(0, 2, '✿', { fontFamily: 'serif', fontSize: '17px', color: '#c95056' }).setOrigin(0.5);
-    const label = this.add.text(0, -26, `${table.maxCustomers} lugares`, { fontFamily: 'Trebuchet MS', fontSize: '10px', color: '#315b52', backgroundColor: '#fff8e9dd', padding: { x: 5, y: 2 } }).setOrigin(0.5);
-    root.add([art, flower, label]);
-    root.setSize(105, 70).setInteractive({ useHandCursor: true });
-    root.on('pointerdown', (_pointer: Phaser.Input.Pointer, _x: number, _y: number, event: Phaser.Types.Input.EventData) => {
+    const tableImage = this.addWorldAsset('table', table.position, 30).setInteractive({ useHandCursor: true });
+    tableImage.on('pointerdown', (_pointer: Phaser.Input.Pointer, _x: number, _y: number, event: Phaser.Types.Input.EventData) => {
       event.stopPropagation();
       const ok = this.simulation.prioritizeWorldTarget('table', table.id);
       gameEvents.emit('toast', { message: ok ? 'Tarefa da mesa priorizada.' : 'Não há tarefa compatível nessa mesa.', tone: ok ? 'success' : 'info' });
     });
-    this.tableVisuals.set(table.id, root);
+    const pieces = [tableImage, ...table.chairs.map((chair) => this.addWorldAsset(`chair_${chair.orientation}`, chair.position, 31))];
+    const point = gridToWorld(table.position);
+    const stateIcon = this.add.text(Math.round(point.x), Math.round(point.y - 56), '', this.pixelTextStyle('#fff8e9', '#294b3ae6'))
+      .setOrigin(.5).setDepth(isoDepth(table.position, 90)).setVisible(false);
+    this.tableVisuals.set(table.id, { pieces, stateIcon });
   }
 
   private drawStation(station: StationRuntime): void {
-    const p = iso({ x: station.position.x + (station.size.x - 1) / 2, y: station.position.y + (station.size.y - 1) / 2 });
-    const root = this.add.container(p.x, p.y).setDepth((station.position.x + station.position.y) * 20 + 180);
-    const art = this.add.graphics();
-    const width = 48 + (station.size.x - 1) * 34;
-    art.fillStyle(0x163f3a, 0.22).fillEllipse(0, 28, width + 14, 22);
-    art.fillStyle(0x536861, 1).fillRoundedRect(-width / 2, -2, width, 35, 5);
-    art.fillStyle(station.color, 1).fillRoundedRect(-width / 2 + 3, -13, width - 6, 24, 5);
-    art.lineStyle(2, 0xfff2d5, 0.5).strokeRoundedRect(-width / 2 + 6, -9, width - 12, 14, 3);
-    art.fillStyle(0x263d39, 1).fillRect(-width / 2 + 5, 32, 5, 11).fillRect(width / 2 - 10, 32, 5, 11);
-    const icon = this.add.text(0, -2, station.icon, { fontFamily: 'Segoe UI Emoji', fontSize: '22px' }).setOrigin(0.5);
-    const label = this.add.text(0, -30, station.name, { fontFamily: 'Trebuchet MS', fontSize: '10px', fontStyle: 'bold', color: '#f8eed8', backgroundColor: '#173a36dd', padding: { x: 6, y: 3 } }).setOrigin(0.5);
-    const progress = this.add.graphics();
-    root.add([art, icon, label, progress]);
-    root.setSize(width + 20, 65).setInteractive({ useHandCursor: true });
-    root.on('pointerdown', (_pointer: Phaser.Input.Pointer, _x: number, _y: number, event: Phaser.Types.Input.EventData) => {
+    const center = { x: station.position.x + (station.size.x - 1) / 2, y: station.position.y + (station.size.y - 1) / 2 };
+    const base = { x: station.position.x + station.size.x - 1, y: station.position.y + station.size.y - 1 };
+    const point = gridToWorld(center);
+    const definition = WORLD_ASSETS[station.asset];
+    const stationDepth = station.id === 'pickup' ? isoDepth(station.position, 18) : isoDepth(base, 30);
+    const sprite = this.add.image(Math.round(point.x), Math.round(point.y), 'world-atlas', definition.frame)
+      .setOrigin(definition.anchor.x, definition.anchor.y).setDepth(stationDepth).setInteractive({ useHandCursor: true });
+    sprite.on('pointerdown', (_pointer: Phaser.Input.Pointer, _x: number, _y: number, event: Phaser.Types.Input.EventData) => {
       event.stopPropagation();
       const ok = this.simulation.prioritizeWorldTarget('station', station.id);
       gameEvents.emit('toast', { message: ok ? `${station.name}: tarefa priorizada.` : `${station.name}: nenhuma tarefa disponível.`, tone: ok ? 'success' : 'info' });
     });
-    this.stationVisuals.set(station.id, { root, progress, label });
+    const effect = this.add.sprite(Math.round(point.x), Math.round(point.y), 'world-atlas', effectFrame('steam', 0))
+      .setOrigin(.5, 1).setDepth(station.id === 'pickup' ? stationDepth + 4 : isoDepth(base, 34)).setVisible(false);
+    const progress = this.add.graphics().setDepth(isoDepth(base, 95));
+    const label = this.add.text(Math.round(point.x), Math.round(point.y - station.visualHeight - 16), station.name, this.pixelTextStyle('#fff8e9', '#294b3ae6'))
+      .setOrigin(.5).setDepth(isoDepth(base, 96)).setVisible(false);
+    const plates = station.id === 'pickup' ? [-28, 0, 28].map((offset) => this.add.image(Math.round(point.x + offset), Math.round(point.y - 37), 'world-atlas', WORLD_ASSETS.dish.frame)
+      .setOrigin(.5, 1).setDepth(stationDepth + 6).setScale(.58).setVisible(false)) : [];
+    this.stationVisuals.set(station.id, { sprite, effect, progress, label, plates });
   }
 
   private createActor(actor: WorkerActor): void {
-    const root = this.add.container();
-    const body = this.add.graphics();
-    const bubble = this.add.text(0, -62, '', { fontFamily: 'Trebuchet MS', fontSize: '10px', color: '#173a36', backgroundColor: '#fff9e8ee', padding: { x: 6, y: 3 }, align: 'center' }).setOrigin(0.5);
-    root.add([body, bubble]);
-    root.setSize(42, 72).setInteractive({ useHandCursor: actor.kind === 'player' });
-    if (actor.kind === 'player') root.on('pointerdown', (_pointer: Phaser.Input.Pointer, _x: number, _y: number, event: Phaser.Types.Input.EventData) => { event.stopPropagation(); gameEvents.emit('ui:open-player', undefined); });
-    this.actorVisuals.set(actor.id, { root, bubble, body });
-    this.paintActor(actor, body);
-  }
-
-  private paintActor(actor: WorkerActor, art: Phaser.GameObjects.Graphics): void {
-    art.clear();
-    const appearance = this.simulation.state.profile?.appearance;
-    const isPlayer = actor.kind === 'player';
-    const bodyColor = isPlayer ? colorNumber(CHARACTER_OPTIONS.outfitColor.find((item) => item.id === appearance?.outfitColor)?.color ?? '', 0x1d766d) : actor.kind === 'cook' ? 0xf4eee2 : 0xd25f4e;
-    const skinColor = isPlayer ? colorNumber(CHARACTER_OPTIONS.skin.find((item) => item.id === appearance?.skin)?.color ?? '', 0xd99a68) : actor.kind === 'cook' ? 0x8b5a3c : 0xf0c7a6;
-    const hairColor = isPlayer ? colorNumber(CHARACTER_OPTIONS.hairColor.find((item) => item.id === appearance?.hairColor)?.color ?? '', 0x3a241d) : 0x3a241d;
-    art.fillStyle(0x102e2a, 0.25).fillEllipse(0, 25, 35, 12);
-    if (isPlayer) art.lineStyle(3, 0xf2c14e, 0.95).strokeEllipse(0, 24, 43, 17);
-    art.fillStyle(0x33423f, 1).fillRoundedRect(-13, 15, 9, 19, 4).fillRoundedRect(4, 15, 9, 19, 4);
-    art.fillStyle(bodyColor, 1).fillRoundedRect(-17, -11, 34, 34, 10);
-    art.fillStyle(0xfff0d1, actor.kind === 'cook' ? 0.9 : 0.25).fillTriangle(-12, -8, 12, -8, 0, 14);
-    art.fillStyle(skinColor, 1).fillCircle(0, -24, 14);
-    art.fillStyle(hairColor, 1).fillEllipse(0, -31, 27, 14);
-    art.fillStyle(0x273b37, 1).fillCircle(-5, -24, 1.4).fillCircle(5, -24, 1.4);
-    if (actor.kind === 'cook') {
-      art.fillStyle(0xffffff, 1).fillCircle(-8, -42, 8).fillCircle(0, -45, 9).fillCircle(8, -42, 8).fillRoundedRect(-13, -42, 26, 9, 3);
-    } else if (actor.kind === 'waiter') {
-      art.fillStyle(0xd7b36a, 1).fillEllipse(21, 2, 24, 7); art.lineStyle(2, 0x5e4030).lineBetween(10, 0, 32, 0);
-    } else {
-      art.fillStyle(0xf2c14e, 1).fillCircle(16, -8, 5);
-    }
+    const variant = actor.kind === 'player' ? 'player' : actor.kind;
+    const point = gridToWorld(actor.position);
+    const sprite = this.add.sprite(Math.round(point.x), Math.round(point.y), 'character-atlas', characterFrame(variant, 'idle', actor.direction, 0))
+      .setOrigin(.5, 88 / 96).setDepth(isoDepth(actor.position, 50)).setInteractive({ useHandCursor: actor.kind === 'player' });
+    if (actor.kind === 'player') sprite.on('pointerdown', (_pointer: Phaser.Input.Pointer, _x: number, _y: number, event: Phaser.Types.Input.EventData) => { event.stopPropagation(); gameEvents.emit('ui:open-player', undefined); });
+    const bubble = this.add.text(Math.round(point.x), Math.round(point.y - 77), '', this.pixelTextStyle('#294b3a', '#fff8e9ee'))
+      .setOrigin(.5).setDepth(isoDepth(actor.position, 98));
+    this.actorVisuals.set(actor.id, { sprite, bubble });
   }
 
   private syncActor(actor: WorkerActor): void {
     const visual = this.actorVisuals.get(actor.id)!;
-    const p = iso(actor.visual);
-    const bob = actor.path.length ? Math.sin(this.time.now * 0.018) * 2 : 0;
-    visual.root.setPosition(p.x, p.y + 11 + bob).setDepth((actor.visual.x + actor.visual.y) * 20 + 300);
-    visual.bubble.setText(actor.activity === 'Sem tarefa' ? '…' : actor.activity).setVisible(actor.kind === 'player' || actor.activity !== 'Sem tarefa');
+    const variant = actor.kind === 'player' ? 'player' : actor.kind;
+    const task = actor.taskId ? this.simulation.tasks.get(actor.taskId) : undefined;
+    let animation: PixelAnimationName = 'idle';
+    if (actor.path.length) animation = actor.carrying === 'dish' ? 'carry-dish' : actor.carrying === 'ingredients' ? 'carry-ingredients' : 'walk';
+    else if (task?.status === 'active') animation = 'work';
+    else if (actor.carrying === 'dish') animation = 'carry-dish';
+    else if (actor.carrying === 'ingredients') animation = 'carry-ingredients';
+    const frame = this.animationFrame(animation);
+    visual.sprite.setFrame(characterFrame(variant, animation, actor.direction, frame));
+    const point = gridToWorld(actor.visual);
+    visual.sprite.setPosition(Math.round(point.x), Math.round(point.y)).setDepth(isoDepth(actor.visual, 50));
+    visual.bubble.setPosition(Math.round(point.x), Math.round(point.y - 77)).setDepth(isoDepth(actor.visual, 98))
+      .setText(actor.activity === 'Sem tarefa' ? actor.name : `${actor.name} · ${actor.activity}`)
+      .setVisible(actor.kind === 'player' || actor.activity !== 'Sem tarefa');
   }
 
   private syncCustomer(customer: CustomerRuntime): void {
     if (!this.customerVisuals.has(customer.id)) this.createCustomer(customer);
     const visual = this.customerVisuals.get(customer.id)!;
-    visual.root.setVisible(customer.state !== 'gone');
-    if (customer.state === 'gone') return;
-    let point = customer.visual;
-    if (customer.tableId && ['waiting_order', 'waiting_food', 'eating', 'waiting_payment'].includes(customer.state)) {
+    if (visual.previousState !== customer.state) {
+      if (customer.state === 'waiting_order') visual.transitionStartedAt = this.time.now;
+      visual.previousState = customer.state;
+    }
+    let position = customer.visual;
+    const seated = customer.tableId && SEATED_STATES.includes(customer.state);
+    if (seated) {
       const table = this.simulation.tables.find((item) => item.id === customer.tableId);
       const chair = table?.chairs.find((item) => customer.chairIds.includes(item.id));
-      if (chair) point = chair.position;
+      if (chair) { position = chair.sitPoint; customer.direction = chair.orientation; }
     }
-    const p = iso(point);
-    const moving = customer.path.length > 0;
-    visual.root.setPosition(p.x, p.y + 10 + (moving ? Math.sin(this.time.now * 0.02) * 2 : 0)).setDepth((point.x + point.y) * 20 + 305);
+    let animation: PixelAnimationName = customer.path.length ? 'walk' : 'idle';
+    if (seated) animation = customer.state === 'eating' ? 'eat' : this.time.now - visual.transitionStartedAt < 350 ? 'sit' : 'seated';
+    const point = gridToWorld(position);
+    visual.sprite.setPosition(Math.round(point.x), Math.round(point.y)).setDepth(isoDepth(position, seated ? 32 : 50))
+      .setFrame(characterFrame(`customer-${customer.variant}`, animation, customer.direction, this.animationFrame(animation)));
+    visual.bubble.setPosition(Math.round(point.x), Math.round(point.y - 73)).setDepth(isoDepth(position, 99));
     const recipe = customer.orderId ? this.simulation.orders.find((order) => order.id === customer.orderId)?.recipeId : undefined;
-    const icon = recipe ? RECIPE_ICON[recipe] : customer.state === 'eating' ? '♥' : '';
-    visual.bubble.setText(`${icon ? `${icon} ` : ''}${this.simulation.customerLabel(customer)}${customer.partySize > 1 ? ` · ${customer.partySize}` : ''}`);
-    visual.patience.clear();
+    const label = customer.partySize > 1 ? `${this.simulation.customerLabel(customer)} · grupo ${customer.partySize}` : this.simulation.customerLabel(customer);
+    visual.bubble.setText(recipe ? `${RECIPE_LABEL[recipe] ?? ''} ${label}` : label).setVisible(customer.state !== 'eating');
+    visual.patience.clear().setDepth(isoDepth(position, 100));
     if (['queueing', 'waiting_order', 'waiting_food', 'waiting_payment'].includes(customer.state)) {
       const ratio = Phaser.Math.Clamp(customer.patience / customer.maxPatience, 0, 1);
-      visual.patience.fillStyle(0x173a36, 0.25).fillRoundedRect(-20, -61, 40, 5, 2);
-      visual.patience.fillStyle(ratio > 0.45 ? 0x67b879 : ratio > 0.2 ? 0xf2b84b : 0xdb5c4f, 1).fillRoundedRect(-20, -61, 40 * ratio, 5, 2);
+      visual.patience.fillStyle(0x241a18, .65).fillRect(Math.round(point.x - 20), Math.round(point.y - 62), 40, 5);
+      visual.patience.fillStyle(ratio > .45 ? 0x7d9b68 : ratio > .2 ? 0xf1c45b : 0xc94b3c, 1).fillRect(Math.round(point.x - 19), Math.round(point.y - 61), Math.round(38 * ratio), 3);
     }
   }
 
   private createCustomer(customer: CustomerRuntime): void {
-    const palette = [0x6c82c5, 0xd78563, 0x7aaf75, 0xb175a8];
-    const root = this.add.container();
-    const art = this.add.graphics();
-    art.fillStyle(0x102e2a, 0.22).fillEllipse(0, 22, 31, 10);
-    art.fillStyle(0x4b443e, 1).fillRoundedRect(-11, 13, 8, 17, 4).fillRoundedRect(3, 13, 8, 17, 4);
-    art.fillStyle(palette[customer.variant], 1).fillRoundedRect(-16, -9, 32, 32, 11);
-    const skin = [0xf1c8a8, 0xd99968, 0x8f5e41, 0x573923][customer.variant];
-    art.fillStyle(skin, 1).fillCircle(0, -22, 13);
-    art.fillStyle([0x3a241d, 0x9b573e, 0x242635, 0x5c392a][customer.variant], 1).fillEllipse(0, -29, 25, 13);
-    art.fillStyle(0x263d39, 1).fillCircle(-4, -22, 1.3).fillCircle(4, -22, 1.3);
-    const bubble = this.add.text(0, -49, '', { fontFamily: 'Trebuchet MS', fontSize: '10px', color: '#173a36', backgroundColor: '#fff9e8ee', padding: { x: 5, y: 3 } }).setOrigin(0.5);
+    const point = gridToWorld(customer.position);
+    const sprite = this.add.sprite(Math.round(point.x), Math.round(point.y), 'character-atlas', characterFrame(`customer-${customer.variant}`, 'idle', customer.direction, 0))
+      .setOrigin(.5, 88 / 96).setDepth(isoDepth(customer.position, 50));
+    const bubble = this.add.text(Math.round(point.x), Math.round(point.y - 73), '', this.pixelTextStyle('#294b3a', '#fff8e9ee')).setOrigin(.5);
     const patience = this.add.graphics();
-    root.add([art, bubble, patience]);
-    this.customerVisuals.set(customer.id, { root, bubble, patience });
+    this.customerVisuals.set(customer.id, { sprite, bubble, patience, previousState: customer.state, transitionStartedAt: 0 });
   }
 
   private syncStation(station: StationRuntime): void {
     const visual = this.stationVisuals.get(station.id)!;
     visual.progress.clear();
-    visual.label.setText(station.state === 'no_ingredients' ? `${station.name} · sem ingredientes` : station.currentStep ?? station.name);
-    if (station.state === 'in_use' && station.remaining > 0) {
-      const pulse = 0.35 + Math.sin(this.time.now * 0.008) * 0.08;
-      visual.progress.fillStyle(0xf2c14e, 1).fillRoundedRect(-24, 39, 48 * pulse, 5, 2);
-      visual.progress.fillStyle(0xffffff, 0.25).fillRoundedRect(-24, 39, 48, 5, 2);
-    } else if (station.state === 'no_ingredients') {
-      visual.progress.fillStyle(0xdb5c4f, 1).fillCircle(0, 41, 4);
+    visual.label.setText(station.state === 'no_ingredients' ? `${station.name} · sem ingredientes` : station.currentStep ?? station.name)
+      .setVisible(station.state !== 'free' || Boolean(station.currentStep));
+    const active = station.state === 'in_use';
+    const effect = station.id === 'stove' || station.id === 'grill' ? 'flame' : station.id === 'oven' ? 'oven-glow' : station.id === 'cauldron' ? 'bubble' : 'steam';
+    visual.effect.setVisible(active).setFrame(effectFrame(effect, Math.floor(this.time.now / 140) % 4));
+    if (active && station.remaining > 0) {
+      const point = gridToWorld(station.interaction);
+      visual.progress.fillStyle(0x241a18, .6).fillRect(Math.round(point.x - 19), Math.round(point.y - 41), 38, 5);
+      visual.progress.fillStyle(0xf1c45b, 1).fillRect(Math.round(point.x - 18), Math.round(point.y - 40), Math.round(36 * (.25 + .75 / (1 + station.remaining))), 3);
+    }
+    if (station.state === 'no_ingredients') visual.sprite.setTint(0xcf9d94); else visual.sprite.clearTint();
+    if (station.id === 'pickup') {
+      const readyCount = this.simulation.orders.filter((order) => order.state === 'ready').length;
+      visual.plates.forEach((plate, index) => plate.setVisible(index < readyCount));
+      visual.effect.setVisible(readyCount > 0).setFrame(effectFrame('ready', Math.floor(this.time.now / 180) % 4));
     }
   }
 
   private syncTable(table: TableRuntime): void {
-    const root = this.tableVisuals.get(table.id)!;
-    root.setAlpha(table.state === 'unavailable' ? 0.45 : 1);
-    const existing = root.getByName('state-icon') as Phaser.GameObjects.Text | null;
-    const iconText = table.state === 'waiting_cleaning' ? '✨ limpar' : table.state === 'waiting_order' ? '✎ pedido' : table.state === 'waiting_food' ? '⌛ prato' : '';
-    if (iconText && !existing) {
-      const icon = this.add.text(0, -43, iconText, { fontFamily: 'Trebuchet MS', fontSize: '10px', color: '#fff', backgroundColor: table.state === 'waiting_cleaning' ? '#b65f4add' : '#315b52dd', padding: { x: 5, y: 2 } }).setOrigin(0.5).setName('state-icon');
-      root.add(icon);
-    } else if (existing) {
-      existing.setText(iconText).setVisible(Boolean(iconText));
+    const visual = this.tableVisuals.get(table.id)!;
+    visual.pieces.forEach((piece) => piece.setAlpha(table.state === 'unavailable' ? .5 : 1));
+    const label = table.state === 'waiting_cleaning' ? 'LIMPAR' : table.state === 'waiting_order' ? 'PEDIDO' : table.state === 'waiting_food' ? 'AGUARDANDO' : '';
+    visual.stateIcon.setText(label).setVisible(Boolean(label));
+  }
+
+  private animationFrame(animation: PixelAnimationName): number {
+    const definition = REQUIRED_CHARACTER_ANIMATIONS[animation];
+    return Math.floor(this.time.now / (1000 / definition.fps)) % definition.frames;
+  }
+
+  private drawTechnicalOverlay(): void {
+    const graphics = this.technicalOverlay!;
+    graphics.clear();
+    for (let y = 0; y < this.simulation.grid.height; y += 1) {
+      for (let x = 0; x < this.simulation.grid.width; x += 1) {
+        const cell = this.simulation.grid.get({ x, y })!;
+        const point = gridToWorld({ x, y });
+        const color = cell.reservedBy ? 0xf1c45b : cell.reservedFor ? 0xe98255 : cell.occupiedBy || cell.furniturePart || cell.stationPart ? 0x4f8293 : cell.walkable ? 0x63b66f : 0xc94b3c;
+        graphics.fillStyle(color, cell.walkable && !cell.reservedBy && !cell.reservedFor ? .08 : .23);
+        graphics.lineStyle(1, color, .9);
+        this.drawDebugDiamond(graphics, point);
+      }
     }
+    for (const mover of [...this.simulation.actors, ...this.simulation.customers]) {
+      let from = gridToWorld(mover.visual);
+      graphics.lineStyle(2, 0x70d7e0, .9);
+      for (const step of mover.path) {
+        const to = gridToWorld(step);
+        graphics.lineBetween(Math.round(from.x), Math.round(from.y), Math.round(to.x), Math.round(to.y));
+        from = to;
+      }
+      graphics.fillStyle(0xfff1ce, 1).fillRect(Math.round(gridToWorld(mover.visual).x - 2), Math.round(gridToWorld(mover.visual).y - 2), 4, 4);
+    }
+  }
+
+  private drawDebugDiamond(graphics: Phaser.GameObjects.Graphics, point: GridPoint): void {
+    graphics.beginPath();
+    graphics.moveTo(Math.round(point.x), Math.round(point.y - 16));
+    graphics.lineTo(Math.round(point.x + 32), Math.round(point.y));
+    graphics.lineTo(Math.round(point.x), Math.round(point.y + 16));
+    graphics.lineTo(Math.round(point.x - 32), Math.round(point.y));
+    graphics.closePath(); graphics.fillPath(); graphics.strokePath();
+  }
+
+  private pixelTextStyle(color: string, backgroundColor: string): Phaser.Types.GameObjects.Text.TextStyle {
+    return { fontFamily: '"Courier New", monospace', fontSize: '10px', fontStyle: 'bold', color, backgroundColor, padding: { x: 5, y: 3 }, resolution: 1 };
   }
 }
 
-const RECIPE_ICON: Record<string, string> = { coffee: '☕', omelette: '🍳', burger: '🍔', soup: '🥣' };
+const RECIPE_LABEL: Record<string, string> = { coffee: 'CAFÉ', omelette: 'OMELETE', burger: 'BRASA', soup: 'SOPA' };

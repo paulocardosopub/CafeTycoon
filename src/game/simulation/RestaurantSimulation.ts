@@ -1,13 +1,14 @@
 import { BALANCE } from '../../config/balance';
 import { RECIPE_BY_ID, RECIPES } from '../../content/recipes/recipes';
 import type {
-  ActorKind, CustomerState, GameState, GridPoint, HelpRole, RecipeId, StationRuntime, TableRuntime, TaskKind,
+  ActorKind, CustomerState, Direction, GameState, GridPoint, HelpRole, RecipeId, StationRuntime, TableRuntime, TaskKind,
 } from '../../core/types';
 import { stableRuntimeId } from '../../core/id';
 import { gameEvents } from '../../core/events';
 import { canConsumeRecipe, consumeRecipe } from '../inventory/InventoryService';
-import { createInitialGrid, createStations, createTables, ENTRANCE, EXIT, CUSTOMER_QUEUE } from '../map/initialMap';
+import { createInitialGrid, createStations, createTables, ENTRANCE, CUSTOMER_QUEUE, PICKUP_SERVICE_POINT, STREET_ENTRY_POINTS, STREET_EXIT } from '../map/initialMap';
 import { findPath } from '../navigation/AStar';
+import { advanceTileMover, directionBetween } from '../navigation/TileMovement';
 import { awardPlayerTaskXp, updateRestaurantLevel } from '../progression/progression';
 import { TaskManager, type RestaurantTask } from '../tasks/TaskManager';
 import { tickProduction, readyDishCapacity, readyDishUsed } from '../cooking/ProductionService';
@@ -18,6 +19,7 @@ interface Mover {
   visual: GridPoint;
   path: GridPoint[];
   moveProgress: number;
+  direction: Direction;
 }
 
 export interface WorkerActor extends Mover {
@@ -27,6 +29,7 @@ export interface WorkerActor extends Mover {
   taskId?: string;
   taskRemaining: number;
   preferredTaskId?: string;
+  carrying?: 'dish' | 'ingredients';
 }
 
 export interface CustomerRuntime extends Mover {
@@ -47,7 +50,7 @@ export interface OrderRuntime {
   tableId: string;
   recipeId: RecipeId;
   quantity: number;
-  state: 'blocked' | 'cooking' | 'ready' | 'delivered' | 'cancelled';
+  state: 'blocked' | 'cooking' | 'ready' | 'collected' | 'delivered' | 'cancelled';
   stepIndex: number;
 }
 
@@ -77,13 +80,14 @@ export class RestaurantSimulation {
     this.actors = [
       this.makeActor('employee-cook-001', 'cook', 'Nina', { x: 5, y: 5 }),
       this.makeActor('employee-waiter-001', 'waiter', 'Caio', { x: 8, y: 9 }),
+      this.makeActor('employee-assistant-001', 'assistant', 'Iara', { x: 3, y: 6 }),
       this.makeActor(state.playerId, 'player', state.profile?.name ?? 'Você', { x: 9, y: 14 }),
     ];
     this.actors.forEach((actor) => this.grid.occupy(actor.position, actor.id));
   }
 
   private makeActor(id: string, kind: ActorKind, name: string, position: GridPoint): WorkerActor {
-    return { id, kind, name, position: { ...position }, visual: { ...position }, path: [], moveProgress: 0, activity: 'Disponível', taskRemaining: 0 };
+    return { id, kind, name, position: { ...position }, visual: { ...position }, path: [], moveProgress: 0, direction: 'se', activity: 'Disponível', taskRemaining: 0 };
   }
 
   update(deltaSeconds: number): void {
@@ -107,15 +111,16 @@ export class RestaurantSimulation {
   private spawnCustomer(): void {
     this.customerSequence += 1;
     const maxParty = this.customerSequence % 4 === 0 ? 4 : this.customerSequence % 3 === 0 ? 2 : 1;
+    const streetSpawn = STREET_ENTRY_POINTS[(this.customerSequence - 1) % STREET_ENTRY_POINTS.length];
     const customer: CustomerRuntime = {
       id: stableRuntimeId('customer'), state: 'entering', partySize: maxParty,
       patience: BALANCE.customerBasePatienceSeconds, maxPatience: BALANCE.customerBasePatienceSeconds,
-      position: { ...ENTRANCE }, visual: { ...ENTRANCE }, path: [], moveProgress: 0,
-      chairIds: [], eatRemaining: 0, variant: this.customerSequence % 4,
+      position: { ...streetSpawn }, visual: { ...streetSpawn }, path: [], moveProgress: 0,
+      chairIds: [], eatRemaining: 0, variant: this.customerSequence % 8, direction: 'nw',
     };
     this.customers.push(customer);
     this.grid.occupy(customer.position, customer.id);
-    if (!this.assignTable(customer)) this.sendToQueue(customer);
+    customer.path = findPath(this.grid, customer.position, ENTRANCE, customer.id);
   }
 
   private assignTable(customer: CustomerRuntime): boolean {
@@ -152,7 +157,7 @@ export class RestaurantSimulation {
         if (!customer.path.length) continue;
       }
       if (customer.path.length) {
-        this.advanceMover(customer, delta, 2.1);
+        this.advanceMover(customer, delta, 2.1 * BALANCE.movementSpeedMultiplier);
         if (!customer.path.length) this.onCustomerArrived(customer);
       }
       if (['queueing', 'waiting_order', 'waiting_food', 'waiting_payment'].includes(customer.state)) {
@@ -167,11 +172,15 @@ export class RestaurantSimulation {
   }
 
   private onCustomerArrived(customer: CustomerRuntime): void {
-    if (customer.state === 'walking_to_seat') {
+    if (customer.state === 'entering') {
+      if (!this.assignTable(customer)) this.sendToQueue(customer);
+    } else if (customer.state === 'walking_to_seat') {
       const table = this.tableFor(customer.tableId);
       if (!table) return;
       customer.state = 'waiting_order';
       table.state = 'waiting_order';
+      const seatedChair = table.chairs.find((item) => customer.chairIds.includes(item.id));
+      if (seatedChair) customer.direction = seatedChair.orientation;
       customer.chairIds.forEach((chairId) => { const chair = table.chairs.find((item) => item.id === chairId); if (chair) chair.state = 'occupied'; });
       this.tasks.add({
         key: `order:${customer.id}`, kind: 'take_order', role: 'service', target: table.waiterApproach,
@@ -183,11 +192,11 @@ export class RestaurantSimulation {
   }
 
   private routeCustomerToExit(customer: CustomerRuntime): void {
-    if (this.samePoint(customer.position, EXIT)) {
+    if (this.samePoint(customer.position, STREET_EXIT)) {
       this.completeCustomerDeparture(customer);
       return;
     }
-    customer.path = findPath(this.grid, customer.position, EXIT, customer.id);
+    customer.path = findPath(this.grid, customer.position, STREET_EXIT, customer.id);
   }
 
   private completeCustomerDeparture(customer: CustomerRuntime): void {
@@ -242,7 +251,10 @@ export class RestaurantSimulation {
           actor.taskRemaining = this.taskDuration(actor, task);
           actor.activity = TASK_LABELS[task.kind];
           const station = this.stationFromTask(task);
-          if (station) { station.state = 'in_use'; station.workerId = actor.id; station.remaining = actor.taskRemaining; }
+          if (station) {
+            station.state = 'in_use'; station.workerId = actor.id; station.remaining = actor.taskRemaining;
+            actor.direction = directionBetween(actor.position, station.position, actor.direction);
+          }
         }
       }
       if (task.status === 'active') {
@@ -255,7 +267,7 @@ export class RestaurantSimulation {
   }
 
   private claimTask(actor: WorkerActor): void {
-    const roles: HelpRole[] = actor.kind === 'cook' ? ['kitchen'] : actor.kind === 'waiter' ? ['service', 'cleaning', 'stock'] : [this.state.profile?.helpRole ?? 'kitchen'];
+    const roles: HelpRole[] = actor.kind === 'cook' ? ['kitchen'] : actor.kind === 'waiter' ? ['service', 'cleaning'] : actor.kind === 'assistant' ? ['stock', 'cleaning'] : [this.state.profile?.helpRole ?? 'kitchen'];
     const task = this.tasks.claim(actor.id, roles, actor.preferredTaskId, (candidate) => {
       const station = this.stationFromTask(candidate);
       return !station || station.state === 'free' || station.queue[0] === candidate.payload.orderId;
@@ -270,6 +282,8 @@ export class RestaurantSimulation {
     }
     actor.taskId = task.id;
     actor.path = path;
+    if (task.kind === 'deliver' && task.payload.deliveryStage === 'serve') actor.carrying = 'dish';
+    if (task.kind === 'stock_support') actor.carrying = 'ingredients';
     const station = this.stationFromTask(task);
     if (station) { station.state = 'reserved'; station.workerId = actor.id; }
   }
@@ -279,7 +293,7 @@ export class RestaurantSimulation {
     if (!completed) return;
     const station = this.stationFromTask(task);
     if (station) { station.state = 'free'; station.workerId = undefined; station.remaining = 0; station.currentStep = undefined; station.queue = station.queue.filter((id) => id !== task.payload.orderId); }
-    this.resolveTask(task);
+    this.resolveTask(actor, task);
     if (actor.kind === 'player') awardPlayerTaskXp(this.state, task.kind);
     actor.taskId = undefined;
     actor.taskRemaining = 0;
@@ -287,16 +301,25 @@ export class RestaurantSimulation {
     this.tasks.prune();
   }
 
-  private resolveTask(task: RestaurantTask): void {
+  private resolveTask(actor: WorkerActor, task: RestaurantTask): void {
     const customer = this.customerFor(task.payload.customerId);
     const table = this.tableFor(task.payload.tableId);
     if (task.kind === 'take_order' && customer && table && customer.state === 'waiting_order') {
       this.placeOrder(customer, table);
     } else if (task.kind === 'cook_step') {
       this.finishCookStep(String(task.payload.orderId));
+    } else if (task.kind === 'deliver' && task.payload.deliveryStage === 'collect' && customer && table && customer.state === 'waiting_food') {
+      const order = this.orders.find((item) => item.id === customer.orderId);
+      if (order) {
+        order.state = 'collected';
+        actor.carrying = 'dish';
+        const nextTask = this.createTableDelivery(order);
+        actor.preferredTaskId = nextTask.id;
+      }
     } else if (task.kind === 'deliver' && customer && table && customer.state === 'waiting_food') {
       const order = this.orders.find((item) => item.id === customer.orderId);
       if (order) order.state = 'delivered';
+      actor.carrying = undefined;
       customer.state = 'eating'; customer.eatRemaining = BALANCE.customerEatSeconds + customer.partySize;
       table.state = 'eating';
     } else if (task.kind === 'payment' && customer && table && customer.state === 'waiting_payment') {
@@ -317,6 +340,7 @@ export class RestaurantSimulation {
       table.state = 'free'; table.customerId = undefined;
       table.chairs.forEach((chair) => { chair.state = 'free'; });
     } else if (task.kind === 'stock_support') {
+      actor.carrying = undefined;
       const order = this.orders.find((item) => item.id === task.payload.orderId && item.state === 'blocked');
       if (!order) return;
       const recipe = RECIPE_BY_ID[order.recipeId];
@@ -363,7 +387,7 @@ export class RestaurantSimulation {
     station.currentStep = step.label;
     this.tasks.add({
       key: `cook:${order.id}:${order.stepIndex}`, kind: 'cook_step', role: 'kitchen', target: station.interaction,
-      duration: step.duration * (0.7 + 0.3 * order.quantity), priority: 60,
+      duration: step.duration * (0.7 + 0.3 * order.quantity) / BALANCE.cookingSpeedMultiplier, priority: 60,
       payload: { orderId: order.id, stationId: station.id, customerId: order.customerId, tableId: order.tableId },
     });
   }
@@ -387,12 +411,19 @@ export class RestaurantSimulation {
   }
 
   private createDelivery(order: OrderRuntime): void {
-    const table = this.tableFor(order.tableId);
-    if (!table) return;
     this.tasks.add({
-      key: `deliver:${order.id}`, kind: 'deliver', role: 'service', target: table.waiterApproach,
-      duration: BALANCE.actionSeconds.deliver, priority: 100,
-      payload: { orderId: order.id, customerId: order.customerId, tableId: order.tableId },
+      key: `deliver:${order.id}:collect`, kind: 'deliver', role: 'service', target: PICKUP_SERVICE_POINT,
+      duration: Math.min(1.2, BALANCE.actionSeconds.deliver / 2), priority: 100,
+      payload: { orderId: order.id, customerId: order.customerId, tableId: order.tableId, stationId: 'pickup', deliveryStage: 'collect' },
+    });
+  }
+
+  private createTableDelivery(order: OrderRuntime): RestaurantTask {
+    const table = this.tableFor(order.tableId)!;
+    return this.tasks.add({
+      key: `deliver:${order.id}:serve`, kind: 'deliver', role: 'service', target: table.waiterApproach,
+      duration: Math.max(1.2, BALANCE.actionSeconds.deliver / 2), priority: 110,
+      payload: { orderId: order.id, customerId: order.customerId, tableId: order.tableId, deliveryStage: 'serve' },
     });
   }
 
@@ -423,7 +454,7 @@ export class RestaurantSimulation {
     const actor = this.playerActor();
     const task = actor.taskId ? this.tasks.get(actor.taskId) : undefined;
     if (task?.status === 'reserved') {
-      this.tasks.release(task.id, actor.id); actor.taskId = undefined; actor.path = [];
+      this.tasks.release(task.id, actor.id); actor.taskId = undefined; actor.path = []; this.grid.releaseReservations(actor.id);
     }
     gameEvents.emit('toast', { message: `Agora você prioriza: ${this.roleLabel(role)}.`, tone: 'info' });
   }
@@ -446,7 +477,7 @@ export class RestaurantSimulation {
     if (!actor.taskId) return false;
     const task = this.tasks.get(actor.taskId);
     if (!task || task.status !== 'reserved') return false;
-    this.tasks.release(task.id, actor.id); actor.taskId = undefined; actor.path = []; actor.activity = 'Tarefa cancelada';
+    this.tasks.release(task.id, actor.id); actor.taskId = undefined; actor.path = []; actor.activity = 'Tarefa cancelada'; this.grid.releaseReservations(actor.id);
     return true;
   }
 
@@ -455,27 +486,14 @@ export class RestaurantSimulation {
   activeCustomerCount(): number { return this.customers.filter((customer) => !['gone', 'gave_up'].includes(customer.state)).length; }
 
   private advanceMover(mover: Mover, delta: number, speed: number): void {
-    const target = mover.path[0];
-    if (!target) { mover.visual = { ...mover.position }; return; }
-    const cell = this.grid.get(target);
-    if (cell?.occupiedBy && cell.occupiedBy !== mover.id) { mover.visual = { ...mover.position }; return; }
-    mover.moveProgress += delta * speed;
-    const amount = Math.min(1, mover.moveProgress);
-    mover.visual = {
-      x: mover.position.x + (target.x - mover.position.x) * amount,
-      y: mover.position.y + (target.y - mover.position.y) * amount,
-    };
-    if (mover.moveProgress >= 1) {
-      mover.position = { ...target }; mover.visual = { ...target }; mover.path.shift(); mover.moveProgress = 0;
-      this.grid.occupy(mover.position, mover.id);
-    }
+    advanceTileMover(this.grid, mover, delta, speed);
   }
 
   private workerSpeed(actor: WorkerActor): number {
-    if (actor.kind !== 'player' || !this.state.profile) return 2.5;
+    if (actor.kind !== 'player' || !this.state.profile) return 2.5 * BALANCE.movementSpeedMultiplier;
     const role = this.state.profile.helpRole;
     const profession = role === 'kitchen' ? 'cook' : role === 'service' ? 'waiter' : role === 'cleaning' ? 'cleaner' : 'stocker';
-    return 2.5 * (1 + (this.state.profile.professions[profession].level - 1) * 0.05);
+    return 2.5 * BALANCE.movementSpeedMultiplier * (1 + (this.state.profile.professions[profession].level - 1) * 0.05);
   }
 
   private taskDuration(actor: WorkerActor, task: RestaurantTask): number {

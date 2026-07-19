@@ -9,7 +9,7 @@ export interface MapValidation { valid: boolean; errors: string[] }
 export function validateRestaurantMap(grid: RestaurantGrid, tables: TableRuntime[]): MapValidation {
   const errors: string[] = [];
   for (const station of STATIONS) {
-    if (!grid.isWalkable(station.interaction) || findPath(grid, ENTRANCE, station.interaction).length === 0) {
+    if (station.interactionPoints.some((point) => !grid.isWalkable(point) || findPath(grid, ENTRANCE, point).length === 0)) {
       errors.push(`Estação inacessível: ${station.id}`);
     }
   }

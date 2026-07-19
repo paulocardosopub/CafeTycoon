@@ -6,6 +6,7 @@ export interface GridCell {
   walkable: boolean;
   occupiedBy?: string;
   reservedFor?: string;
+  reservedBy?: string;
   stationPart?: string;
   furniturePart?: string;
 }
@@ -40,11 +41,26 @@ export class RestaurantGrid {
 
   isWalkable(point: GridPoint, ignoreOccupant?: string): boolean {
     const cell = this.get(point);
-    return Boolean(cell?.walkable && (!cell.occupiedBy || cell.occupiedBy === ignoreOccupant));
+    return Boolean(cell?.walkable && (!cell.occupiedBy || cell.occupiedBy === ignoreOccupant) && (!cell.reservedBy || cell.reservedBy === ignoreOccupant));
+  }
+
+  canEnter(point: GridPoint, actorId: string): boolean { return this.isWalkable(point, actorId); }
+
+  reserve(point: GridPoint, actorId: string): boolean {
+    const cell = this.get(point);
+    if (!cell || !this.canEnter(point, actorId)) return false;
+    this.releaseReservations(actorId);
+    cell.reservedBy = actorId;
+    return true;
+  }
+
+  releaseReservations(actorId: string): void {
+    for (const row of this.cells) for (const cell of row) if (cell.reservedBy === actorId) cell.reservedBy = undefined;
   }
 
   occupy(point: GridPoint, actorId: string): void {
     this.vacate(actorId);
+    this.releaseReservations(actorId);
     this.set(point, { occupiedBy: actorId });
   }
 
@@ -52,6 +68,7 @@ export class RestaurantGrid {
     for (const row of this.cells) {
       for (const cell of row) if (cell.occupiedBy === actorId) cell.occupiedBy = undefined;
     }
+    this.releaseReservations(actorId);
   }
 
   clone(): RestaurantGrid {

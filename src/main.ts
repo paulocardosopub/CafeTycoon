@@ -37,7 +37,7 @@ async function boot(): Promise<void> {
     type: Phaser.AUTO,
     parent: ui.canvasParentId,
     backgroundColor: '#173a36',
-    render: { antialias: true, pixelArt: false, roundPixels: false },
+    render: { antialias: false, pixelArt: true, roundPixels: true },
     scale: { mode: Phaser.Scale.RESIZE, autoCenter: Phaser.Scale.CENTER_BOTH, width: '100%', height: '100%' },
     scene: [scene],
     banner: false,

@@ -24,6 +24,7 @@ export class GameUI {
   private zoom = 1;
   private latestOffline?: OfflineReport;
   private renderQueued = false;
+  private technicalMode = false;
 
   constructor(
     private readonly root: HTMLElement,
@@ -37,6 +38,7 @@ export class GameUI {
     gameEvents.on<number>('camera:zoom', (zoom) => { this.zoom = zoom; this.queueRender(); });
     gameEvents.on<{ message: string; tone: string }>('toast', ({ message, tone }) => this.toast(message, tone));
     gameEvents.on('ui:open-player', () => this.open('player'));
+    gameEvents.on<boolean>('technical:changed', (enabled) => { this.technicalMode = enabled; if (this.activePanel === 'settings') this.renderPanel(); });
     setInterval(() => { this.renderDynamic(); this.refreshProductionPanel(); }, 500);
   }
 
@@ -59,7 +61,7 @@ export class GameUI {
           <div id="game-canvas" aria-label="Restaurante isométrico"></div>
           <section class="owner-card" id="owner-card"></section>
           <div class="shift-card"><span class="live-dot"></span><div><small>TURNO ABERTO</small><strong id="shift-customers">0 clientes no salão</strong></div></div>
-          <div class="camera-hint">Arraste para mover · Role para zoom</div>
+          <div class="camera-hint">Arraste para mover · Role para zoom · D: modo técnico</div>
           <aside class="panel-host" id="panel-host" aria-live="polite"></aside>
         </main>
         <nav class="management-bar" aria-label="Gestão do restaurante">
@@ -88,6 +90,7 @@ export class GameUI {
       else if (action === 'buy-upgrade') this.buyUpgrade(target.dataset.id as keyof GameState['upgrades']);
       else if (action === 'simulate-offline') this.simulateOffline(Number(target.dataset.seconds));
       else if (action === 'toggle-mute') { this.audio.update({ muted: !this.audio.settings.muted }); this.open('settings'); }
+      else if (action === 'toggle-technical') gameEvents.emit('technical:toggle', undefined);
       else if (action === 'reset-save') await this.resetSave();
     });
     this.root.addEventListener('input', (event) => {
@@ -264,7 +267,7 @@ export class GameUI {
   }
 
   private settingsPanel(): string {
-    return `<div class="settings-list"><label><span>Volume geral <b data-audio-value="master">${Math.round(this.audio.settings.master * 100)}%</b></span><input data-audio="master" type="range" min="0" max="1" step="0.05" value="${this.audio.settings.master}" /></label><label><span>Efeitos <b data-audio-value="effects">${Math.round(this.audio.settings.effects * 100)}%</b></span><input data-audio="effects" type="range" min="0" max="1" step="0.05" value="${this.audio.settings.effects}" /></label><button class="secondary-button" data-action="toggle-mute">${this.audio.settings.muted ? 'Ativar áudio' : 'Silenciar tudo'}</button></div>
+    return `<div class="settings-list"><label><span>Volume geral <b data-audio-value="master">${Math.round(this.audio.settings.master * 100)}%</b></span><input data-audio="master" type="range" min="0" max="1" step="0.05" value="${this.audio.settings.master}" /></label><label><span>Efeitos <b data-audio-value="effects">${Math.round(this.audio.settings.effects * 100)}%</b></span><input data-audio="effects" type="range" min="0" max="1" step="0.05" value="${this.audio.settings.effects}" /></label><button class="secondary-button" data-action="toggle-mute">${this.audio.settings.muted ? 'Ativar áudio' : 'Silenciar tudo'}</button><button class="secondary-button" data-action="toggle-technical">${this.technicalMode ? 'Desativar' : 'Ativar'} modo técnico</button></div>
       <div class="settings-section"><h3>Progresso offline</h3><p>O cálculo usa no máximo 8 horas e respeita ingredientes, fila e capacidade.</p><button class="secondary-button" data-open="offline">Abrir simulador</button></div>
       <div class="danger-zone"><h3>Recomeçar</h3><p>Apaga o restaurante, personagem e todo o progresso deste dispositivo.</p><button data-action="reset-save">Apagar save…</button></div>`;
   }
