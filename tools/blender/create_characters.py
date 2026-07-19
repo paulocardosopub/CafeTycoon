@@ -115,7 +115,7 @@ def create_character(definition, collection, materials):
     crate = cube(f"{asset_id}:carried-crate", (0, -.56, 1.08), (.35, .25, .25), materials["wood_light"], collection, .035); crate.hide_render = True; parts.append(crate)
     parts.append(shadow(asset_id, collection, materials["shadow"], (.55, .33)))
     parent_parts(root, [part for part in parts if part.parent is None])
-    root["pixelHeight"] = 132; root["logicalHeightBlocks"] = 1.9; root["qualityProfile"] = "reference-hd-v2"
+    root["pixelHeight"] = 132; root["logicalHeightBlocks"] = 1.9; root["qualityProfile"] = "reference-canonical-v3"
     rig = create_humanoid_rig(asset_id, collection); rig.parent = root; create_animation_library(rig)
     add_markers(asset_id, collection); tag_collection(collection, definition)
     return root

@@ -186,6 +186,6 @@ def create_equipment(definition, collection, materials):
     parts += _legs(asset_id, shadow_size[0] - .04, min(.48, shadow_size[1]), collection, materials)
     parts.append(shadow(asset_id, collection, materials["shadow"], shadow_size))
     parent_parts(root, [part for part in parts if part.parent is None])
-    root["visualHeight"] = visual_height; root["qualityProfile"] = "reference-hd-v2"; root["fillsFootprint"] = True
+    root["visualHeight"] = visual_height; root["qualityProfile"] = "reference-canonical-v3"; root["fillsFootprint"] = True
     add_markers(asset_id, collection, equipment=True); tag_collection(collection, definition)
     return root

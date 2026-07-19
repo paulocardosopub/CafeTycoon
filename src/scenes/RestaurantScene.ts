@@ -54,7 +54,8 @@ export class RestaurantScene extends Phaser.Scene {
 
   preload(): void {
     for (const asset of BLENDER_RENDERED_ASSETS) {
-      this.load.spritesheet(`blender:${asset.assetId}`, asset.spriteSheet, { frameWidth: asset.frameSize[0], frameHeight: asset.frameSize[1] });
+      const source = `${asset.spriteSheet}?v=${encodeURIComponent(asset.renderVersion)}`;
+      this.load.spritesheet(`blender:${asset.assetId}`, source, { frameWidth: asset.frameSize[0], frameHeight: asset.frameSize[1] });
     }
   }
 

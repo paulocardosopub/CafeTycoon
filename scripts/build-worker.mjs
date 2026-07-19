@@ -25,12 +25,16 @@ html = html
 
 const workerSource = `const HTML=${JSON.stringify(html)};
 export default {
-  async fetch(request) {
+  async fetch(request, env) {
     const url = new URL(request.url);
     const acceptsHtml = request.headers.get('accept')?.includes('text/html');
     const hasExtension = /\\.[a-z0-9]+$/i.test(url.pathname);
     if (url.pathname === '/' || (acceptsHtml && !hasExtension)) {
       return new Response(HTML, { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-cache' } });
+    }
+    if (env?.ASSETS?.fetch) {
+      const response = await env.ASSETS.fetch(request);
+      if (response.status !== 404) return response;
     }
     return new Response('Not found', { status: 404 });
   }

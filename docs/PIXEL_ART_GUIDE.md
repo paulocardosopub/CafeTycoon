@@ -4,11 +4,11 @@ Este documento é a fonte de verdade visual. O jogo continua 2D no Phaser; Blend
 
 ## Perfil visual ativo
 
-- Perfil: `reference-hd-v2`.
-- Revisão do render: `0.0.3-blender-3`; a versão do jogo permanece `0.0.3`.
+- Perfil: `reference-canonical-v3`.
+- Revisão do render: `0.0.3-blender-4`; a versão do jogo permanece `0.0.3`.
 - Referências mínimas: cozinheira, cliente, fogão industrial e geladeira industrial fornecidos em 19 de julho de 2026.
 - Silhuetas arredondadas, contorno escuro de um pixel, luz superior suave, sombra projetada curta e detalhes legíveis em 1×.
-- Não misturar renders `reference-hd-v2` com os antigos personagens e blocos simplificados na apresentação final.
+- Não misturar renders `reference-canonical-v3` com os antigos personagens e blocos simplificados na apresentação final.
 
 ## Escala e grade
 
@@ -24,7 +24,7 @@ Este documento é a fonte de verdade visual. O jogo continua 2D no Phaser; Blend
 ## Pipeline Blender → PNG
 
 1. `tools/blender/build_assets.py` gera fontes editáveis por família em `assets/blender/`.
-2. Materiais compartilhados usam a paleta `bistro-bloom-reference-hd-v2`, com rampas de luz e sombra controladas.
+2. Os quatro anexos canônicos são preservados em `assets/blender/references/`; o Blender aplica chroma-key, recorte e nearest-neighbor. Os demais assets usam a paleta `bistro-bloom-reference-canonical-v3`.
 3. A câmera ortográfica comum usa rotação horizontal de 45° e inclinação de 35,264°.
 4. Eevee renderiza diretamente na resolução nativa com filtro mínimo, Freestyle de um pixel e fundo transparente.
 5. O pós-processamento usa nearest-neighbor, alfa recortado e quantização determinística da paleta.

@@ -108,6 +108,6 @@ def create_furniture(definition, collection, materials):
             leaf = sphere(f"{asset_id}:leaf:{index}", (x, y, z), (.18, .08, .30), materials[material], collection); leaf.rotation_euler.y = -.35 if x < 0 else .35; parts.append(leaf)
         shadow_size = (.43, .38)
     parts.append(shadow(asset_id, collection, materials["shadow"], shadow_size)); parent_parts(root, parts)
-    root["qualityProfile"] = "reference-hd-v2"; root["fillsFootprint"] = True
+    root["qualityProfile"] = "reference-canonical-v3"; root["fillsFootprint"] = True
     add_markers(asset_id, collection, counter="counter" in asset_id); tag_collection(collection, definition)
     return root

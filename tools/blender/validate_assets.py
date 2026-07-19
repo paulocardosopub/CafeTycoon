@@ -39,6 +39,9 @@ def validate(project_root: Path):
         if not deployed.exists(): errors.append(f"missing deployed PNG: {asset['assetId']}")
         if asset.get("visualLevel") != 1: errors.append(f"invalid visual level: {asset['assetId']}")
         if asset.get("qualityProfile") != QUALITY_PROFILE or asset.get("nativeScale") != 1.0: errors.append(f"quality metadata mismatch: {asset['assetId']}")
+        if asset.get("referenceMode") == "canonical-chroma-key":
+            reference = project_root / asset.get("referenceSource", "")
+            if not reference.exists(): errors.append(f"canonical reference missing: {asset['assetId']}")
         if asset.get("orientations") != list(DIRECTIONS): errors.append(f"directions mismatch: {asset['assetId']}")
         if asset["kind"] == "character":
             if asset.get("anchor") != [48, 136] or asset.get("frameSize") != list(CHARACTER_FRAME): errors.append(f"feet anchor/frame mismatch: {asset['assetId']}")
@@ -56,7 +59,10 @@ def validate(project_root: Path):
         if not any(alpha < .01 for alpha in alphas): errors.append(f"transparent background missing: {asset['assetId']}")
         if not any(alpha > .5 for alpha in alphas): errors.append(f"empty render: {asset['assetId']}")
         opaque_colors = {tuple(round(value, 3) for value in pixels[index:index+3]) for index in range(0, len(pixels), 4) if pixels[index+3] > .5}
-        if len(opaque_colors) > len(PALETTE) + 2: errors.append(f"uncontrolled/blurred palette: {asset['assetId']} ({len(opaque_colors)} colors)")
+        if asset.get("referenceMode") != "canonical-chroma-key" and len(opaque_colors) > len(PALETTE) + 2: errors.append(f"uncontrolled/blurred palette: {asset['assetId']} ({len(opaque_colors)} colors)")
+        if asset.get("referenceMode") == "canonical-chroma-key":
+            magenta_pixels = sum(1 for index in range(0, len(pixels), 4) if pixels[index+3] > .5 and pixels[index] > .70 and pixels[index+2] > .62 and pixels[index+1] < .38)
+            if magenta_pixels: errors.append(f"reference background leaked: {asset['assetId']} ({magenta_pixels}px)")
         frame_opaque = [(x, y) for y in range(frame_h) for x in range(frame_w) if pixels[(y * image.size[0] + x) * 4 + 3] > .2]
         if frame_opaque:
             coverage_w = max(point[0] for point in frame_opaque) - min(point[0] for point in frame_opaque) + 1

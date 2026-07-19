@@ -3,6 +3,8 @@
 ## 0.0.3 — 2026-07-19
 
 - Elevado o padrão visual da própria 0.0.3 para `reference-hd-v2`, sem alterar a versão do jogo.
+- Vinculados cozinheira, cliente, fogão e geladeira diretamente aos quatro anexos canônicos no perfil `reference-canonical-v3`.
+- Corrigida a publicação para servir os PNGs externos e invalidar cache por revisão visual, impedindo o fallback procedural antigo.
 - Personagens passaram de 64×96 para 96×144, com altura útil próxima de dois blocos, anchor centralizado nos pés e escala 1:1 no Phaser.
 - Refeitos todos os personagens, móveis e equipamentos Blender para evitar mistura com os antigos blocos simplificados.
 - Adicionados seis frames distintos de caminhada por direção, identidade e roupa consistentes, rostos, mãos, cabelos e acessórios mais detalhados.

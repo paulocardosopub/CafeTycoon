@@ -2,9 +2,9 @@
 
 from pathlib import Path
 
-PALETTE_VERSION = "bistro-bloom-reference-hd-v2"
-RENDER_VERSION = "0.0.3-blender-3"
-QUALITY_PROFILE = "reference-hd-v2"
+PALETTE_VERSION = "bistro-bloom-reference-canonical-v3"
+RENDER_VERSION = "0.0.3-blender-4"
+QUALITY_PROFILE = "reference-canonical-v3"
 CHARACTER_FRAME = (96, 144)
 WORLD_FRAME = (192, 192)
 THUMBNAIL_SIZE = (128, 128)
@@ -103,6 +103,18 @@ for _asset in EQUIPMENT:
         _asset["animations"] = {"closed": 1, "open": 2, "complete": 1}
 
 ASSETS = CHARACTERS + FURNITURE + EQUIPMENT
+
+REFERENCE_SOURCES = {
+    "cook-0": "assets/blender/references/cook-reference.png",
+    "customer-0": "assets/blender/references/customer-reference.png",
+    "stove_level_1": "assets/blender/references/stove-reference.png",
+    "refrigerator_level_1": "assets/blender/references/refrigerator-reference.png",
+}
+
+for _asset in ASSETS:
+    if _asset["assetId"] in REFERENCE_SOURCES:
+        _asset["referenceSource"] = REFERENCE_SOURCES[_asset["assetId"]]
+        _asset["referenceMode"] = "canonical-chroma-key"
 
 def project_root_from_script():
     return Path(__file__).resolve().parents[3]

@@ -8,6 +8,7 @@ interface ManifestAsset {
   renderedFile: string; thumbnail: string; orientations: string[]; animations: Record<string, number>;
   frameCount: number; frameSize: number[]; footprint: number[]; anchor: number[]; visualLevel: number;
   transparent: boolean; nextLevelAssetId?: string | null; qualityProfile: string; nativeScale: number;
+  referenceSource?: string; referenceMode?: string;
 }
 
 interface AssetManifest {
@@ -32,8 +33,8 @@ function pngHeader(path: string): { width: number; height: number; colorType: nu
 
 describe('pipeline Blender 0.0.3', () => {
   it('mantÃ©m a versÃ£o do jogo e evolui apenas a revisÃ£o visual', () => {
-    expect(manifest.version).toBe('0.0.3-blender-3');
-    expect(manifest.qualityProfile).toBe('reference-hd-v2');
+    expect(manifest.version).toBe('0.0.3-blender-4');
+    expect(manifest.qualityProfile).toBe('reference-canonical-v3');
   });
 
   it('mantém câmera isométrica ortográfica padronizada', () => {
@@ -59,7 +60,7 @@ describe('pipeline Blender 0.0.3', () => {
     for (const asset of manifest.assets) {
       expect(asset.orientations).toEqual(['ne', 'nw', 'se', 'sw']);
       expect(asset.visualLevel).toBe(1);
-      expect(asset.qualityProfile).toBe('reference-hd-v2');
+      expect(asset.qualityProfile).toBe('reference-canonical-v3');
       expect(asset.nativeScale).toBe(1);
       expect(asset.transparent).toBe(true);
       expect(asset.footprint[0]).toBeGreaterThan(0);
@@ -89,6 +90,18 @@ describe('pipeline Blender 0.0.3', () => {
     }
     expect(stove).toMatchObject({ footprint: [2, 1], animations: { off: 1, active: 2, complete: 1 } });
     expect(refrigerator).toMatchObject({ footprint: [2, 1], animations: { closed: 1, open: 2, complete: 1 } });
+    for (const asset of [cook, customer, stove, refrigerator]) {
+      expect(asset.referenceMode).toBe('canonical-chroma-key');
+      expect(asset.referenceSource).toBeTruthy();
+      expect(statSync(resolve(projectRoot, asset.referenceSource!)).size).toBeGreaterThan(100_000);
+    }
+  });
+
+  it('serve sprites públicos e invalida cache por revisão visual', () => {
+    const scene = readFileSync(resolve(projectRoot, 'src/scenes/RestaurantScene.ts'), 'utf8');
+    const worker = readFileSync(resolve(projectRoot, 'scripts/build-worker.mjs'), 'utf8');
+    expect(scene).toContain('?v=${encodeURIComponent(asset.renderVersion)}');
+    expect(worker).toContain('env?.ASSETS?.fetch');
   });
 
   it('mantém dados visuais separados e troca futura sem mover a estação', () => {
