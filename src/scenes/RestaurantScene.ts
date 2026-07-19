@@ -60,6 +60,12 @@ export class RestaurantScene extends Phaser.Scene {
     this.simulation.update(deltaMs / 1000);
     for (const actor of this.simulation.actors) this.syncActor(actor);
     for (const customer of this.simulation.customers) this.syncCustomer(customer);
+    const activeCustomerIds = new Set(this.simulation.customers.map((customer) => customer.id));
+    for (const [customerId, visual] of this.customerVisuals) {
+      if (activeCustomerIds.has(customerId)) continue;
+      visual.root.destroy(true);
+      this.customerVisuals.delete(customerId);
+    }
     for (const station of this.simulation.stations) this.syncStation(station);
     for (const table of this.simulation.tables) this.syncTable(table);
   }

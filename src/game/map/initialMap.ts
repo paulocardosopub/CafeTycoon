@@ -27,6 +27,24 @@ export function createTables(): TableRuntime[] {
         { id: 'chair-sun-d', position: { x: 10, y: 10 }, approach: { x: 9, y: 10 }, state: 'free' },
       ],
     },
+    {
+      id: 'table-rose-2', label: 'Mesa Rosa', position: { x: 3, y: 14 }, size: { x: 2, y: 2 },
+      waiterApproach: { x: 5, y: 14 }, maxCustomers: 2, state: 'free', accessible: true,
+      chairs: [
+        { id: 'chair-rose-a', position: { x: 3, y: 13 }, approach: { x: 2, y: 13 }, state: 'free' },
+        { id: 'chair-rose-b', position: { x: 4, y: 16 }, approach: { x: 5, y: 16 }, state: 'free' },
+      ],
+    },
+    {
+      id: 'table-moon-4', label: 'Mesa Lua', position: { x: 12, y: 14 }, size: { x: 2, y: 2 },
+      waiterApproach: { x: 11, y: 14 }, maxCustomers: 4, state: 'free', accessible: true,
+      chairs: [
+        { id: 'chair-moon-a', position: { x: 12, y: 13 }, approach: { x: 11, y: 13 }, state: 'free' },
+        { id: 'chair-moon-b', position: { x: 14, y: 14 }, approach: { x: 15, y: 14 }, state: 'free' },
+        { id: 'chair-moon-c', position: { x: 13, y: 16 }, approach: { x: 14, y: 16 }, state: 'free' },
+        { id: 'chair-moon-d', position: { x: 11, y: 15 }, approach: { x: 10, y: 15 }, state: 'free' },
+      ],
+    },
   ];
 }
 

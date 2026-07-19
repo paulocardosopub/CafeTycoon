@@ -88,6 +88,7 @@ export class RestaurantSimulation {
 
   update(deltaSeconds: number): void {
     const delta = Math.max(0, Math.min(0.1, deltaSeconds));
+    this.pruneGoneCustomers();
     const production = tickProduction(this.state, delta);
     if (Object.keys(production.produced).length) gameEvents.emit('toast', { message: 'Produção programada concluída!', tone: 'success' });
 
@@ -146,6 +147,10 @@ export class RestaurantSimulation {
   private updateCustomers(delta: number): void {
     for (const customer of this.customers) {
       if (customer.state === 'gone') continue;
+      if ((customer.state === 'leaving' || customer.state === 'gave_up') && !customer.path.length) {
+        this.routeCustomerToExit(customer);
+        if (!customer.path.length) continue;
+      }
       if (customer.path.length) {
         this.advanceMover(customer, delta, 2.1);
         if (!customer.path.length) this.onCustomerArrived(customer);
@@ -173,8 +178,27 @@ export class RestaurantSimulation {
         duration: BALANCE.actionSeconds.takeOrder, priority: 70, payload: { customerId: customer.id, tableId: table.id },
       });
     } else if (customer.state === 'leaving' || customer.state === 'gave_up') {
-      customer.state = 'gone';
-      this.grid.occupy(customer.position, undefined);
+      this.completeCustomerDeparture(customer);
+    }
+  }
+
+  private routeCustomerToExit(customer: CustomerRuntime): void {
+    if (this.samePoint(customer.position, EXIT)) {
+      this.completeCustomerDeparture(customer);
+      return;
+    }
+    customer.path = findPath(this.grid, customer.position, EXIT, customer.id);
+  }
+
+  private completeCustomerDeparture(customer: CustomerRuntime): void {
+    customer.state = 'gone';
+    customer.path = [];
+    this.grid.vacate(customer.id);
+  }
+
+  private pruneGoneCustomers(): void {
+    for (let index = this.customers.length - 1; index >= 0; index -= 1) {
+      if (this.customers[index].state === 'gone') this.customers.splice(index, 1);
     }
   }
 
@@ -188,7 +212,7 @@ export class RestaurantSimulation {
     const order = this.orders.find((item) => item.id === customer.orderId);
     if (order && order.state !== 'cooking') order.state = 'cancelled';
     if (wasSeated) this.dirtyTable(customer.tableId!);
-    customer.path = findPath(this.grid, customer.position, EXIT, customer.id);
+    this.routeCustomerToExit(customer);
     gameEvents.emit('toast', { message: 'Um cliente perdeu a paciência. Reputação −2.', tone: 'danger' });
   }
 
@@ -286,7 +310,7 @@ export class RestaurantSimulation {
       this.state.stats.customersServed += order.quantity;
       this.state.stats.coinsEarned += earned;
       customer.state = 'leaving';
-      customer.path = findPath(this.grid, customer.position, EXIT, customer.id);
+      this.routeCustomerToExit(customer);
       this.dirtyTable(table.id);
       gameEvents.emit('toast', { message: `${recipe.name} servido · +${earned} moedas`, tone: 'success' });
     } else if (task.kind === 'clean' && table) {

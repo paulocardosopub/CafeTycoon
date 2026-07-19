@@ -8,7 +8,7 @@ export const BALANCE = {
   inventoryCapacity: 110,
   customerSpawnSeconds: 12,
   customerEatSeconds: 9,
-  customerBasePatienceSeconds: 75,
+  customerBasePatienceSeconds: 120,
   actionSeconds: {
     takeOrder: 3.2,
     deliver: 2.4,

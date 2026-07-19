@@ -25,6 +25,7 @@ describe('A* e mapa', () => {
     const grid = createInitialGrid(tables);
     const result = validateRestaurantMap(grid, tables);
     expect(result.errors).toEqual([]);
+    expect(tables).toHaveLength(4);
     expect(tables.every((table) => table.accessible)).toBe(true);
     expect(findPath(grid, ENTRANCE, tables[0].waiterApproach).length).toBeGreaterThan(0);
   });

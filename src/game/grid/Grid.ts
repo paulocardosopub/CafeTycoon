@@ -43,11 +43,15 @@ export class RestaurantGrid {
     return Boolean(cell?.walkable && (!cell.occupiedBy || cell.occupiedBy === ignoreOccupant));
   }
 
-  occupy(point: GridPoint, actorId?: string): void {
+  occupy(point: GridPoint, actorId: string): void {
+    this.vacate(actorId);
+    this.set(point, { occupiedBy: actorId });
+  }
+
+  vacate(actorId: string): void {
     for (const row of this.cells) {
       for (const cell of row) if (cell.occupiedBy === actorId) cell.occupiedBy = undefined;
     }
-    if (actorId) this.set(point, { occupiedBy: actorId });
   }
 
   clone(): RestaurantGrid {
