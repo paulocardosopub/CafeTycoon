@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.0.3 — 2026-07-19
+
+- Corrigidos NPCs presos em `leaving`: zona de saída ampliada, metadados de recuperação, espera entre recálculos, rotas alternativas e limpeza segura de todas as referências.
+- Corrigida a seleção de mesa que insistia numa primeira mesa temporariamente bloqueada e fazia clientes seguintes desistirem apesar de haver lugares alcançáveis.
+- Reestruturadas mesas para 10 assentos independentes; grupos reservam lugares atomicamente, pedidos/pratos pertencem ao assento e a limpeza libera cada lugar separadamente.
+- Reescrita a operação de pedidos, tarefas, reservas de ingredientes, estações e três slots do balcão com proteção contra duplicação.
+- Adicionados estoquista e auxiliar de limpeza, funções do proprietário, motivo ocioso, destino e estados completos da tarefa.
+- Adicionados alertas operacionais, ocupação/capacidade, pedidos/retiradas, compra rápida confirmada e diagnóstico de ingredientes em falta.
+- Adicionadas pausa e velocidades 1×/2×/4× com retorno a 1× na abertura.
+- Adicionado schema de save 3 compatível com 0.0.2 e persistência/reconciliação durante pedidos, transporte, balcão, sujeira e saída.
+- Validado offline em 10 min, 1 h, 4 h, 8 h e 12 h (limitado a 8), sem estoque negativo nem reaplicação.
+- Corrigido o escopo: não há slider/carrossel. Foi criado pipeline modular Blender 5.2 em modo background para modelos low-poly, rig, animações, câmera ortográfica, paleta, PNGs, sprite sheets, miniaturas e manifest.
+- Criados 4 estilos do jogador, 8 clientes, 2 cozinheiros, 2 garçons, 1 auxiliar, 1 estoquista, 9 móveis e 9 equipamentos nível 1, todos individuais e renderizados nas quatro direções.
+- Mantido Phaser 2D com atlas procedural como fallback; modelos `.blend` nunca são carregados durante o jogo.
+- Ampliados testes de ciclo, capacidade, grupos, compras, offline, save, stress, cinquenta saídas e integridade dos assets Blender.
+
 ## 0.0.2 — 2026-07-19
 
 - Substituída a apresentação do mundo por pixel art isométrica original, com grade 64×32, atlas raster, renderização sem suavização e zooms 0,5×/1×/2×.

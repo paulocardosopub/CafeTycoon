@@ -7,7 +7,11 @@ const WORLD_FRAME = { width: 256, height: 160 } as const;
 const WORLD_COLUMNS = 8;
 const CHARACTER_FRAME = { width: 64, height: 96 } as const;
 const CHARACTER_COLUMNS = 32;
-export const CHARACTER_VARIANTS = ['player', 'cook', 'waiter', 'assistant', ...Array.from({ length: 8 }, (_, index) => `customer-${index}`)] as const;
+export const CHARACTER_VARIANTS = [
+  'player', 'player-style-0', 'player-style-1', 'player-style-2', 'player-style-3',
+  'cook-0', 'cook-1', 'waiter-0', 'waiter-1', 'cleaner-0', 'stocker-0',
+  ...Array.from({ length: 8 }, (_, index) => `customer-${index}`),
+] as const;
 
 type Ctx = CanvasRenderingContext2D;
 type Point = { x: number; y: number };
@@ -384,12 +388,12 @@ function drawCharacter(ctx: Ctx, variant: string, animation: PixelAnimationName,
     rect(ctx, right ? 21 : 40, headY + 6, 4, 2, '#dc866e');
   }
   drawHair(ctx, colors.hairStyle, colors.hair, back, right, headY);
-  if (variant === 'cook') drawChefHat(ctx, headY);
-  if (variant === 'waiter') { rect(ctx, 24, torsoY + 3, 16, 4, P.white); rect(ctx, 30, torsoY + 7, 5, 17, P.outlineSoft); rect(ctx, 27, torsoY + 13, 11, 2, P.gold); }
-  if (variant === 'assistant') { rect(ctx, 23, torsoY + 7, 18, 15, P.cream); rect(ctx, 26, torsoY + 5, 4, 19, P.woodDark); rect(ctx, 37, torsoY + 5, 4, 19, P.woodDark); }
-  if (animation === 'carry-dish' || (variant === 'waiter' && animation === 'work')) drawCarriedDish(ctx, right, torsoY);
+  if (variant.startsWith('cook')) drawChefHat(ctx, headY);
+  if (variant.startsWith('waiter')) { rect(ctx, 24, torsoY + 3, 16, 4, P.white); rect(ctx, 30, torsoY + 7, 5, 17, P.outlineSoft); rect(ctx, 27, torsoY + 13, 11, 2, P.gold); }
+  if (variant.startsWith('cleaner') || variant.startsWith('stocker')) { rect(ctx, 23, torsoY + 7, 18, 15, P.cream); rect(ctx, 26, torsoY + 5, 4, 19, P.woodDark); rect(ctx, 37, torsoY + 5, 4, 19, P.woodDark); }
+  if (animation === 'carry-dish' || (variant.startsWith('waiter') && animation === 'work')) drawCarriedDish(ctx, right, torsoY);
   if (animation === 'carry-ingredients') drawCrate(ctx, torsoY);
-  if (animation === 'work' && variant !== 'waiter') { rect(ctx, 47, torsoY + 15 - frame % 2 * 2, 12, 4, P.steelBright); rect(ctx, 56, torsoY + 9 - frame % 2 * 2, 4, 10, P.woodDark); }
+  if (animation === 'work' && !variant.startsWith('waiter')) { rect(ctx, 47, torsoY + 15 - frame % 2 * 2, 12, 4, P.steelBright); rect(ctx, 56, torsoY + 9 - frame % 2 * 2, 4, 10, P.woodDark); }
   if (animation === 'eat') { rect(ctx, 44, torsoY + 6 - frame % 2 * 2, 15, 2, P.steelBright); pixelEllipse(ctx, 46, torsoY + 6 - frame % 2 * 2, 4, 2, P.creamLight); }
   ctx.restore();
 }
@@ -401,10 +405,15 @@ function characterColors(variant: string, appearance?: CharacterAppearance): Cha
   const skinMap: Record<string, string> = { porcelain: '#f6d4bd', honey: '#d99a68', cocoa: '#8b5a3c', ebony: '#553521' };
   const hairMap: Record<string, string> = { espresso: '#3a241d', chestnut: '#74432d', copper: '#b95f3a', midnight: '#242635' };
   const outfitMap: Record<string, string> = { teal: '#1d766d', coral: '#d96652', gold: '#d49a3a', plum: '#76536c' };
-  if (variant === 'player') return { skin: skinMap[appearance?.skin ?? 'honey'], hair: hairMap[appearance?.hairColor ?? 'espresso'], outfit: outfitMap[appearance?.outfitColor ?? 'teal'], accent: P.creamLight, role: 'player', hairStyle: appearance?.hairStyle ?? 'wave' };
-  if (variant === 'cook') return { skin: '#8b5a3c', hair: '#2b1c19', outfit: P.creamLight, accent: P.white, role: 'cook', hairStyle: 'bun' };
-  if (variant === 'waiter') return { skin: '#e7b58f', hair: '#30231e', outfit: P.terracotta, accent: P.creamLight, role: 'waiter', hairStyle: 'crop' };
-  if (variant === 'assistant') return { skin: '#6f462f', hair: '#242635', outfit: P.sage, accent: P.cream, role: 'assistant', hairStyle: 'curls' };
+  if (variant.startsWith('player')) return { skin: skinMap[appearance?.skin ?? 'honey'], hair: hairMap[appearance?.hairColor ?? 'espresso'], outfit: outfitMap[appearance?.outfitColor ?? 'teal'], accent: P.creamLight, role: 'player', hairStyle: appearance?.hairStyle ?? 'wave' };
+  if (variant.startsWith('cook')) return variant.endsWith('1')
+    ? { skin: '#e7b58f', hair: '#74432d', outfit: P.creamLight, accent: P.terracotta, role: 'cook', hairStyle: 'crop' }
+    : { skin: '#8b5a3c', hair: '#2b1c19', outfit: P.creamLight, accent: P.white, role: 'cook', hairStyle: 'bun' };
+  if (variant.startsWith('waiter')) return variant.endsWith('1')
+    ? { skin: '#553521', hair: '#242635', outfit: P.blue, accent: P.creamLight, role: 'waiter', hairStyle: 'curls' }
+    : { skin: '#e7b58f', hair: '#30231e', outfit: P.terracotta, accent: P.creamLight, role: 'waiter', hairStyle: 'crop' };
+  if (variant.startsWith('cleaner')) return { skin: '#6f462f', hair: '#242635', outfit: P.sage, accent: P.cream, role: 'cleaner', hairStyle: 'curls' };
+  if (variant.startsWith('stocker')) return { skin: '#d99a68', hair: '#3a241d', outfit: P.blueDark, accent: P.goldLight, role: 'stocker', hairStyle: 'wave' };
   const index = Number(variant.split('-')[1]) || 0;
   return { skin: skins[index], hair: hairs[index], outfit: outfits[index], accent: index % 2 ? P.cream : P.goldLight, role: 'customer', hairStyle: ['wave', 'crop', 'bun', 'curls'][index % 4] };
 }

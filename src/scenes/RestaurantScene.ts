@@ -1,8 +1,9 @@
 import Phaser from 'phaser';
 import { installPixelAtlases } from '../assets/pixel/PixelAtlasFactory';
 import { REQUIRED_CHARACTER_ANIMATIONS, WORLD_ASSETS, characterFrame, effectFrame } from '../assets/pixel/manifest';
+import { BLENDER_RENDERED_ASSETS } from '../assets/pixel/blenderManifest';
 import { gameEvents } from '../core/events';
-import type { GridPoint, PixelAnimationName, StationRuntime, TableRuntime, WorldAssetId } from '../core/types';
+import type { Direction, GridPoint, PixelAnimationName, StationRuntime, TableRuntime, WorldAssetId } from '../core/types';
 import { gridToWorld, isoDepth } from '../game/grid/IsoGrid';
 import { DECORATIONS, ENTRANCE, MAP_SIZE, RESTAURANT_SIZE } from '../game/map/initialMap';
 import type { CustomerRuntime, RestaurantSimulation, WorkerActor } from '../game/simulation/RestaurantSimulation';
@@ -31,10 +32,12 @@ interface StationVisual {
 interface TableVisual {
   pieces: Phaser.GameObjects.Image[];
   stateIcon: Phaser.GameObjects.Text;
+  seatPlates: Map<string, Phaser.GameObjects.Image>;
+  seatDirt: Map<string, Phaser.GameObjects.Text>;
 }
 
 const ZOOM_LEVELS = [0.5, 1, 2] as const;
-const SEATED_STATES = ['waiting_order', 'waiting_food', 'eating', 'waiting_payment'];
+const SEATED_STATES = ['sitting', 'waiting_order', 'waiting_food', 'eating', 'paying'];
 
 export class RestaurantScene extends Phaser.Scene {
   private actorVisuals = new Map<string, ActorVisual>();
@@ -49,6 +52,12 @@ export class RestaurantScene extends Phaser.Scene {
 
   constructor(private readonly simulation: RestaurantSimulation) { super('restaurant'); }
 
+  preload(): void {
+    for (const asset of BLENDER_RENDERED_ASSETS) {
+      this.load.spritesheet(`blender:${asset.assetId}`, asset.spriteSheet, { frameWidth: asset.frameSize[0], frameHeight: asset.frameSize[1] });
+    }
+  }
+
   create(): void {
     installPixelAtlases(this, this.simulation.state.profile?.appearance);
     this.cameras.main.setBackgroundColor('#294b3a');
@@ -60,10 +69,10 @@ export class RestaurantScene extends Phaser.Scene {
     this.simulation.actors.forEach((actor) => this.createActor(actor));
     this.technicalOverlay = this.add.graphics().setDepth(50_000).setVisible(false);
     this.bindCameraControls();
-    this.input.keyboard?.on('keydown-D', () => this.toggleTechnicalMode());
+    if (isDevelopmentHost()) this.input.keyboard?.on('keydown-D', () => this.toggleTechnicalMode());
     this.input.keyboard?.on('keydown-PLUS', () => this.setZoomIndex(this.zoomIndex + 1));
     this.input.keyboard?.on('keydown-MINUS', () => this.setZoomIndex(this.zoomIndex - 1));
-    gameEvents.on('technical:toggle', () => this.toggleTechnicalMode());
+    gameEvents.on('technical:toggle', () => { if (isDevelopmentHost()) this.toggleTechnicalMode(); });
     gameEvents.emit('camera:zoom', this.cameras.main.zoom);
   }
 
@@ -133,25 +142,45 @@ export class RestaurantScene extends Phaser.Scene {
     DECORATIONS.forEach((item) => this.addWorldAsset(item.asset, item.position, item.asset === 'door' ? 9 : 18));
   }
 
-  private addWorldAsset(asset: WorldAssetId, position: GridPoint, layer: number): Phaser.GameObjects.Image {
+  private addWorldAsset(asset: WorldAssetId, position: GridPoint, layer: number, orientation: Direction = 'sw', renderedAssetId?: string): Phaser.GameObjects.Image {
     const definition = WORLD_ASSETS[asset];
     const point = gridToWorld(position);
-    return this.add.image(Math.round(point.x), Math.round(point.y), 'world-atlas', definition.frame)
-      .setOrigin(definition.anchor.x, definition.anchor.y).setDepth(isoDepth(position, layer));
+    const blenderId = renderedAssetId ?? WORLD_BLENDER_ASSET[asset];
+    const rendered = blenderId ? blenderAsset(blenderId) : undefined;
+    const useBlender = Boolean(rendered && this.textures.exists(`blender:${blenderId}`));
+    const image = this.add.image(
+      Math.round(point.x),
+      Math.round(point.y),
+      useBlender ? `blender:${blenderId}` : 'world-atlas',
+      useBlender ? worldRenderedFrame(orientation, 0, blenderId!) : definition.frame,
+    );
+    const origin = useBlender && rendered && rendered.anchor.length === 2
+      ? { x: rendered.anchor[0], y: rendered.anchor[1] }
+      : definition.anchor;
+    return image.setOrigin(origin.x, origin.y).setDepth(isoDepth(position, layer));
   }
 
   private drawTable(table: TableRuntime): void {
-    const tableImage = this.addWorldAsset('table', table.position, 30).setInteractive({ useHandCursor: true });
+    const tableImage = this.addWorldAsset('table', table.position, 30, table.orientation, table.maxCustomers === 2 ? 'table_two' : 'table_four').setInteractive({ useHandCursor: true });
     tableImage.on('pointerdown', (_pointer: Phaser.Input.Pointer, _x: number, _y: number, event: Phaser.Types.Input.EventData) => {
       event.stopPropagation();
       const ok = this.simulation.prioritizeWorldTarget('table', table.id);
       gameEvents.emit('toast', { message: ok ? 'Tarefa da mesa priorizada.' : 'Não há tarefa compatível nessa mesa.', tone: ok ? 'success' : 'info' });
     });
-    const pieces = [tableImage, ...table.chairs.map((chair) => this.addWorldAsset(`chair_${chair.orientation}`, chair.position, 31))];
+    const pieces = [tableImage, ...table.chairs.map((chair) => this.addWorldAsset(`chair_${chair.orientation}`, chair.position, 31, chair.orientation, 'chair'))];
     const point = gridToWorld(table.position);
     const stateIcon = this.add.text(Math.round(point.x), Math.round(point.y - 56), '', this.pixelTextStyle('#fff8e9', '#294b3ae6'))
       .setOrigin(.5).setDepth(isoDepth(table.position, 90)).setVisible(false);
-    this.tableVisuals.set(table.id, { pieces, stateIcon });
+    const seatPlates = new Map<string, Phaser.GameObjects.Image>();
+    const seatDirt = new Map<string, Phaser.GameObjects.Text>();
+    for (const seat of table.chairs) {
+      const seatPoint = gridToWorld(seat.platePosition);
+      seatPlates.set(seat.seatId, this.add.image(Math.round(seatPoint.x), Math.round(seatPoint.y - 28), 'world-atlas', WORLD_ASSETS.dish.frame)
+        .setOrigin(.5, 1).setScale(.4).setDepth(isoDepth(seat.platePosition, 42)).setVisible(false));
+      seatDirt.set(seat.seatId, this.add.text(Math.round(seatPoint.x), Math.round(seatPoint.y - 23), '×', this.pixelTextStyle('#8e3f2f', '#fff1cecc'))
+        .setOrigin(.5).setDepth(isoDepth(seat.dirtPosition, 43)).setVisible(false));
+    }
+    this.tableVisuals.set(table.id, { pieces, stateIcon, seatPlates, seatDirt });
   }
 
   private drawStation(station: StationRuntime): void {
@@ -160,7 +189,9 @@ export class RestaurantScene extends Phaser.Scene {
     const point = gridToWorld(center);
     const definition = WORLD_ASSETS[station.asset];
     const stationDepth = station.id === 'pickup' ? isoDepth(station.position, 18) : isoDepth(base, 30);
-    const sprite = this.add.image(Math.round(point.x), Math.round(point.y), 'world-atlas', definition.frame)
+    const blenderId = station.renderedAssetId ?? WORLD_BLENDER_ASSET[station.asset];
+    const useBlender = Boolean(blenderId && this.textures.exists(`blender:${blenderId}`));
+    const sprite = this.add.image(Math.round(point.x), Math.round(point.y), useBlender ? `blender:${blenderId}` : 'world-atlas', useBlender ? worldRenderedFrame(station.orientation, 0, blenderId!) : definition.frame)
       .setOrigin(definition.anchor.x, definition.anchor.y).setDepth(stationDepth).setInteractive({ useHandCursor: true });
     sprite.on('pointerdown', (_pointer: Phaser.Input.Pointer, _x: number, _y: number, event: Phaser.Types.Input.EventData) => {
       event.stopPropagation();
@@ -178,9 +209,10 @@ export class RestaurantScene extends Phaser.Scene {
   }
 
   private createActor(actor: WorkerActor): void {
-    const variant = actor.kind === 'player' ? 'player' : actor.kind;
+    const variant = actor.assetId;
     const point = gridToWorld(actor.position);
-    const sprite = this.add.sprite(Math.round(point.x), Math.round(point.y), 'character-atlas', characterFrame(variant, 'idle', actor.direction, 0))
+    const useBlender = this.textures.exists(`blender:${variant}`);
+    const sprite = this.add.sprite(Math.round(point.x), Math.round(point.y), useBlender ? `blender:${variant}` : 'character-atlas', useBlender ? renderedCharacterFrame('idle', actor.direction, 0) : characterFrame(variant, 'idle', actor.direction, 0))
       .setOrigin(.5, 88 / 96).setDepth(isoDepth(actor.position, 50)).setInteractive({ useHandCursor: actor.kind === 'player' });
     if (actor.kind === 'player') sprite.on('pointerdown', (_pointer: Phaser.Input.Pointer, _x: number, _y: number, event: Phaser.Types.Input.EventData) => { event.stopPropagation(); gameEvents.emit('ui:open-player', undefined); });
     const bubble = this.add.text(Math.round(point.x), Math.round(point.y - 77), '', this.pixelTextStyle('#294b3a', '#fff8e9ee'))
@@ -190,15 +222,16 @@ export class RestaurantScene extends Phaser.Scene {
 
   private syncActor(actor: WorkerActor): void {
     const visual = this.actorVisuals.get(actor.id)!;
-    const variant = actor.kind === 'player' ? 'player' : actor.kind;
+    const variant = actor.assetId;
     const task = actor.taskId ? this.simulation.tasks.get(actor.taskId) : undefined;
     let animation: PixelAnimationName = 'idle';
     if (actor.path.length) animation = actor.carrying === 'dish' ? 'carry-dish' : actor.carrying === 'ingredients' ? 'carry-ingredients' : 'walk';
-    else if (task?.status === 'active') animation = 'work';
+    else if (task?.status === 'executing') animation = 'work';
     else if (actor.carrying === 'dish') animation = 'carry-dish';
     else if (actor.carrying === 'ingredients') animation = 'carry-ingredients';
     const frame = this.animationFrame(animation);
-    visual.sprite.setFrame(characterFrame(variant, animation, actor.direction, frame));
+    if (this.textures.exists(`blender:${variant}`)) visual.sprite.setTexture(`blender:${variant}`, renderedCharacterFrame(animation, actor.direction, frame));
+    else visual.sprite.setTexture('character-atlas', characterFrame(variant, animation, actor.direction, frame));
     const point = gridToWorld(actor.visual);
     visual.sprite.setPosition(Math.round(point.x), Math.round(point.y)).setDepth(isoDepth(actor.visual, 50));
     visual.bubble.setPosition(Math.round(point.x), Math.round(point.y - 77)).setDepth(isoDepth(actor.visual, 98))
@@ -223,8 +256,10 @@ export class RestaurantScene extends Phaser.Scene {
     let animation: PixelAnimationName = customer.path.length ? 'walk' : 'idle';
     if (seated) animation = customer.state === 'eating' ? 'eat' : this.time.now - visual.transitionStartedAt < 350 ? 'sit' : 'seated';
     const point = gridToWorld(position);
-    visual.sprite.setPosition(Math.round(point.x), Math.round(point.y)).setDepth(isoDepth(position, seated ? 32 : 50))
-      .setFrame(characterFrame(`customer-${customer.variant}`, animation, customer.direction, this.animationFrame(animation)));
+    visual.sprite.setPosition(Math.round(point.x), Math.round(point.y)).setDepth(isoDepth(position, seated ? 32 : 50));
+    const assetId = `customer-${customer.variant}`; const animationIndex = this.animationFrame(animation);
+    if (this.textures.exists(`blender:${assetId}`)) visual.sprite.setTexture(`blender:${assetId}`, renderedCharacterFrame(animation, customer.direction, animationIndex));
+    else visual.sprite.setTexture('character-atlas', characterFrame(assetId, animation, customer.direction, animationIndex));
     visual.bubble.setPosition(Math.round(point.x), Math.round(point.y - 73)).setDepth(isoDepth(position, 99));
     const recipe = customer.orderId ? this.simulation.orders.find((order) => order.id === customer.orderId)?.recipeId : undefined;
     const label = customer.partySize > 1 ? `${this.simulation.customerLabel(customer)} · grupo ${customer.partySize}` : this.simulation.customerLabel(customer);
@@ -239,7 +274,8 @@ export class RestaurantScene extends Phaser.Scene {
 
   private createCustomer(customer: CustomerRuntime): void {
     const point = gridToWorld(customer.position);
-    const sprite = this.add.sprite(Math.round(point.x), Math.round(point.y), 'character-atlas', characterFrame(`customer-${customer.variant}`, 'idle', customer.direction, 0))
+    const assetId = `customer-${customer.variant}`; const useBlender = this.textures.exists(`blender:${assetId}`);
+    const sprite = this.add.sprite(Math.round(point.x), Math.round(point.y), useBlender ? `blender:${assetId}` : 'character-atlas', useBlender ? renderedCharacterFrame('idle', customer.direction, 0) : characterFrame(assetId, 'idle', customer.direction, 0))
       .setOrigin(.5, 88 / 96).setDepth(isoDepth(customer.position, 50));
     const bubble = this.add.text(Math.round(point.x), Math.round(point.y - 73), '', this.pixelTextStyle('#294b3a', '#fff8e9ee')).setOrigin(.5);
     const patience = this.add.graphics();
@@ -260,8 +296,13 @@ export class RestaurantScene extends Phaser.Scene {
       visual.progress.fillStyle(0xf1c45b, 1).fillRect(Math.round(point.x - 18), Math.round(point.y - 40), Math.round(36 * (.25 + .75 / (1 + station.remaining))), 3);
     }
     if (station.state === 'no_ingredients') visual.sprite.setTint(0xcf9d94); else visual.sprite.clearTint();
+    const blenderId = station.renderedAssetId ?? WORLD_BLENDER_ASSET[station.asset];
+    if (blenderId && this.textures.exists(`blender:${blenderId}`)) {
+      const stateFrame = station.state === 'complete' ? 3 : active ? 1 + Math.floor(this.simulation.animationClockMs() / 240) % 2 : 0;
+      visual.sprite.setFrame(worldRenderedFrame(station.orientation, stateFrame, blenderId));
+    }
     if (station.id === 'pickup') {
-      const readyCount = this.simulation.orders.filter((order) => order.state === 'ready').length;
+      const readyCount = this.simulation.orders.filter((order) => order.state === 'awaiting_pickup').length;
       visual.plates.forEach((plate, index) => plate.setVisible(index < readyCount));
       visual.effect.setVisible(readyCount > 0).setFrame(effectFrame('ready', Math.floor(this.time.now / 180) % 4));
     }
@@ -270,13 +311,18 @@ export class RestaurantScene extends Phaser.Scene {
   private syncTable(table: TableRuntime): void {
     const visual = this.tableVisuals.get(table.id)!;
     visual.pieces.forEach((piece) => piece.setAlpha(table.state === 'unavailable' ? .5 : 1));
-    const label = table.state === 'waiting_cleaning' ? 'LIMPAR' : table.state === 'waiting_order' ? 'PEDIDO' : table.state === 'waiting_food' ? 'AGUARDANDO' : '';
+    for (const seat of table.chairs) {
+      const order = seat.orderId ? this.simulation.orders.find((item) => item.id === seat.orderId) : undefined;
+      visual.seatPlates.get(seat.seatId)?.setVisible(Boolean(order && ['delivered', 'consumed'].includes(order.state) && seat.state !== 'dirty'));
+      visual.seatDirt.get(seat.seatId)?.setVisible(seat.state === 'dirty' || seat.state === 'cleaning');
+    }
+    const label = table.state === 'dirty' || table.state === 'cleaning' ? 'LIMPAR LUGAR' : table.state === 'waiting_order' ? 'PEDIDO' : table.state === 'waiting_food' ? 'AGUARDANDO' : '';
     visual.stateIcon.setText(label).setVisible(Boolean(label));
   }
 
   private animationFrame(animation: PixelAnimationName): number {
     const definition = REQUIRED_CHARACTER_ANIMATIONS[animation];
-    return Math.floor(this.time.now / (1000 / definition.fps)) % definition.frames;
+    return Math.floor(this.simulation.animationClockMs() / (1000 / definition.fps)) % definition.frames;
   }
 
   private drawTechnicalOverlay(): void {
@@ -319,3 +365,50 @@ export class RestaurantScene extends Phaser.Scene {
 }
 
 const RECIPE_LABEL: Record<string, string> = { coffee: 'CAFÉ', omelette: 'OMELETE', burger: 'BRASA', soup: 'SOPA' };
+
+const WORLD_BLENDER_ASSET: Partial<Record<WorldAssetId, string>> = {
+  table: 'table_four',
+  chair_ne: 'chair', chair_nw: 'chair', chair_se: 'chair', chair_sw: 'chair',
+  prep: 'preparation_level_1',
+  stove: 'stove_level_1',
+  grill: 'grill_level_1',
+  cauldron: 'cauldron_level_1',
+  coffee_machine: 'coffee_machine_level_1',
+  assembly: 'assembly_level_1',
+  pickup: 'pickup_counter',
+  fridge: 'refrigerator_level_1',
+  oven: 'oven_level_1',
+  sink: 'sink_level_1',
+  storage: 'storage_cabinet',
+  plant: 'plant',
+  shelf: 'shelf',
+  bin: 'bin',
+};
+
+function blenderAsset(assetId: string) {
+  return BLENDER_RENDERED_ASSETS.find((asset) => asset.assetId === assetId);
+}
+
+function renderedCharacterFrame(animation: PixelAnimationName, direction: Direction, frame: number): number {
+  const asset = BLENDER_RENDERED_ASSETS.find((item) => item.kind === 'character');
+  if (!asset) return 0;
+  let animationOffset = 0;
+  for (const [name, frames] of Object.entries(asset.animations)) {
+    if (name === animation) break;
+    animationOffset += frames;
+  }
+  const frameCount = asset.animations[animation] ?? 1;
+  const directionIndex = Math.max(0, asset.orientations.indexOf(direction));
+  return directionIndex * asset.frameCount + animationOffset + (frame % frameCount);
+}
+
+function worldRenderedFrame(direction: Direction, stateFrame: number, assetId: string): number {
+  const asset = blenderAsset(assetId);
+  if (!asset) return 0;
+  const directionIndex = Math.max(0, asset.orientations.indexOf(direction));
+  return directionIndex * asset.frameCount + Phaser.Math.Clamp(stateFrame, 0, Math.max(0, asset.frameCount - 1));
+}
+
+function isDevelopmentHost(): boolean {
+  return typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname);
+}

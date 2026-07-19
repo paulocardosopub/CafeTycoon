@@ -47,6 +47,7 @@ async function boot(): Promise<void> {
 
   const saveActiveState = () => {
     state.lastActiveAt = Date.now();
+    simulation.prepareSave(state.lastActiveAt);
     void repository.save(state);
   };
   const autosave = window.setInterval(saveActiveState, 8_000);

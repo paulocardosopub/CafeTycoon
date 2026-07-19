@@ -1,12 +1,12 @@
-export const GAME_VERSION = '0.0.2';
-export const SAVE_SCHEMA_VERSION = 2;
+export const GAME_VERSION = '0.0.3';
+export const SAVE_SCHEMA_VERSION = 3;
 
 export const BALANCE = {
   startingCoins: 260,
   startingReputation: 60,
   readyDishCapacity: 10,
   inventoryCapacity: 110,
-  customerSpawnSeconds: 12,
+  customerSpawnSeconds: 8,
   customerEatSeconds: 9,
   customerBasePatienceSeconds: 120,
   movementSpeedMultiplier: 2,
@@ -16,6 +16,11 @@ export const BALANCE = {
     deliver: 2.4,
     payment: 2.2,
     clean: 4.5,
+  },
+  movementRecovery: {
+    retrySeconds: 0.8,
+    maxTaskRetries: 4,
+    maxExitRetries: 20,
   },
   offline: {
     maxSeconds: 8 * 60 * 60,

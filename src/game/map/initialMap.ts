@@ -1,5 +1,6 @@
 import type { ChairRuntime, Direction, GraphicsSaveState, GridPoint, PersistedWorldObject, StationRuntime, TableRuntime } from '../../core/types';
 import { STATIONS } from '../../content/stations/stations';
+import { applyEquipmentAsset, EQUIPMENT_BY_FAMILY, type EquipmentFamilyId } from '../../content/equipment/equipment';
 import { RestaurantGrid } from '../grid/Grid';
 
 export const RESTAURANT_SIZE = { width: 18, height: 18 } as const;
@@ -7,8 +8,9 @@ export const MAP_SIZE = { width: 18, height: 22 } as const;
 export const ENTRANCE: GridPoint = { x: 9, y: 17 };
 export const EXIT: GridPoint = { x: 10, y: 17 };
 export const STREET_ENTRY_POINTS: GridPoint[] = [{ x: 3, y: 21 }, { x: 7, y: 21 }, { x: 13, y: 21 }];
-export const STREET_EXIT: GridPoint = { x: 16, y: 21 };
-export const CUSTOMER_QUEUE: GridPoint[] = [{ x: 9, y: 16 }, { x: 10, y: 16 }, { x: 11, y: 16 }, { x: 12, y: 16 }];
+export const STREET_EXIT_ZONE: GridPoint[] = [{ x: 14, y: 21 }, { x: 15, y: 21 }, { x: 16, y: 21 }, { x: 17, y: 21 }, { x: 13, y: 20 }];
+export const STREET_EXIT: GridPoint = STREET_EXIT_ZONE[2];
+export const CUSTOMER_QUEUE: GridPoint[] = [{ x: 12, y: 16 }, { x: 11, y: 16 }, { x: 10, y: 16 }, { x: 9, y: 16 }];
 export const PICKUP_KITCHEN_POINT: GridPoint = { x: 7, y: 6 };
 export const PICKUP_SERVICE_POINT: GridPoint = { x: 7, y: 8 };
 
@@ -31,9 +33,11 @@ const towardTable = (chair: GridPoint, table: GridPoint): Direction => {
 };
 
 function createChair(tableId: string, suffix: string, position: GridPoint, tablePosition: GridPoint, approach: GridPoint): ChairRuntime {
+  const id = `${tableId}-chair-${suffix}`;
   return {
-    id: `${tableId}-chair-${suffix}`, tableId, position, approach, sitPoint: { ...position },
-    state: 'free', orientation: towardTable(position, tablePosition),
+    id, seatId: `${tableId}-seat-${suffix}`, chairId: id, tableId, position, approach, sitPoint: { ...position },
+    servicePoint: { ...approach }, platePosition: { ...position }, dirtPosition: { ...position },
+    state: 'free', orientation: towardTable(position, tablePosition), enabled: true, accessible: true,
   };
 }
 
@@ -50,6 +54,7 @@ function table(id: string, label: string, position: GridPoint, seats: 2 | 4, wai
       { suffix: 'east', position: { x: position.x + 1, y: position.y }, approach: { x: position.x + 1, y: position.y - 1 } },
     ];
   const chairs = chairSpecs.map((spec) => createChair(id, spec.suffix, spec.position, position, spec.approach));
+  chairs.forEach((chair) => { chair.servicePoint = { ...waiterApproach }; });
   return {
     id, label, position, size: { x: 1, y: 1 }, waiterApproach, maxCustomers: seats, state: 'free', accessible: true,
     chairs, orientation: 'sw', asset: 'table', occupiedCells: [{ ...position }, ...chairs.map((chair) => ({ ...chair.position }))],
@@ -60,13 +65,20 @@ export function createTables(): TableRuntime[] {
   return [
     table('table-garden-2', 'Mesa Jardim', { x: 4, y: 11 }, 2, { x: 4, y: 10 }),
     table('table-sun-4', 'Mesa Sol', { x: 11, y: 11 }, 4, { x: 13, y: 12 }),
-    table('table-rose-2', 'Mesa Rosa', { x: 3, y: 15 }, 2, { x: 3, y: 14 }),
     table('table-moon-4', 'Mesa Lua', { x: 13, y: 14 }, 4, { x: 15, y: 14 }),
   ];
 }
 
 export function createStations(): StationRuntime[] {
-  return STATIONS.map((item) => ({ ...item, interactionPoints: item.interactionPoints.map((point) => ({ ...point })), state: 'free', queue: [], remaining: 0, level: 1 }));
+  const equipmentFamily: Partial<Record<StationRuntime['id'], EquipmentFamilyId>> = {
+    prep: 'preparation', stove: 'stove', grill: 'grill', cauldron: 'cauldron', coffee_machine: 'coffee_machine',
+    assembly: 'assembly', fridge: 'refrigerator', oven: 'oven', sink: 'sink',
+  };
+  return STATIONS.map((item) => {
+    const runtime: StationRuntime = { ...item, interactionPoints: item.interactionPoints.map((point) => ({ ...point })), state: 'free', queue: [], remaining: 0, level: 1 };
+    const family = equipmentFamily[item.id];
+    return family ? applyEquipmentAsset(runtime, EQUIPMENT_BY_FAMILY[family]) : runtime;
+  });
 }
 
 export function createInitialGrid(tables = createTables()): RestaurantGrid {

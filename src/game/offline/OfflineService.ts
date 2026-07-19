@@ -52,6 +52,7 @@ export function calculateOfflineProgress(state: GameState, now = Date.now()): Of
   let saleBudget = Math.floor(calculatedSeconds / saleInterval);
   let productionTime = calculatedSeconds;
   let theoreticalSpace = Math.max(0, readyDishCapacity(state) - readyDishUsed(state)) + saleBudget;
+  if (state.productionQueue.length && theoreticalSpace <= 0) report.stoppedReasons.push('O armazenamento de pratos ficou cheio.');
 
   while (state.productionQueue.length && productionTime > 0 && theoreticalSpace > 0) {
     const item = state.productionQueue[0];

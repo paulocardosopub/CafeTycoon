@@ -2,20 +2,24 @@
 
 ## Fluxo principal
 
-`main.ts` carrega/migra o save, aplica progresso offline, inicia `RestaurantSimulation`, `RestaurantScene` e `GameUI`. A simulação continua independente de Phaser e DOM; a cena converte estado lógico em sprites raster e profundidade isométrica.
+`main.ts` carrega e migra o save, aplica progresso offline e inicia `RestaurantSimulation`, `RestaurantScene` e `GameUI`. A simulação não depende de Phaser nem do DOM. A cena apenas traduz estado lógico em sprites e profundidade isométrica.
 
 ## Módulos
 
-- `src/content/`: ingredientes, receitas, estações e opções visuais; adicionar conteúdo aqui.
-- `src/config/balance.ts`: valores econômicos, tempos, níveis, limite offline e melhorias.
-- `src/assets/pixel`: paleta, manifesto e fábrica dos atlases raster de mundo/personagens.
-- `src/game/grid`, `navigation`, `map`: células, conversão grade↔mundo, A*, reservas tile-to-tile, footprints e mapa inicial validado.
-- `src/game/simulation`: ciclo de clientes, pedidos, equipe e resolução de tarefas.
-- `src/game/tasks`: fila central e reservas contra concorrência.
-- `src/game/inventory`, `cooking`, `progression`, `offline`: regras independentes da interface.
-- `src/game/save`: estado padrão, repositório IndexedDB e migração/saneamento.
-- `src/game/multiplayer`: contratos locais para perfil, ranking e visita futura.
-- `src/scenes/`: representação isométrica, depth pela base/pés, efeitos, modo técnico e controles de câmera.
-- `src/ui/`: criação de personagem, HUD e painéis funcionais.
+- `src/content/`: ingredientes, receitas, estações, personagens e definições data-driven dos equipamentos por família/nível.
+- `src/config/balance.ts`: economia, tempos, velocidades, recuperação, progressão e limite offline.
+- `src/assets/pixel/`: atlas procedural de fallback e manifest TypeScript gerado dos renders Blender.
+- `src/game/grid`, `navigation`, `map`: grade, ocupação indexada, A*, footprints, zonas de entrada/saída e mapa validado.
+- `src/game/simulation/`: ciclo de clientes e grupos, assentos, pedidos, equipe, balcão e reconciliação operacional.
+- `src/game/tasks/`: fila central com estados `pending/reserved/moving/executing/completed/cancelled/blocked`.
+- `src/game/inventory`, `cooking`, `progression`, `offline`: regras puras e independentes da interface.
+- `src/game/save/`: IndexedDB, fallback local, schema 3, migração e saneamento de reservas.
+- `src/scenes/`: carregamento de sprite sheets Blender, fallback raster, depth pela base/pés e visualização técnica local.
+- `src/ui/`: criação do perfil, HUD operacional, estoque, tarefas, relatórios e ferramentas apenas em desenvolvimento.
+- `tools/blender/`: fonte automatizada dos modelos, rig, animações, materiais, câmera, luz, render, manifest e validação.
 
-IDs persistentes usam prefixos; IDs de conteúdo e frames são strings estáveis. O save possui `schemaVersion` e uma seção `graphics` com objetos, footprint, frente, âncoras e células ocupadas. Uma futura visita pode usar `RestaurantSnapshot` somente leitura.
+## Persistência operacional
+
+O save separa estado econômico do estado da operação. `operation` guarda atores, clientes, pedidos, assentos, estações, slots do balcão e tarefas. Ao carregar, posições fixas do mapa prevalecem, reservas são revalidadas, tarefas interrompidas voltam à fila e estados de transporte/preparo são reconciliados sem duplicar prato ou pagamento.
+
+IDs de conteúdo e de assets são estáveis. `visualLevel` e `gameplayLevel` são independentes; trocar `renderedAssetId` não altera posição, orientação, fila ou pedido da estação.

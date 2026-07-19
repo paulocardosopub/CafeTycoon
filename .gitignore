@@ -6,3 +6,7 @@ vite.config.d.ts
 .vite-*.log
 .vite-*.err.log
 .codex-dev/
+work/
+__pycache__/
+*.py[cod]
+*.blend1

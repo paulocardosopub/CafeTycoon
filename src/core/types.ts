@@ -11,12 +11,12 @@ export type ProfessionId = 'cook' | 'waiter' | 'cleaner' | 'stocker';
 export type IngredientId = 'bread' | 'beef' | 'cheese' | 'egg' | 'tomato' | 'coffee' | 'water' | 'vegetables' | 'seasoning';
 export type RecipeId = 'coffee' | 'omelette' | 'burger' | 'soup';
 export type StationId = 'prep' | 'stove' | 'grill' | 'cauldron' | 'coffee_machine' | 'assembly' | 'pickup' | 'fridge' | 'oven' | 'sink' | 'storage';
-export type TableState = 'free' | 'reserved' | 'occupied' | 'waiting_order' | 'waiting_food' | 'eating' | 'waiting_cleaning' | 'unavailable';
-export type ChairState = 'free' | 'reserved' | 'occupied' | 'blocked';
+export type TableState = 'free' | 'reserved' | 'occupied' | 'waiting_order' | 'waiting_food' | 'eating' | 'waiting_payment' | 'dirty' | 'cleaning' | 'unavailable';
+export type ChairState = 'free' | 'reserved' | 'approaching' | 'occupied' | 'waiting_order' | 'waiting_food' | 'eating' | 'waiting_payment' | 'dirty' | 'cleaning' | 'blocked' | 'inaccessible';
 export type StationState = 'free' | 'reserved' | 'in_use' | 'waiting_worker' | 'complete' | 'blocked' | 'no_ingredients';
-export type CustomerState = 'entering' | 'queueing' | 'walking_to_seat' | 'waiting_order' | 'waiting_food' | 'eating' | 'waiting_payment' | 'leaving' | 'gone' | 'gave_up';
+export type CustomerState = 'arriving' | 'entering' | 'seeking_table' | 'queueing' | 'walking_to_seat' | 'sitting' | 'waiting_order' | 'waiting_food' | 'eating' | 'paying' | 'standing' | 'leaving' | 'gone' | 'gave_up';
 export type TaskKind = 'take_order' | 'cook_step' | 'deliver' | 'payment' | 'clean' | 'stock_support';
-export type ActorKind = 'player' | 'cook' | 'waiter' | 'assistant';
+export type ActorKind = 'player' | 'cook' | 'waiter' | 'cleaner' | 'stocker';
 
 export interface IngredientDefinition {
   id: IngredientId;
@@ -26,6 +26,11 @@ export interface IngredientDefinition {
   maxAmount: number;
   purchaseCost: number;
   purchaseAmount: number;
+  reorderPoint: number;
+  targetStock: number;
+  quickBuyPackSize: number;
+  maxStock: number;
+  purchasePrice: number;
   unit: string;
   icon: string;
 }
@@ -64,6 +69,16 @@ export interface StationDefinition {
   blocksMovement: boolean;
   rotatable: boolean;
   serviceInteraction?: GridPoint;
+  equipmentFamilyId?: string;
+  visualLevel?: number;
+  gameplayLevel?: number;
+  renderedAssetId?: string;
+  thumbnailId?: string;
+  interactionSlots?: readonly string[];
+  animationSet?: string;
+  nextLevelAssetId?: string;
+  unlockRequirement?: { restaurantLevel: number };
+  statsConfigId?: string;
 }
 
 export interface StationRuntime extends StationDefinition {
@@ -77,6 +92,8 @@ export interface StationRuntime extends StationDefinition {
 
 export interface ChairRuntime {
   id: string;
+  seatId: string;
+  chairId: string;
   position: GridPoint;
   approach: GridPoint;
   state: ChairState;
@@ -84,6 +101,13 @@ export interface ChairRuntime {
   tableId: string;
   sitPoint: GridPoint;
   customerId?: string;
+  orderId?: string;
+  enabled: boolean;
+  accessible: boolean;
+  reservationId?: string;
+  servicePoint: GridPoint;
+  platePosition: GridPoint;
+  dirtPosition: GridPoint;
 }
 
 export interface TableRuntime {
@@ -166,6 +190,7 @@ export interface GameState {
   restaurantLevel: number;
   reputation: number;
   inventory: Record<IngredientId, number>;
+  inventoryReserved: Record<IngredientId, number>;
   readyDishes: Record<RecipeId, number>;
   productionQueue: ProductionQueueItem[];
   upgrades: UpgradeState;
@@ -173,6 +198,22 @@ export interface GameState {
   offlineClaimId: string;
   stats: { customersServed: number; customersLost: number; dishesProduced: number; coinsEarned: number };
   graphics: GraphicsSaveState;
+  operation?: OperationSaveState;
+}
+
+export interface OperationSaveState {
+  dataVersion: 1;
+  savedAt: number;
+  simulationTime: number;
+  customerSequence: number;
+  spawnCountdown: number;
+  actors: Record<string, unknown>[];
+  customers: Record<string, unknown>[];
+  orders: Record<string, unknown>[];
+  tables: Record<string, unknown>[];
+  stations: Record<string, unknown>[];
+  tasks: Record<string, unknown>[];
+  counterSlots: Record<string, unknown>[];
 }
 
 export interface OfflineReport {

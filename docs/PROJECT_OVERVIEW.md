@@ -1,20 +1,21 @@
 # Visão do projeto
 
-**Bistrô Bloom** é um simulador web original de restaurante. A v0.0.2 mantém a vertical jogável da versão anterior e substitui a apresentação do mundo por pixel art isométrica baseada em grade. O salão e a cozinha ocupam uma área lógica 18×18, ligada a uma faixa externa caminhável onde clientes chegam e partem.
+**Bistrô Bloom** é um simulador web 2D de restaurante em pixel art isométrica. A versão atual é a **0.0.3**, dedicada à auditoria jogável e à estabilização da operação.
 
 ## Implementado
 
-- Câmera isométrica fixa com arraste e zoom discreto; grade 64×32, A*, reservas tile-to-tile e modo técnico.
-- Atlas raster original para pisos, paredes, móveis, equipamentos, efeitos e personagens 64×96.
-- Mesas acopladas a cadeiras (2 e 4 lugares), validação de acesso e estados.
-- Clientes variados com quatro direções, fila, paciência, pedidos, refeições, pagamento, desistência e caminhada pela rua na entrada/saída.
-- Cozinheiro, garçom, assistente e personagem com animações de trabalho, transporte e reservas compartilhadas.
-- Equipamentos de cozinha com footprints, frente livre, efeitos de uso e balcão de retirada com lado da cozinha e lado do salão.
-- Quatro receitas data-driven, nove ingredientes e sete estações.
-- Estoque, compras, pratos prontos, fila programada, economia, XP e três melhorias.
-- Perfil visual, quatro progressões profissionais e bônus simples de velocidade.
-- Save versionado em IndexedDB (com fallback local), autosave e progresso offline de até 8 h.
+- Restaurante lógico 18×18 conectado à rua, grade 64×32, A*, reservas tile-to-tile, câmera com arraste e zoom discreto.
+- Capacidade calculada por cadeira acessível: uma mesa de 2 e duas mesas de 4, totalizando 10 lugares independentes.
+- Clientes individuais e grupos de até quatro, com assento, pedido, prato, sujeira, limpeza e pagamento associados ao lugar correto.
+- Ciclo completo de entrada, fila, atendimento, cozinha, balcão com três slots, refeição, pagamento idempotente e saída com recuperação de rota.
+- Fila central de tarefas com prioridade, reservas, estados explícitos, cancelamento seguro e retomada após save/load.
+- Quatro funcionários e proprietário atuando em cozinha, atendimento, limpeza e estoque/apoio.
+- Estoque com reservas, alertas por urgência e compra rápida confirmada, respeitando moedas, capacidade, meta e pedidos pendentes.
+- Pausa e velocidades 1×, 2× e 4×; a seleção volta a 1× ao abrir o jogo.
+- Save schema 3 compatível com 0.0.2, incluindo clientes, pedidos, mesas, estações, balcão e tarefas em andamento.
+- Progresso offline matemático limitado a 8 horas e protegido contra dupla aplicação.
+- Pipeline Blender automatizado para gerar modelos-fonte, PNGs transparentes, sprite sheets, miniaturas e manifest sem carregar 3D no jogo.
 
-## Não implementado nesta versão
+## Fora do escopo da 0.0.3
 
-Editor e expansão de mapa, fornecedores, salários, cosméticos adicionais, áudio completo, tráfego externo, nuvem, rankings, visitas, eventos e multiplayer real. Nada da v0.0.3 foi iniciado.
+Editor e expansão de mapa, sistema completo de construção, upgrades visuais acima do nível 1, fornecedores, salários, cosméticos ampliados, nuvem, rankings, visitas, eventos e multiplayer real. A estrutura de dados permite níveis futuros, mas não exibe cópias falsas dos níveis 2 a 4.

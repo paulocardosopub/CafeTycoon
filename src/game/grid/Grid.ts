@@ -13,6 +13,8 @@ export interface GridCell {
 
 export class RestaurantGrid {
   readonly cells: GridCell[][];
+  private readonly occupiedCellByActor = new Map<string, GridPoint>();
+  private readonly reservedCellByActor = new Map<string, GridPoint>();
 
   constructor(public readonly width: number, public readonly height: number) {
     this.cells = Array.from({ length: height }, () =>
@@ -51,29 +53,39 @@ export class RestaurantGrid {
     if (!cell || !this.canEnter(point, actorId)) return false;
     this.releaseReservations(actorId);
     cell.reservedBy = actorId;
+    this.reservedCellByActor.set(actorId, { ...point });
     return true;
   }
 
   releaseReservations(actorId: string): void {
-    for (const row of this.cells) for (const cell of row) if (cell.reservedBy === actorId) cell.reservedBy = undefined;
+    const point = this.reservedCellByActor.get(actorId);
+    const cell = point ? this.get(point) : undefined;
+    if (cell?.reservedBy === actorId) cell.reservedBy = undefined;
+    this.reservedCellByActor.delete(actorId);
   }
 
   occupy(point: GridPoint, actorId: string): void {
     this.vacate(actorId);
     this.releaseReservations(actorId);
     this.set(point, { occupiedBy: actorId });
+    this.occupiedCellByActor.set(actorId, { ...point });
   }
 
   vacate(actorId: string): void {
-    for (const row of this.cells) {
-      for (const cell of row) if (cell.occupiedBy === actorId) cell.occupiedBy = undefined;
-    }
+    const point = this.occupiedCellByActor.get(actorId);
+    const cell = point ? this.get(point) : undefined;
+    if (cell?.occupiedBy === actorId) cell.occupiedBy = undefined;
+    this.occupiedCellByActor.delete(actorId);
     this.releaseReservations(actorId);
   }
 
   clone(): RestaurantGrid {
     const copy = new RestaurantGrid(this.width, this.height);
-    this.cells.forEach((row, y) => row.forEach((cell, x) => { copy.cells[y][x] = { ...cell }; }));
+    this.cells.forEach((row, y) => row.forEach((cell, x) => {
+      copy.cells[y][x] = { ...cell };
+      if (cell.occupiedBy) copy.occupiedCellByActor.set(cell.occupiedBy, { x, y });
+      if (cell.reservedBy) copy.reservedCellByActor.set(cell.reservedBy, { x, y });
+    }));
     return copy;
   }
 }
