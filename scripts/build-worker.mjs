@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 
 const root = process.cwd();
@@ -48,3 +48,11 @@ await writeFile(output, workerSource, 'utf8');
 const hostingOutput = resolve(root, 'dist/.openai/hosting.json');
 await mkdir(dirname(hostingOutput), { recursive: true });
 await writeFile(hostingOutput, await readFile(resolve(root, '.openai/hosting.json')));
+
+// Sites exposes static files from the Cloudflare/Vite client directory.
+// Move Vite's public payload after the executable JS and CSS are inlined.
+const clientOutput = resolve(root, 'dist/client');
+await rm(clientOutput, { recursive: true, force: true });
+await mkdir(clientOutput, { recursive: true });
+await rename(resolve(root, 'dist/assets'), resolve(clientOutput, 'assets'));
+await rename(resolve(root, 'dist/og.png'), resolve(clientOutput, 'og.png'));

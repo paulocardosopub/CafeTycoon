@@ -102,6 +102,7 @@ describe('pipeline Blender 0.0.3', () => {
     const worker = readFileSync(resolve(projectRoot, 'scripts/build-worker.mjs'), 'utf8');
     expect(scene).toContain('?v=${encodeURIComponent(asset.renderVersion)}');
     expect(worker).toContain('env?.ASSETS?.fetch');
+    expect(worker).toContain("dist/client");
   });
 
   it('mantém dados visuais separados e troca futura sem mover a estação', () => {
