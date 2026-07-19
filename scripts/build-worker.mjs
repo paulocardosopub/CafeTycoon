@@ -16,9 +16,12 @@ const [javascript, css] = await Promise.all([
   readFile(assetPath(styleMatch[1]), 'utf8'),
 ]);
 
+const inlineJavascript = javascript.replace(/<\/script/gi, '<\\/script');
+const inlineCss = css.replace(/<\/style/gi, '<\\/style');
+
 html = html
-  .replace(styleMatch[0], `<style>${css}</style>`)
-  .replace(scriptMatch[0], `<script type="module">${javascript}</script>`);
+  .replace(styleMatch[0], () => `<style>${inlineCss}</style>`)
+  .replace(scriptMatch[0], () => `<script type="module">${inlineJavascript}</script>`);
 
 const workerSource = `const HTML=${JSON.stringify(html)};
 export default {
