@@ -101,6 +101,7 @@ describe('pipeline Blender 0.0.3', () => {
     const scene = readFileSync(resolve(projectRoot, 'src/scenes/RestaurantScene.ts'), 'utf8');
     const worker = readFileSync(resolve(projectRoot, 'scripts/build-worker.mjs'), 'utf8');
     expect(scene).toContain('?v=${encodeURIComponent(asset.renderVersion)}');
+    expect(scene).toContain("return assetId.startsWith('customer-') ? 'customer-0' : 'cook-0'");
     expect(worker).toContain('env?.ASSETS?.fetch');
     expect(worker).toContain("dist/client");
   });

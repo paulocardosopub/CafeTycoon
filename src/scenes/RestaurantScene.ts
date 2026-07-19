@@ -214,7 +214,7 @@ export class RestaurantScene extends Phaser.Scene {
   }
 
   private createActor(actor: WorkerActor): void {
-    const variant = actor.assetId;
+    const variant = canonicalCharacterAsset(actor.assetId);
     const point = gridToWorld(actor.position);
     const useBlender = this.textures.exists(`blender:${variant}`);
     const rendered = blenderAsset(variant);
@@ -229,7 +229,7 @@ export class RestaurantScene extends Phaser.Scene {
 
   private syncActor(actor: WorkerActor): void {
     const visual = this.actorVisuals.get(actor.id)!;
-    const variant = actor.assetId;
+    const variant = canonicalCharacterAsset(actor.assetId);
     const task = actor.taskId ? this.simulation.tasks.get(actor.taskId) : undefined;
     let animation: PixelAnimationName = 'idle';
     if (actor.path.length) animation = actor.carrying === 'dish' ? 'carry-dish' : actor.carrying === 'ingredients' ? 'carry-ingredients' : 'walk';
@@ -264,7 +264,7 @@ export class RestaurantScene extends Phaser.Scene {
     if (seated) animation = customer.state === 'eating' ? 'eat' : this.time.now - visual.transitionStartedAt < 350 ? 'sit' : 'seated';
     const point = gridToWorld(position);
     visual.sprite.setPosition(Math.round(point.x), Math.round(point.y)).setDepth(isoDepth(position, seated ? 32 : 50));
-    const assetId = `customer-${customer.variant}`; const animationIndex = this.animationFrame(animation);
+    const assetId = canonicalCharacterAsset(`customer-${customer.variant}`); const animationIndex = this.animationFrame(animation);
     if (this.textures.exists(`blender:${assetId}`)) visual.sprite.setTexture(`blender:${assetId}`, renderedCharacterFrame(assetId, animation, customer.direction, animationIndex));
     else visual.sprite.setTexture('character-atlas', characterFrame(assetId, animation, customer.direction, animationIndex));
     const uiOffset = characterUiOffset(assetId);
@@ -282,7 +282,7 @@ export class RestaurantScene extends Phaser.Scene {
 
   private createCustomer(customer: CustomerRuntime): void {
     const point = gridToWorld(customer.position);
-    const assetId = `customer-${customer.variant}`; const useBlender = this.textures.exists(`blender:${assetId}`);
+    const assetId = canonicalCharacterAsset(`customer-${customer.variant}`); const useBlender = this.textures.exists(`blender:${assetId}`);
     const rendered = blenderAsset(assetId); const origin = characterOrigin(assetId);
     const sprite = this.add.sprite(Math.round(point.x), Math.round(point.y), useBlender ? `blender:${assetId}` : 'character-atlas', useBlender ? renderedCharacterFrame(assetId, 'idle', customer.direction, 0) : characterFrame(assetId, 'idle', customer.direction, 0))
       .setOrigin(origin.x, origin.y).setScale(useBlender ? rendered?.nativeScale ?? 1 : 1).setDepth(isoDepth(customer.position, 50));
@@ -396,6 +396,10 @@ const WORLD_BLENDER_ASSET: Partial<Record<WorldAssetId, string>> = {
 
 function blenderAsset(assetId: string) {
   return BLENDER_RENDERED_ASSETS.find((asset) => asset.assetId === assetId);
+}
+
+function canonicalCharacterAsset(assetId: string): 'cook-0' | 'customer-0' {
+  return assetId.startsWith('customer-') ? 'customer-0' : 'cook-0';
 }
 
 function renderedCharacterFrame(assetId: string, animation: PixelAnimationName, direction: Direction, frame: number): number {
