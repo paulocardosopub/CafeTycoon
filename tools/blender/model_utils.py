@@ -14,9 +14,11 @@ def cube(name, location, scale, material, collection, bevel=.03):
         modifier = obj.modifiers.new("Pixel bevel", "BEVEL"); modifier.width = bevel; modifier.segments = 1
     obj.data.materials.append(material); return link_only(obj, collection)
 
-def cylinder(name, location, radius, depth, material, collection, vertices=8):
+def cylinder(name, location, radius, depth, material, collection, vertices=8, rotation=None):
     bpy.ops.mesh.primitive_cylinder_add(vertices=vertices, radius=radius, depth=depth, location=location)
-    obj = bpy.context.object; obj.name = name; obj.data.materials.append(material); return link_only(obj, collection)
+    obj = bpy.context.object; obj.name = name
+    if rotation is not None: obj.rotation_euler = rotation
+    obj.data.materials.append(material); return link_only(obj, collection)
 
 def cone(name, location, radius1, radius2, depth, material, collection, vertices=8):
     bpy.ops.mesh.primitive_cone_add(vertices=vertices, radius1=radius1, radius2=radius2, depth=depth, location=location)

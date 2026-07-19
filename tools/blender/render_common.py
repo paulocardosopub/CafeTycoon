@@ -84,11 +84,11 @@ def blit(target, target_width, frame, frame_width, frame_height, column, row_fro
         source_start = y * frame_width * 4; target_start = ((y_offset + y) * target_width + x_offset) * 4
         target[target_start:target_start + frame_width * 4] = frame[source_start:source_start + frame_width * 4]
 
-def save_thumbnail(path, collection, snapshot, asset_id, character):
+def save_thumbnail(path, collection, snapshot, asset_id, character, world_scale=3.15, world_target_z=1.0):
     if character: pose_character(asset_id, collection, snapshot, "idle", 0, "sw", 2)
     else:
         reset_transforms(collection, snapshot); bpy.data.objects[f"{asset_id}:root"].rotation_euler.z = 0
-    setup_camera(bpy.context.scene, 3.0 if character else 3.15, 1.25 if character else 1.0)
+    setup_camera(bpy.context.scene, 3.0 if character else world_scale, 1.25 if character else world_target_z)
     pixels = quantized_render(*THUMBNAIL_SIZE); save_pixels(path, *THUMBNAIL_SIZE, pixels)
 
 def render_character_sheet(definition, output_path: Path, thumbnail_path: Path):
@@ -105,10 +105,19 @@ def render_character_sheet(definition, output_path: Path, thumbnail_path: Path):
                 blit(sheet, sheet_width, phases[frame_index % len(phases)], frame_width, frame_height, column, row, columns, rows); column += 1
     save_pixels(output_path, sheet_width, frame_height * rows, sheet); save_thumbnail(thumbnail_path, collection, snapshot, asset_id, True); reset_transforms(collection, snapshot)
 
+def world_camera(definition):
+    asset_id = definition["assetId"]
+    if asset_id == "pickup_counter": return 5.15, 1.05
+    if asset_id == "stove_level_1": return 2.82, 1.08
+    if asset_id == "refrigerator_level_1": return 3.18, 1.18
+    if definition["footprint"][0] == 2: return 2.95, 1.02
+    return 2.72, 1.0
+
 def render_world_sheet(definition, output_path: Path, thumbnail_path: Path):
     asset_id = definition["assetId"]; collection = show_only_collection(asset_id); snapshot = snapshot_transforms(collection); frame_width, frame_height = definition["frameSize"]
     states = sum(definition["animations"].values()); columns = states; rows = len(DIRECTIONS); sheet_width = frame_width * columns; sheet = array('f', [0.0]) * (sheet_width * frame_height * rows * 4)
-    setup_camera(bpy.context.scene, 3.08 if definition["footprint"][0] == 2 else 2.72 if definition["footprint"][0] == 1 else 7.0)
+    camera_scale, camera_target_z = world_camera(definition)
+    setup_camera(bpy.context.scene, camera_scale, camera_target_z)
     for row, direction in enumerate(DIRECTIONS):
         root = bpy.data.objects[f"{asset_id}:root"]
         for column in range(columns):
@@ -122,4 +131,4 @@ def render_world_sheet(definition, output_path: Path, thumbnail_path: Path):
                 if ":flame-" in obj.name and active: obj.scale.z = 1.0 + .16 * (column % 2)
                 if ":steam" in obj.name and active: obj.location.z += .05 * (column % 2)
             frame = quantized_render(frame_width, frame_height); blit(sheet, sheet_width, frame, frame_width, frame_height, column, row, columns, rows)
-    save_pixels(output_path, sheet_width, frame_height * rows, sheet); save_thumbnail(thumbnail_path, collection, snapshot, asset_id, False); reset_transforms(collection, snapshot)
+    save_pixels(output_path, sheet_width, frame_height * rows, sheet); save_thumbnail(thumbnail_path, collection, snapshot, asset_id, False, camera_scale, camera_target_z); reset_transforms(collection, snapshot)

@@ -1,3 +1,5 @@
+from math import radians
+
 from model_utils import cone, cube, cylinder, parent_parts, root_empty, shadow, sphere, tag_collection
 from technical_markers import add_markers
 
@@ -30,17 +32,37 @@ def _chair(asset_id, collection, materials):
     return parts, (.45, .42)
 
 
-def _counter(asset_id, width, collection, materials):
+def _counter(asset_id, width, collection, materials, service=False):
+    body_height = .58 if service else .50
+    body_center = .61 if service else .53
+    top_z = 1.23 if service else 1.08
     parts = [
-        cube(f"{asset_id}:body", (0, 0, .50), (width, .46, .50), materials["wood"], collection, .045),
-        cube(f"{asset_id}:top", (0, 0, 1.04), (width+.055, .51, .065), materials["cream_light"], collection, .028),
-        cube(f"{asset_id}:toe-kick", (0, -.475, .12), (width-.03, .035, .11), materials["wood_dark"], collection, .01),
+        cube(f"{asset_id}:body", (0, 0, body_center), (width, .48, body_height), materials["wood_dark"], collection, .045),
+        cube(f"{asset_id}:front-face", (0, -.49, body_center), (width-.035, .025, body_height-.035), materials["wood"], collection, .016),
+        cube(f"{asset_id}:top", (0, 0, top_z), (width+.07, .535, .075), materials["cream_light"], collection, .028),
+        cube(f"{asset_id}:top-edge", (0, -.52, top_z-.03), (width+.06, .025, .065), materials["cream_shadow"], collection, .012),
+        cube(f"{asset_id}:toe-kick", (0, -.49, .12), (width-.04, .035, .11), materials["outline_soft"], collection, .010),
+        cube(f"{asset_id}:base-trim", (0, -.515, .23), (width-.025, .025, .035), materials["wood_light"], collection, .008),
     ]
-    panels = max(1, round(width / .42)); panel_width = width * 2 / panels
+    panels = 6 if service else 2
+    panel_width = width * 2 / panels
     for index in range(panels):
         x = -width + panel_width * (index + .5)
-        parts += [cube(f"{asset_id}:panel:{index}", (x, -.475, .58), (panel_width*.40, .025, .31), materials["wood_mid"], collection, .025), cylinder(f"{asset_id}:handle:{index}", (x, -.515, .64), .035, .18, materials["chrome"], collection, 10)]
-    return parts, (width+.09, .53)
+        panel_z = .68 if service else .60
+        parts += [
+            cube(f"{asset_id}:panel-frame:{index}", (x, -.535, panel_z), (panel_width*.43, .018, .36), materials["outline_soft"], collection, .015),
+            cube(f"{asset_id}:panel:{index}", (x, -.557, panel_z), (panel_width*.37, .009, .30), materials["wood_mid"], collection, .010),
+            cube(f"{asset_id}:panel-highlight:{index}", (x, -.57, panel_z+.17), (panel_width*.31, .006, .018), materials["wood_light"], collection, .004),
+            cylinder(f"{asset_id}:handle:{index}", (x, -.585, panel_z+.08), .026, panel_width*.40, materials["chrome"], collection, 10, (0, radians(90), 0)),
+        ]
+    if service:
+        parts += [
+            cube(f"{asset_id}:service-rail", (0, .43, 1.05), (width-.06, .045, .09), materials["wood_light"], collection, .014),
+            cube(f"{asset_id}:service-inlay", (0, -.05, top_z+.085), (width-.12, .33, .012), materials["white_shadow"], collection, .006),
+            cube(f"{asset_id}:end-cap.L", (-width-.025, 0, .65), (.035, .46, .48), materials["wood_light"], collection, .010),
+            cube(f"{asset_id}:end-cap.R", (width+.025, 0, .65), (.035, .46, .48), materials["wood_light"], collection, .010),
+        ]
+    return parts, (width+.11, .56)
 
 
 def _storage(asset_id, cabinet, collection, materials):
@@ -69,7 +91,8 @@ def create_furniture(definition, collection, materials):
     elif asset_id == "chair":
         parts, shadow_size = _chair(asset_id, collection, materials)
     elif "counter" in asset_id:
-        parts, shadow_size = _counter(asset_id, 2.72 if asset_id == "pickup_counter" else 1.03, collection, materials)
+        is_service = asset_id == "pickup_counter"
+        parts, shadow_size = _counter(asset_id, 2.88 if is_service else 1.03, collection, materials, is_service)
     elif asset_id in ("shelf", "storage_cabinet"):
         parts, shadow_size = _storage(asset_id, asset_id == "storage_cabinet", collection, materials)
     elif asset_id == "bin":

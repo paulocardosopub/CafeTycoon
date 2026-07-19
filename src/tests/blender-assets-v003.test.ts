@@ -32,7 +32,7 @@ function pngHeader(path: string): { width: number; height: number; colorType: nu
 
 describe('pipeline Blender 0.0.3', () => {
   it('mantÃ©m a versÃ£o do jogo e evolui apenas a revisÃ£o visual', () => {
-    expect(manifest.version).toBe('0.0.3-blender-2');
+    expect(manifest.version).toBe('0.0.3-blender-3');
     expect(manifest.qualityProfile).toBe('reference-hd-v2');
   });
 
@@ -70,6 +70,8 @@ describe('pipeline Blender 0.0.3', () => {
         expect(asset.anchor).toEqual([48, 136]);
         expect(asset.animations.walk).toBe(6);
         expect(Object.keys(asset.animations)).toEqual(expect.arrayContaining(required));
+      } else if (asset.assetId === 'pickup_counter') {
+        expect(asset.frameSize).toEqual([256, 192]);
       } else {
         expect(asset.frameSize).toEqual([192, 192]);
       }

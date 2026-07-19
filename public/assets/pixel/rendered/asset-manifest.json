@@ -1,5 +1,5 @@
 {
-  "version": "0.0.3-blender-2",
+  "version": "0.0.3-blender-3",
   "qualityProfile": "reference-hd-v2",
   "camera": {
     "projection": "orthographic",
@@ -65,7 +65,7 @@
       "thumbnail": "/assets/pixel/rendered/thumbnails/player-style-0.png",
       "frameCount": 36,
       "paletteVersion": "bistro-bloom-reference-hd-v2",
-      "renderVersion": "0.0.3-blender-2",
+      "renderVersion": "0.0.3-blender-3",
       "transparent": true
     },
     {
@@ -123,7 +123,7 @@
       "thumbnail": "/assets/pixel/rendered/thumbnails/player-style-1.png",
       "frameCount": 36,
       "paletteVersion": "bistro-bloom-reference-hd-v2",
-      "renderVersion": "0.0.3-blender-2",
+      "renderVersion": "0.0.3-blender-3",
       "transparent": true
     },
     {
@@ -181,7 +181,7 @@
       "thumbnail": "/assets/pixel/rendered/thumbnails/player-style-2.png",
       "frameCount": 36,
       "paletteVersion": "bistro-bloom-reference-hd-v2",
-      "renderVersion": "0.0.3-blender-2",
+      "renderVersion": "0.0.3-blender-3",
       "transparent": true
     },
     {
@@ -239,7 +239,7 @@
       "thumbnail": "/assets/pixel/rendered/thumbnails/player-style-3.png",
       "frameCount": 36,
       "paletteVersion": "bistro-bloom-reference-hd-v2",
-      "renderVersion": "0.0.3-blender-2",
+      "renderVersion": "0.0.3-blender-3",
       "transparent": true
     },
     {
@@ -297,7 +297,7 @@
       "thumbnail": "/assets/pixel/rendered/thumbnails/customer-0.png",
       "frameCount": 36,
       "paletteVersion": "bistro-bloom-reference-hd-v2",
-      "renderVersion": "0.0.3-blender-2",
+      "renderVersion": "0.0.3-blender-3",
       "transparent": true
     },
     {
@@ -355,7 +355,7 @@
       "thumbnail": "/assets/pixel/rendered/thumbnails/customer-1.png",
       "frameCount": 36,
       "paletteVersion": "bistro-bloom-reference-hd-v2",
-      "renderVersion": "0.0.3-blender-2",
+      "renderVersion": "0.0.3-blender-3",
       "transparent": true
     },
     {
@@ -413,7 +413,7 @@
       "thumbnail": "/assets/pixel/rendered/thumbnails/customer-2.png",
       "frameCount": 36,
       "paletteVersion": "bistro-bloom-reference-hd-v2",
-      "renderVersion": "0.0.3-blender-2",
+      "renderVersion": "0.0.3-blender-3",
       "transparent": true
     },
     {
@@ -471,7 +471,7 @@
       "thumbnail": "/assets/pixel/rendered/thumbnails/customer-3.png",
       "frameCount": 36,
       "paletteVersion": "bistro-bloom-reference-hd-v2",
-      "renderVersion": "0.0.3-blender-2",
+      "renderVersion": "0.0.3-blender-3",
       "transparent": true
     },
     {
@@ -529,7 +529,7 @@
       "thumbnail": "/assets/pixel/rendered/thumbnails/customer-4.png",
       "frameCount": 36,
       "paletteVersion": "bistro-bloom-reference-hd-v2",
-      "renderVersion": "0.0.3-blender-2",
+      "renderVersion": "0.0.3-blender-3",
       "transparent": true
     },
     {
@@ -587,7 +587,7 @@
       "thumbnail": "/assets/pixel/rendered/thumbnails/customer-5.png",
       "frameCount": 36,
       "paletteVersion": "bistro-bloom-reference-hd-v2",
-      "renderVersion": "0.0.3-blender-2",
+      "renderVersion": "0.0.3-blender-3",
       "transparent": true
     },
     {
@@ -645,7 +645,7 @@
       "thumbnail": "/assets/pixel/rendered/thumbnails/customer-6.png",
       "frameCount": 36,
       "paletteVersion": "bistro-bloom-reference-hd-v2",
-      "renderVersion": "0.0.3-blender-2",
+      "renderVersion": "0.0.3-blender-3",
       "transparent": true
     },
     {
@@ -703,7 +703,7 @@
       "thumbnail": "/assets/pixel/rendered/thumbnails/customer-7.png",
       "frameCount": 36,
       "paletteVersion": "bistro-bloom-reference-hd-v2",
-      "renderVersion": "0.0.3-blender-2",
+      "renderVersion": "0.0.3-blender-3",
       "transparent": true
     },
     {
@@ -761,7 +761,7 @@
       "thumbnail": "/assets/pixel/rendered/thumbnails/cook-0.png",
       "frameCount": 36,
       "paletteVersion": "bistro-bloom-reference-hd-v2",
-      "renderVersion": "0.0.3-blender-2",
+      "renderVersion": "0.0.3-blender-3",
       "transparent": true
     },
     {
@@ -819,7 +819,7 @@
       "thumbnail": "/assets/pixel/rendered/thumbnails/cook-1.png",
       "frameCount": 36,
       "paletteVersion": "bistro-bloom-reference-hd-v2",
-      "renderVersion": "0.0.3-blender-2",
+      "renderVersion": "0.0.3-blender-3",
       "transparent": true
     },
     {
@@ -877,7 +877,7 @@
       "thumbnail": "/assets/pixel/rendered/thumbnails/waiter-0.png",
       "frameCount": 36,
       "paletteVersion": "bistro-bloom-reference-hd-v2",
-      "renderVersion": "0.0.3-blender-2",
+      "renderVersion": "0.0.3-blender-3",
       "transparent": true
     },
     {
@@ -935,7 +935,7 @@
       "thumbnail": "/assets/pixel/rendered/thumbnails/waiter-1.png",
       "frameCount": 36,
       "paletteVersion": "bistro-bloom-reference-hd-v2",
-      "renderVersion": "0.0.3-blender-2",
+      "renderVersion": "0.0.3-blender-3",
       "transparent": true
     },
     {
@@ -993,7 +993,7 @@
       "thumbnail": "/assets/pixel/rendered/thumbnails/cleaner-0.png",
       "frameCount": 36,
       "paletteVersion": "bistro-bloom-reference-hd-v2",
-      "renderVersion": "0.0.3-blender-2",
+      "renderVersion": "0.0.3-blender-3",
       "transparent": true
     },
     {
@@ -1051,7 +1051,7 @@
       "thumbnail": "/assets/pixel/rendered/thumbnails/stocker-0.png",
       "frameCount": 36,
       "paletteVersion": "bistro-bloom-reference-hd-v2",
-      "renderVersion": "0.0.3-blender-2",
+      "renderVersion": "0.0.3-blender-3",
       "transparent": true
     },
     {
@@ -1098,7 +1098,7 @@
       "thumbnail": "/assets/pixel/rendered/thumbnails/table_two.png",
       "frameCount": 1,
       "paletteVersion": "bistro-bloom-reference-hd-v2",
-      "renderVersion": "0.0.3-blender-2",
+      "renderVersion": "0.0.3-blender-3",
       "transparent": true
     },
     {
@@ -1145,7 +1145,7 @@
       "thumbnail": "/assets/pixel/rendered/thumbnails/table_four.png",
       "frameCount": 1,
       "paletteVersion": "bistro-bloom-reference-hd-v2",
-      "renderVersion": "0.0.3-blender-2",
+      "renderVersion": "0.0.3-blender-3",
       "transparent": true
     },
     {
@@ -1192,7 +1192,7 @@
       "thumbnail": "/assets/pixel/rendered/thumbnails/chair.png",
       "frameCount": 1,
       "paletteVersion": "bistro-bloom-reference-hd-v2",
-      "renderVersion": "0.0.3-blender-2",
+      "renderVersion": "0.0.3-blender-3",
       "transparent": true
     },
     {
@@ -1228,7 +1228,7 @@
         ]
       ],
       "frameSize": [
-        192,
+        256,
         192
       ],
       "nextLevelAssetId": null,
@@ -1239,7 +1239,7 @@
       "thumbnail": "/assets/pixel/rendered/thumbnails/pickup_counter.png",
       "frameCount": 1,
       "paletteVersion": "bistro-bloom-reference-hd-v2",
-      "renderVersion": "0.0.3-blender-2",
+      "renderVersion": "0.0.3-blender-3",
       "transparent": true
     },
     {
@@ -1286,7 +1286,7 @@
       "thumbnail": "/assets/pixel/rendered/thumbnails/prep_counter.png",
       "frameCount": 1,
       "paletteVersion": "bistro-bloom-reference-hd-v2",
-      "renderVersion": "0.0.3-blender-2",
+      "renderVersion": "0.0.3-blender-3",
       "transparent": true
     },
     {
@@ -1333,7 +1333,7 @@
       "thumbnail": "/assets/pixel/rendered/thumbnails/shelf.png",
       "frameCount": 1,
       "paletteVersion": "bistro-bloom-reference-hd-v2",
-      "renderVersion": "0.0.3-blender-2",
+      "renderVersion": "0.0.3-blender-3",
       "transparent": true
     },
     {
@@ -1380,7 +1380,7 @@
       "thumbnail": "/assets/pixel/rendered/thumbnails/storage_cabinet.png",
       "frameCount": 1,
       "paletteVersion": "bistro-bloom-reference-hd-v2",
-      "renderVersion": "0.0.3-blender-2",
+      "renderVersion": "0.0.3-blender-3",
       "transparent": true
     },
     {
@@ -1427,7 +1427,7 @@
       "thumbnail": "/assets/pixel/rendered/thumbnails/bin.png",
       "frameCount": 1,
       "paletteVersion": "bistro-bloom-reference-hd-v2",
-      "renderVersion": "0.0.3-blender-2",
+      "renderVersion": "0.0.3-blender-3",
       "transparent": true
     },
     {
@@ -1474,7 +1474,7 @@
       "thumbnail": "/assets/pixel/rendered/thumbnails/plant.png",
       "frameCount": 1,
       "paletteVersion": "bistro-bloom-reference-hd-v2",
-      "renderVersion": "0.0.3-blender-2",
+      "renderVersion": "0.0.3-blender-3",
       "transparent": true
     },
     {
@@ -1523,7 +1523,7 @@
       "thumbnail": "/assets/pixel/rendered/thumbnails/stove_level_1.png",
       "frameCount": 4,
       "paletteVersion": "bistro-bloom-reference-hd-v2",
-      "renderVersion": "0.0.3-blender-2",
+      "renderVersion": "0.0.3-blender-3",
       "transparent": true
     },
     {
@@ -1572,7 +1572,7 @@
       "thumbnail": "/assets/pixel/rendered/thumbnails/oven_level_1.png",
       "frameCount": 4,
       "paletteVersion": "bistro-bloom-reference-hd-v2",
-      "renderVersion": "0.0.3-blender-2",
+      "renderVersion": "0.0.3-blender-3",
       "transparent": true
     },
     {
@@ -1621,7 +1621,7 @@
       "thumbnail": "/assets/pixel/rendered/thumbnails/refrigerator_level_1.png",
       "frameCount": 4,
       "paletteVersion": "bistro-bloom-reference-hd-v2",
-      "renderVersion": "0.0.3-blender-2",
+      "renderVersion": "0.0.3-blender-3",
       "transparent": true
     },
     {
@@ -1670,7 +1670,7 @@
       "thumbnail": "/assets/pixel/rendered/thumbnails/grill_level_1.png",
       "frameCount": 4,
       "paletteVersion": "bistro-bloom-reference-hd-v2",
-      "renderVersion": "0.0.3-blender-2",
+      "renderVersion": "0.0.3-blender-3",
       "transparent": true
     },
     {
@@ -1719,7 +1719,7 @@
       "thumbnail": "/assets/pixel/rendered/thumbnails/coffee_machine_level_1.png",
       "frameCount": 4,
       "paletteVersion": "bistro-bloom-reference-hd-v2",
-      "renderVersion": "0.0.3-blender-2",
+      "renderVersion": "0.0.3-blender-3",
       "transparent": true
     },
     {
@@ -1768,7 +1768,7 @@
       "thumbnail": "/assets/pixel/rendered/thumbnails/preparation_level_1.png",
       "frameCount": 4,
       "paletteVersion": "bistro-bloom-reference-hd-v2",
-      "renderVersion": "0.0.3-blender-2",
+      "renderVersion": "0.0.3-blender-3",
       "transparent": true
     },
     {
@@ -1817,7 +1817,7 @@
       "thumbnail": "/assets/pixel/rendered/thumbnails/sink_level_1.png",
       "frameCount": 4,
       "paletteVersion": "bistro-bloom-reference-hd-v2",
-      "renderVersion": "0.0.3-blender-2",
+      "renderVersion": "0.0.3-blender-3",
       "transparent": true
     },
     {
@@ -1866,7 +1866,7 @@
       "thumbnail": "/assets/pixel/rendered/thumbnails/cauldron_level_1.png",
       "frameCount": 4,
       "paletteVersion": "bistro-bloom-reference-hd-v2",
-      "renderVersion": "0.0.3-blender-2",
+      "renderVersion": "0.0.3-blender-3",
       "transparent": true
     },
     {
@@ -1915,7 +1915,7 @@
       "thumbnail": "/assets/pixel/rendered/thumbnails/assembly_level_1.png",
       "frameCount": 4,
       "paletteVersion": "bistro-bloom-reference-hd-v2",
-      "renderVersion": "0.0.3-blender-2",
+      "renderVersion": "0.0.3-blender-3",
       "transparent": true
     }
   ]

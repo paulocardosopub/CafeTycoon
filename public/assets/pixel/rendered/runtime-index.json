@@ -536,7 +536,7 @@
   "pickup_counter": {
     "sheet": "/assets/pixel/rendered/furniture/counters/pickup_counter.png",
     "frameSize": [
-      192,
+      256,
       192
     ],
     "animations": {

@@ -3,7 +3,7 @@
 from pathlib import Path
 
 PALETTE_VERSION = "bistro-bloom-reference-hd-v2"
-RENDER_VERSION = "0.0.3-blender-2"
+RENDER_VERSION = "0.0.3-blender-3"
 QUALITY_PROFILE = "reference-hd-v2"
 CHARACTER_FRAME = (96, 144)
 WORLD_FRAME = (192, 192)
@@ -66,21 +66,21 @@ CHARACTERS = [
     character("stocker-0", "characters/employees/stockers", "stocker-wave", "skin_light", "wood", "blue", "crate"),
 ]
 
-def world_asset(asset_id, kind, category, footprint=(1, 1), visual_level=1, family=None):
+def world_asset(asset_id, kind, category, footprint=(1, 1), visual_level=1, family=None, frame_size=WORLD_FRAME):
     source = "assets/blender/furniture/furniture.blend" if kind == "furniture" else "assets/blender/equipment/kitchen_equipment.blend"
     return {
         "assetId": asset_id, "kind": kind, "category": category, "sourceBlend": source,
         "sourceCollection": asset_id, "visualLevel": visual_level, "gameplayLevel": visual_level,
         "equipmentFamilyId": family, "footprint": list(footprint), "anchor": [0.5, 0.85],
         "orientations": list(DIRECTIONS), "animations": {"off": 1, "active": 2, "complete": 1} if kind == "equipment" else {"idle": 1},
-        "interactionPoints": [[0, 1]], "frameSize": list(WORLD_FRAME),
+        "interactionPoints": [[0, 1]], "frameSize": list(frame_size),
         "nextLevelAssetId": f"{family}_level_2" if family else None,
         "qualityProfile": QUALITY_PROFILE, "nativeScale": 1.0,
     }
 
 FURNITURE = [
     world_asset("table_two", "furniture", "furniture/tables"), world_asset("table_four", "furniture", "furniture/tables"),
-    world_asset("chair", "furniture", "furniture/chairs"), world_asset("pickup_counter", "furniture", "furniture/counters", (6, 1)),
+    world_asset("chair", "furniture", "furniture/chairs"), world_asset("pickup_counter", "furniture", "furniture/counters", (6, 1), frame_size=(256, 192)),
     world_asset("prep_counter", "furniture", "furniture/counters", (2, 1)), world_asset("shelf", "furniture", "furniture/storage"),
     world_asset("storage_cabinet", "furniture", "furniture/storage", (2, 1)), world_asset("bin", "furniture", "furniture/decorations"),
     world_asset("plant", "furniture", "furniture/decorations"),

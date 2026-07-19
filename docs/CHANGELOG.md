@@ -8,6 +8,7 @@
 - Adicionados seis frames distintos de caminhada por direção, identidade e roupa consistentes, rostos, mãos, cabelos e acessórios mais detalhados.
 - Refeito o fogão 2×1 com quatro orientações, forno duplo, seis queimadores e estados desligado/funcionando.
 - Refeita a geladeira 2×1 com quatro orientações, portas articuladas e estados fechada/aberta com interior abastecido.
+- Corrigidos grelhas, controles, puxadores e enquadramentos dos equipamentos; o balcão de serviço agora ocupa visualmente os seis blocos sem cortes.
 - Atualizados manifest, anchors, filtro nearest, escala e ordenação por pés; adicionada validação de cobertura visual do footprint.
 
 - Corrigidos NPCs presos em `leaving`: zona de saída ampliada, metadados de recuperação, espera entre recálculos, rotas alternativas e limpeza segura de todas as referências.

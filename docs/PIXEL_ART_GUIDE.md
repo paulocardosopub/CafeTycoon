@@ -5,7 +5,7 @@ Este documento é a fonte de verdade visual. O jogo continua 2D no Phaser; Blend
 ## Perfil visual ativo
 
 - Perfil: `reference-hd-v2`.
-- Revisão do render: `0.0.3-blender-2`; a versão do jogo permanece `0.0.3`.
+- Revisão do render: `0.0.3-blender-3`; a versão do jogo permanece `0.0.3`.
 - Referências mínimas: cozinheira, cliente, fogão industrial e geladeira industrial fornecidos em 19 de julho de 2026.
 - Silhuetas arredondadas, contorno escuro de um pixel, luz superior suave, sombra projetada curta e detalhes legíveis em 1×.
 - Não misturar renders `reference-hd-v2` com os antigos personagens e blocos simplificados na apresentação final.
@@ -14,9 +14,10 @@ Este documento é a fonte de verdade visual. O jogo continua 2D no Phaser; Blend
 
 - Bloco isométrico lógico: **64×32 px**, diamante 2:1.
 - Personagem: frame nativo **96×144 px**, pés em **(48, 136)** e altura visual de aproximadamente **1,9 bloco**.
-- Móveis/equipamentos: frame nativo **192×192 px**, com a base alinhada ao footprint.
+- Móveis/equipamentos: frame nativo **192×192 px**, com a base alinhada ao footprint; o balcão de serviço 6×1 usa **256×192 px** para não ser comprimido ou cortado.
 - Personagem continua ocupando logicamente 1×1, mesmo quando a arte ultrapassa o bloco.
 - Fogão e geladeira continuam com footprint lógico 2×1 e precisam ocupar visualmente essa largura.
+- O balcão de serviço deve preencher os seis blocos visuais, preservando tampo, painéis frontais e as duas vistas traseiras.
 - Escala do runtime é 1:1. É proibido reduzir os novos personagens para a dimensão dos antigos.
 - Zooms homologados: 0,5×, 1× e 2×.
 

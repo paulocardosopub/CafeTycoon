@@ -6,7 +6,7 @@ Data: 19 de julho de 2026
 
 A versão 0.0.3 foi aprovada para publicação. O escopo permanece um jogo Phaser 2D; o Blender é usado somente como pipeline de autoria e renderização de pixel art, sem carregar arquivos `.blend` em tempo de execução.
 
-Reauditoria visual: o perfil `reference-hd-v2` substitui o lote simplificado sem mudar a versão do jogo. Personagens usam 96×144 em escala nativa; móveis e equipamentos usam 192×192.
+Reauditoria visual: o perfil `reference-hd-v2` substitui o lote simplificado sem mudar a versão do jogo. Personagens usam 96×144 em escala nativa; móveis e equipamentos usam 192×192, com 256×192 reservado ao balcão de serviço 6×1.
 
 ## Verificações automatizadas
 

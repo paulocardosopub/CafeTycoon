@@ -15,7 +15,7 @@
 - Save schema 3 compatível com 0.0.2, incluindo clientes, pedidos, mesas, estações, balcão e tarefas em andamento.
 - Progresso offline matemático limitado a 8 horas e protegido contra dupla aplicação.
 - Pipeline Blender automatizado para gerar modelos-fonte, PNGs transparentes, sprite sheets, miniaturas e manifest sem carregar 3D no jogo.
-- Perfil visual `reference-hd-v2`: personagens de 96×144 em escala nativa, móveis/equipamentos de 192×192, seis frames de caminhada e equipamentos industriais com estados completos.
+- Perfil visual `reference-hd-v2`: personagens de 96×144 em escala nativa, mundo em 192×192, balcão 6×1 em 256×192, seis frames de caminhada e equipamentos industriais com estados completos.
 
 ## Fora do escopo da 0.0.3
 
