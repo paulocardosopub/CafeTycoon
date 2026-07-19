@@ -40,3 +40,7 @@ export default {
 const output = resolve(root, 'dist/server/index.js');
 await mkdir(dirname(output), { recursive: true });
 await writeFile(output, workerSource, 'utf8');
+
+const hostingOutput = resolve(root, 'dist/.openai/hosting.json');
+await mkdir(dirname(hostingOutput), { recursive: true });
+await writeFile(hostingOutput, await readFile(resolve(root, '.openai/hosting.json')));
