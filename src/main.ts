@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import './styles.css';
 import { showCharacterCreator } from './ui/characterCreator';
 import { GameUI } from './ui/GameUI';
-import { IndexedDbSaveRepository } from './game/save/SaveRepository';
+import { IndexedDbSaveRepository, SAVE_RESET_SESSION_KEY } from './game/save/SaveRepository';
 import { migrateAndSanitizeSave } from './game/save/migrations';
 import { RestaurantSimulation } from './game/simulation/RestaurantSimulation';
 import { RestaurantScene } from './scenes/RestaurantScene';
@@ -11,6 +11,7 @@ import { AudioService } from './game/audio/AudioService';
 import { validateRestaurantMap } from './game/map/validateMap';
 
 async function boot(): Promise<void> {
+  if (sessionStorage.getItem(SAVE_RESET_SESSION_KEY) === '1') sessionStorage.removeItem(SAVE_RESET_SESSION_KEY);
   const root = document.querySelector<HTMLElement>('#app')!;
   root.innerHTML = '<div class="boot-screen"><span>✿</span><strong>Abrindo o Bistrô Bloom…</strong></div>';
   const repository = new IndexedDbSaveRepository();
@@ -46,6 +47,7 @@ async function boot(): Promise<void> {
   if (offlineReport.absentSeconds >= 60) setTimeout(() => ui.showOffline(offlineReport), 350);
 
   const saveActiveState = () => {
+    if (sessionStorage.getItem(SAVE_RESET_SESSION_KEY) === '1') return;
     state.lastActiveAt = Date.now();
     simulation.prepareSave(state.lastActiveAt);
     void repository.save(state);

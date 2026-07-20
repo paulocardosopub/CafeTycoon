@@ -10,8 +10,8 @@ import {
   canConsumeRecipe, consumeReservation, releaseReservation, reserveRecipe,
 } from '../inventory/InventoryService';
 import {
-  createInitialGrid, createStations, createTables, CUSTOMER_QUEUE, ENTRANCE, PICKUP_KITCHEN_POINT,
-  PICKUP_SERVICE_POINT, STREET_ENTRY_POINTS, STREET_EXIT_ZONE,
+  createInitialGrid, createStations, createTables, CUSTOMER_QUEUE, PICKUP_KITCHEN_POINT,
+  PICKUP_SERVICE_POINT, RESTAURANT_ENTRY_ZONE, STREET_ENTRY_POINTS, STREET_EXIT_ZONE,
 } from '../map/initialMap';
 import { findPath } from '../navigation/AStar';
 import { advanceTileMover, directionBetween, type MovementResult } from '../navigation/TileMovement';
@@ -109,6 +109,8 @@ const CUSTOMER_LABELS: Record<CustomerState, string> = {
 const ACTIVE_SEAT_STATES = new Set<ChairRuntime['state']>(['reserved', 'approaching', 'occupied', 'waiting_order', 'waiting_food', 'eating', 'waiting_payment']);
 const PATIENCE_STATES = new Set<CustomerState>(['seeking_table', 'queueing', 'waiting_order', 'waiting_food', 'paying']);
 const TERMINAL_ORDER_STATES = new Set<OrderState>(['consumed', 'cancelled']);
+const ADMISSION_STATES = new Set<CustomerState>(['entering', 'seeking_table', 'queueing']);
+const NORMAL_QUEUE_LIMIT = 4;
 
 export class RestaurantSimulation {
   readonly tables: TableRuntime[];
@@ -125,6 +127,7 @@ export class RestaurantSimulation {
   private visualClock = 0;
   private speed: 0 | 1 | 2 | 4 = 1;
   private blockedTaskRetry = 0;
+  private seatAssignmentRetry = 0;
   private autoSpawn = true;
 
   constructor(public readonly state: GameState) {
@@ -175,12 +178,21 @@ export class RestaurantSimulation {
     const production = tickProduction(this.state, delta);
     if (Object.keys(production.produced).length) gameEvents.emit('toast', { message: 'Produção programada concluída!', tone: 'success' });
     this.spawnCountdown -= delta;
-    if (this.autoSpawn && this.spawnCountdown <= 0 && this.activeCustomerCount() < 20) {
+    const waitingCustomers = this.admissionCustomerCount();
+    const normalCustomerLimit = this.totalCapacity() + NORMAL_QUEUE_LIMIT;
+    if (this.autoSpawn && this.spawnCountdown <= 0 && waitingCustomers < NORMAL_QUEUE_LIMIT && this.activeCustomerCount() < normalCustomerLimit) {
       const nextPartySize = this.customerSequence > 0 && this.customerSequence % 9 === 0 ? 4 : this.customerSequence > 0 && this.customerSequence % 5 === 0 ? 2 : 1;
-      this.spawnParty(nextPartySize);
+      const openTableSize = this.largestOpenTableSize();
+      const queueAllowance = NORMAL_QUEUE_LIMIT - waitingCustomers;
+      const admissionSize = Math.min(nextPartySize, normalCustomerLimit - this.activeCustomerCount(), openTableSize || queueAllowance);
+      if (admissionSize > 0) this.spawnParty(admissionSize);
       this.spawnCountdown = BALANCE.customerSpawnSeconds + (this.customerSequence % 4);
     }
-    this.assignWaitingParties();
+    this.seatAssignmentRetry -= delta;
+    if (this.seatAssignmentRetry <= 0) {
+      this.assignWaitingParties();
+      this.seatAssignmentRetry = .25;
+    }
     this.retryBlockedOrders();
     this.retryCounterOrders();
     this.blockedTaskRetry -= delta;
@@ -208,7 +220,7 @@ export class RestaurantSimulation {
       };
       this.customers.push(customer);
       this.grid.occupy(customer.position, customer.id);
-      this.routeCustomer(customer, ENTRANCE);
+      this.routeCustomerToEntrance(customer);
       members.push(customer);
     }
     return members;
@@ -231,6 +243,18 @@ export class RestaurantSimulation {
       if (!members.length || members.some((customer) => !['seeking_table', 'queueing'].includes(customer.state) || customer.path.length > 0)) continue;
       if (!this.assignSeats(members)) this.sendPartyToQueue(members);
     }
+  }
+
+  private admissionCustomerCount(): number {
+    return this.customers.filter((customer) => ADMISSION_STATES.has(customer.state) && !customer.seatId).length;
+  }
+
+  private largestOpenTableSize(): number {
+    return this.tables.reduce((largest, table) => {
+      if (!table.accessible) return largest;
+      const free = table.chairs.filter((chair) => this.seatUsable(chair) && chair.state === 'free').length;
+      return Math.max(largest, free);
+    }, 0);
   }
 
   private assignSeats(members: CustomerRuntime[]): boolean {
@@ -267,11 +291,18 @@ export class RestaurantSimulation {
   }
 
   private sendPartyToQueue(members: CustomerRuntime[]): void {
-    const queued = this.customers.filter((entry) => entry.state === 'queueing' && !members.includes(entry));
-    members.forEach((customer, index) => {
+    const claimed = new Set(this.customers
+      .filter((entry) => entry.state === 'queueing' && !members.includes(entry))
+      .flatMap((entry) => [entry.position, entry.path.at(-1)])
+      .filter((point): point is GridPoint => Boolean(point))
+      .map((point) => `${point.x},${point.y}`));
+    members.forEach((customer) => {
       if (customer.state !== 'queueing') this.setCustomerState(customer, 'queueing');
-      const queuePoint = CUSTOMER_QUEUE[Math.min(CUSTOMER_QUEUE.length - 1, (queued.length + index) % CUSTOMER_QUEUE.length)];
-      if (!this.samePoint(customer.position, queuePoint) && !customer.path.length) this.routeCustomer(customer, queuePoint);
+      if (customer.path.length) return;
+      const queuePoint = CUSTOMER_QUEUE.find((point) => !claimed.has(`${point.x},${point.y}`) && this.grid.isWalkable(point, customer.id));
+      if (!queuePoint) { customer.pathStatus = 'idle'; return; }
+      claimed.add(`${queuePoint.x},${queuePoint.y}`);
+      if (!this.samePoint(customer.position, queuePoint)) this.routeCustomer(customer, queuePoint);
     });
   }
 
@@ -287,7 +318,7 @@ export class RestaurantSimulation {
         }
       }
       else if (customer.state === 'entering' && !customer.path.length) {
-        if (this.samePoint(customer.position, ENTRANCE)) this.onCustomerArrived(customer); else this.routeCustomer(customer, ENTRANCE);
+        if (RESTAURANT_ENTRY_ZONE.some((point) => this.samePoint(customer.position, point))) this.onCustomerArrived(customer); else this.routeCustomerToEntrance(customer);
       } else if (customer.state === 'walking_to_seat' && !customer.path.length) this.routeCustomerToSeat(customer);
 
       if (customer.path.length) {
@@ -321,7 +352,13 @@ export class RestaurantSimulation {
     } else if (customer.state === 'walking_to_seat') {
       this.routeCustomerToSeat(customer);
       if (!customer.path.length && customer.retryCount >= BALANCE.movementRecovery.maxTaskRetries) this.releaseCustomerSeat(customer, false);
-    } else if (customer.state === 'entering') this.routeCustomer(customer, ENTRANCE);
+    } else if (customer.state === 'entering') {
+      this.routeCustomerToEntrance(customer);
+      if (!customer.path.length && customer.retryCount >= BALANCE.movementRecovery.maxTaskRetries) this.safeRemoveCustomer(customer, 'entrada permaneceu sem rota');
+    } else if (customer.state === 'queueing' || customer.state === 'seeking_table') {
+      customer.path = []; customer.pathStatus = 'idle';
+      this.sendPartyToQueue([customer]);
+    }
   }
 
   private onCustomerArrived(customer: CustomerRuntime): void {
@@ -355,6 +392,19 @@ export class RestaurantSimulation {
     if (this.samePoint(customer.position, target)) { customer.path = []; customer.pathStatus = 'arrived'; return; }
     customer.path = findPath(this.grid, customer.position, target, customer.id);
     customer.pathStatus = customer.path.length ? 'moving' : 'no_path';
+  }
+
+  private routeCustomerToEntrance(customer: CustomerRuntime): void {
+    if (RESTAURANT_ENTRY_ZONE.some((point) => this.samePoint(customer.position, point))) {
+      customer.path = []; customer.pathStatus = 'arrived'; return;
+    }
+    const candidates = [...RESTAURANT_ENTRY_ZONE].sort((a, b) => this.distance(customer.position, a) - this.distance(customer.position, b));
+    for (const point of candidates) {
+      const path = findPath(this.grid, customer.position, point, customer.id);
+      if (!path.length) continue;
+      customer.path = path; customer.pathStatus = 'moving'; return;
+    }
+    customer.path = []; customer.pathStatus = 'no_path';
   }
 
   private routeCustomerToExit(customer: CustomerRuntime, chooseAnother = false): void {
@@ -810,14 +860,43 @@ export class RestaurantSimulation {
     };
     const defaults = this.createDefaultActors();
     this.actors.forEach((actor, index) => occupy(actor, defaults[index].position));
+    const recoveryCells = [
+      ...STREET_ENTRY_POINTS,
+      ...Array.from({ length: 16 }, (_, index) => ({ x: 1 + index, y: 21 })),
+      ...Array.from({ length: 14 }, (_, index) => ({ x: 2 + index, y: 20 })),
+      ...CUSTOMER_QUEUE,
+    ];
     for (const customer of [...this.customers]) {
-      const fallback = STREET_ENTRY_POINTS[customer.variant % STREET_ENTRY_POINTS.length];
-      if (used.has(`${customer.position.x},${customer.position.y}`)) { customer.pathStatus = 'blocked'; customer.retryCount += 1; }
-      else occupy(customer, fallback);
+      const key = `${customer.position.x},${customer.position.y}`;
+      const currentIsUsable = this.grid.inBounds(customer.position) && Boolean(this.grid.get(customer.position)?.walkable) && !used.has(key) && this.grid.isWalkable(customer.position, customer.id);
+      const fallback = currentIsUsable ? customer.position : recoveryCells.find((point) => !used.has(`${point.x},${point.y}`) && this.grid.isWalkable(point, customer.id));
+      if (!fallback) { customer.state = 'gone'; customer.path = []; customer.pathStatus = 'no_path'; continue; }
+      if (!currentIsUsable) {
+        customer.position = { ...fallback }; customer.visual = { ...fallback }; customer.pathStatus = 'blocked'; customer.retryCount += 1;
+      }
+      occupy(customer, fallback);
     }
   }
 
   private reconcileOperation(): void {
+    const customerById = new Map(this.customers.map((customer) => [customer.id, customer]));
+    for (const table of this.tables) for (const seat of table.chairs) {
+      const occupant = seat.customerId ? customerById.get(seat.customerId) : undefined;
+      const validOccupant = occupant && occupant.seatId === seat.seatId && occupant.tableId === table.id && !['gone', 'gave_up', 'leaving'].includes(occupant.state);
+      if (!validOccupant && ACTIVE_SEAT_STATES.has(seat.state)) {
+        seat.state = 'free'; seat.customerId = undefined; seat.reservationId = undefined; seat.orderId = undefined;
+      }
+    }
+    for (const customer of this.customers) {
+      if (!customer.seatId) continue;
+      const seat = this.seatFor(customer.seatId);
+      if (!seat || seat.customerId !== customer.id) {
+        customer.tableId = undefined; customer.seatId = undefined; customer.chairIds = [];
+        if (!['leaving', 'gave_up'].includes(customer.state)) this.setCustomerState(customer, 'queueing');
+      }
+    }
+    this.trimRestoredAdmissionQueue();
+    for (const table of this.tables) this.refreshTableState(table);
     for (const id of Object.keys(this.state.inventoryReserved) as IngredientId[]) this.state.inventoryReserved[id] = 0;
     for (const order of this.orders) {
       if (order.ingredientsState === 'reserved') {
@@ -840,13 +919,27 @@ export class RestaurantSimulation {
     }
     for (const customer of this.customers) {
       if (customer.state === 'leaving' || customer.state === 'gave_up') { if (!customer.cleanupCompleted) this.cleanupCustomerReferences(customer); this.routeCustomerToExit(customer); }
-      else if (customer.state === 'entering') this.routeCustomer(customer, ENTRANCE);
+      else if (customer.state === 'entering') this.routeCustomerToEntrance(customer);
       else if (customer.state === 'walking_to_seat') this.routeCustomerToSeat(customer);
       else if (customer.state === 'waiting_order') {
         const seat = this.seatFor(customer.seatId); if (seat) this.tasks.add({ key: `order:${customer.id}`, kind: 'take_order', role: 'service', target: seat.servicePoint, duration: BALANCE.actionSeconds.takeOrder, priority: 70, payload: { customerId: customer.id, tableId: seat.tableId, seatId: seat.seatId } }, this.simulationTime);
       } else if (customer.state === 'paying') this.requestPayment(customer);
     }
     for (const table of this.tables) for (const seat of table.chairs) if (seat.state === 'dirty') this.tasks.add({ key: `clean:${seat.seatId}`, kind: 'clean', role: 'cleaning', target: seat.approach, duration: BALANCE.actionSeconds.clean, priority: 82, payload: { tableId: table.id, seatId: seat.seatId } }, this.simulationTime);
+  }
+
+  private trimRestoredAdmissionQueue(): void {
+    const parties = [...new Set(this.customers
+      .filter((customer) => ADMISSION_STATES.has(customer.state) && !customer.seatId)
+      .sort((a, b) => a.stateEnteredAt - b.stateEnteredAt || a.partyIndex - b.partyIndex)
+      .map((customer) => customer.partyId))];
+    let retained = 0;
+    for (const partyId of parties) {
+      const members = this.partyMembers(partyId).filter((customer) => ADMISSION_STATES.has(customer.state) && !customer.seatId);
+      if (retained + members.length <= NORMAL_QUEUE_LIMIT) { retained += members.length; continue; }
+      for (const customer of members) this.completeCustomerDeparture(customer);
+    }
+    this.pruneGoneCustomers();
   }
 
   private refreshTableState(table: TableRuntime): void {

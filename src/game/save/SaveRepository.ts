@@ -9,6 +9,7 @@ export interface SaveRepository {
 const DB_NAME = 'bistro-bloom';
 const STORE = 'saves';
 const KEY = 'main';
+export const SAVE_RESET_SESSION_KEY = 'bistro-bloom-reset-in-progress';
 
 export class IndexedDbSaveRepository implements SaveRepository {
   private async database(): Promise<IDBDatabase> {

@@ -75,6 +75,7 @@ export class RestaurantScene extends Phaser.Scene {
     this.input.keyboard?.on('keydown-PLUS', () => this.setZoomIndex(this.zoomIndex + 1));
     this.input.keyboard?.on('keydown-MINUS', () => this.setZoomIndex(this.zoomIndex - 1));
     gameEvents.on('technical:toggle', () => { if (isDevelopmentHost()) this.toggleTechnicalMode(); });
+    gameEvents.on<number>('camera:zoom-step', (step) => this.setZoomIndex(this.zoomIndex + Math.sign(step)));
     gameEvents.emit('camera:zoom', this.cameras.main.zoom);
   }
 
@@ -190,7 +191,7 @@ export class RestaurantScene extends Phaser.Scene {
     const base = { x: station.position.x + station.size.x - 1, y: station.position.y + station.size.y - 1 };
     const point = gridToWorld(center);
     const definition = WORLD_ASSETS[station.asset];
-    const stationDepth = station.id === 'pickup' ? isoDepth(station.position, 18) : isoDepth(base, 30);
+    const stationDepth = isoDepth(base, 30);
     const blenderId = station.renderedAssetId ?? WORLD_BLENDER_ASSET[station.asset];
     const useBlender = Boolean(blenderId && this.textures.exists(`blender:${blenderId}`));
     const rendered = blenderId ? blenderAsset(blenderId) : undefined;
@@ -271,9 +272,12 @@ export class RestaurantScene extends Phaser.Scene {
     visual.bubble.setPosition(Math.round(point.x), Math.round(point.y - uiOffset)).setDepth(isoDepth(position, 99));
     const recipe = customer.orderId ? this.simulation.orders.find((order) => order.id === customer.orderId)?.recipeId : undefined;
     const label = customer.partySize > 1 ? `${this.simulation.customerLabel(customer)} · grupo ${customer.partySize}` : this.simulation.customerLabel(customer);
-    visual.bubble.setText(recipe ? `${RECIPE_LABEL[recipe] ?? ''} ${label}` : label).setVisible(customer.state !== 'eating');
+    const showStatus = ['queueing', 'waiting_order', 'waiting_food', 'paying', 'gave_up'].includes(customer.state)
+      && (customer.state !== 'queueing' || customer.partyIndex === 0);
+    visual.bubble.setText(recipe ? `${RECIPE_LABEL[recipe] ?? ''} ${label}` : label).setVisible(showStatus);
     visual.patience.clear().setDepth(isoDepth(position, 100));
-    if (['queueing', 'waiting_order', 'waiting_food', 'waiting_payment'].includes(customer.state)) {
+    if (['queueing', 'waiting_order', 'waiting_food', 'waiting_payment'].includes(customer.state)
+      && (customer.state !== 'queueing' || customer.partyIndex === 0)) {
       const ratio = Phaser.Math.Clamp(customer.patience / customer.maxPatience, 0, 1);
       visual.patience.fillStyle(0x241a18, .65).fillRect(Math.round(point.x - 20), Math.round(point.y - uiOffset + 12), 40, 5);
       visual.patience.fillStyle(ratio > .45 ? 0x7d9b68 : ratio > .2 ? 0xf1c45b : 0xc94b3c, 1).fillRect(Math.round(point.x - 19), Math.round(point.y - uiOffset + 13), Math.round(38 * ratio), 3);
@@ -398,9 +402,18 @@ function blenderAsset(assetId: string) {
   return BLENDER_RENDERED_ASSETS.find((asset) => asset.assetId === assetId);
 }
 
-function canonicalCharacterAsset(assetId: string): 'cook-0' | 'customer-0' {
-  return assetId.startsWith('customer-') ? 'customer-0' : 'cook-0';
+function canonicalCharacterAsset(assetId: string): string {
+  if (assetId.startsWith('customer-')) {
+    const variant = Number(assetId.slice('customer-'.length));
+    return Number.isInteger(variant) && variant >= 0 && variant <= 7 ? `customer-${variant}` : 'customer-0';
+  }
+  return HIGH_DETAIL_CHARACTER_ASSETS.has(assetId) ? assetId : 'cook-0';
 }
+
+const HIGH_DETAIL_CHARACTER_ASSETS = new Set([
+  'player-style-0', 'player-style-1', 'player-style-2', 'player-style-3',
+  'cook-0', 'cook-1', 'waiter-0', 'waiter-1', 'cleaner-0', 'stocker-0',
+]);
 
 function renderedCharacterFrame(assetId: string, animation: PixelAnimationName, direction: Direction, frame: number): number {
   const asset = blenderAsset(assetId);

@@ -1,6 +1,6 @@
 {
-  "version": "0.0.3-blender-4",
-  "qualityProfile": "reference-canonical-v3",
+  "version": "0.0.3-blender-7",
+  "qualityProfile": "reference-scene-v5",
   "camera": {
     "projection": "orthographic",
     "horizontalAngle": 45,
@@ -57,15 +57,17 @@
         96,
         144
       ],
-      "qualityProfile": "reference-canonical-v3",
+      "qualityProfile": "reference-scene-v5",
       "nativeScale": 1.0,
       "logicalHeightBlocks": 1.9,
+      "referenceSource": "assets/blender/references/customer-reference.png",
+      "referenceMode": "reference-derived-variant",
       "renderedFile": "/assets/pixel/rendered/characters/player/player-style-0.png",
       "spriteSheet": "/assets/pixel/rendered/characters/player/player-style-0.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/player-style-0.png",
       "frameCount": 36,
-      "paletteVersion": "bistro-bloom-reference-canonical-v3",
-      "renderVersion": "0.0.3-blender-4",
+      "paletteVersion": "bistro-bloom-reference-scene-v5",
+      "renderVersion": "0.0.3-blender-7",
       "transparent": true
     },
     {
@@ -115,15 +117,17 @@
         96,
         144
       ],
-      "qualityProfile": "reference-canonical-v3",
+      "qualityProfile": "reference-scene-v5",
       "nativeScale": 1.0,
       "logicalHeightBlocks": 1.9,
+      "referenceSource": "assets/blender/references/customer-reference.png",
+      "referenceMode": "reference-derived-variant",
       "renderedFile": "/assets/pixel/rendered/characters/player/player-style-1.png",
       "spriteSheet": "/assets/pixel/rendered/characters/player/player-style-1.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/player-style-1.png",
       "frameCount": 36,
-      "paletteVersion": "bistro-bloom-reference-canonical-v3",
-      "renderVersion": "0.0.3-blender-4",
+      "paletteVersion": "bistro-bloom-reference-scene-v5",
+      "renderVersion": "0.0.3-blender-7",
       "transparent": true
     },
     {
@@ -173,15 +177,17 @@
         96,
         144
       ],
-      "qualityProfile": "reference-canonical-v3",
+      "qualityProfile": "reference-scene-v5",
       "nativeScale": 1.0,
       "logicalHeightBlocks": 1.9,
+      "referenceSource": "assets/blender/references/customer-reference.png",
+      "referenceMode": "reference-derived-variant",
       "renderedFile": "/assets/pixel/rendered/characters/player/player-style-2.png",
       "spriteSheet": "/assets/pixel/rendered/characters/player/player-style-2.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/player-style-2.png",
       "frameCount": 36,
-      "paletteVersion": "bistro-bloom-reference-canonical-v3",
-      "renderVersion": "0.0.3-blender-4",
+      "paletteVersion": "bistro-bloom-reference-scene-v5",
+      "renderVersion": "0.0.3-blender-7",
       "transparent": true
     },
     {
@@ -231,15 +237,17 @@
         96,
         144
       ],
-      "qualityProfile": "reference-canonical-v3",
+      "qualityProfile": "reference-scene-v5",
       "nativeScale": 1.0,
       "logicalHeightBlocks": 1.9,
+      "referenceSource": "assets/blender/references/customer-reference.png",
+      "referenceMode": "reference-derived-variant",
       "renderedFile": "/assets/pixel/rendered/characters/player/player-style-3.png",
       "spriteSheet": "/assets/pixel/rendered/characters/player/player-style-3.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/player-style-3.png",
       "frameCount": 36,
-      "paletteVersion": "bistro-bloom-reference-canonical-v3",
-      "renderVersion": "0.0.3-blender-4",
+      "paletteVersion": "bistro-bloom-reference-scene-v5",
+      "renderVersion": "0.0.3-blender-7",
       "transparent": true
     },
     {
@@ -289,7 +297,7 @@
         96,
         144
       ],
-      "qualityProfile": "reference-canonical-v3",
+      "qualityProfile": "reference-scene-v5",
       "nativeScale": 1.0,
       "logicalHeightBlocks": 1.9,
       "referenceSource": "assets/blender/references/customer-reference.png",
@@ -298,8 +306,8 @@
       "spriteSheet": "/assets/pixel/rendered/characters/customers/customer-0.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/customer-0.png",
       "frameCount": 36,
-      "paletteVersion": "bistro-bloom-reference-canonical-v3",
-      "renderVersion": "0.0.3-blender-4",
+      "paletteVersion": "bistro-bloom-reference-scene-v5",
+      "renderVersion": "0.0.3-blender-7",
       "transparent": true
     },
     {
@@ -349,15 +357,17 @@
         96,
         144
       ],
-      "qualityProfile": "reference-canonical-v3",
+      "qualityProfile": "reference-scene-v5",
       "nativeScale": 1.0,
       "logicalHeightBlocks": 1.9,
+      "referenceSource": "assets/blender/references/customer-reference.png",
+      "referenceMode": "reference-derived-variant",
       "renderedFile": "/assets/pixel/rendered/characters/customers/customer-1.png",
       "spriteSheet": "/assets/pixel/rendered/characters/customers/customer-1.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/customer-1.png",
       "frameCount": 36,
-      "paletteVersion": "bistro-bloom-reference-canonical-v3",
-      "renderVersion": "0.0.3-blender-4",
+      "paletteVersion": "bistro-bloom-reference-scene-v5",
+      "renderVersion": "0.0.3-blender-7",
       "transparent": true
     },
     {
@@ -407,15 +417,17 @@
         96,
         144
       ],
-      "qualityProfile": "reference-canonical-v3",
+      "qualityProfile": "reference-scene-v5",
       "nativeScale": 1.0,
       "logicalHeightBlocks": 1.9,
+      "referenceSource": "assets/blender/references/customer-reference.png",
+      "referenceMode": "reference-derived-variant",
       "renderedFile": "/assets/pixel/rendered/characters/customers/customer-2.png",
       "spriteSheet": "/assets/pixel/rendered/characters/customers/customer-2.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/customer-2.png",
       "frameCount": 36,
-      "paletteVersion": "bistro-bloom-reference-canonical-v3",
-      "renderVersion": "0.0.3-blender-4",
+      "paletteVersion": "bistro-bloom-reference-scene-v5",
+      "renderVersion": "0.0.3-blender-7",
       "transparent": true
     },
     {
@@ -465,15 +477,17 @@
         96,
         144
       ],
-      "qualityProfile": "reference-canonical-v3",
+      "qualityProfile": "reference-scene-v5",
       "nativeScale": 1.0,
       "logicalHeightBlocks": 1.9,
+      "referenceSource": "assets/blender/references/customer-reference.png",
+      "referenceMode": "reference-derived-variant",
       "renderedFile": "/assets/pixel/rendered/characters/customers/customer-3.png",
       "spriteSheet": "/assets/pixel/rendered/characters/customers/customer-3.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/customer-3.png",
       "frameCount": 36,
-      "paletteVersion": "bistro-bloom-reference-canonical-v3",
-      "renderVersion": "0.0.3-blender-4",
+      "paletteVersion": "bistro-bloom-reference-scene-v5",
+      "renderVersion": "0.0.3-blender-7",
       "transparent": true
     },
     {
@@ -523,15 +537,17 @@
         96,
         144
       ],
-      "qualityProfile": "reference-canonical-v3",
+      "qualityProfile": "reference-scene-v5",
       "nativeScale": 1.0,
       "logicalHeightBlocks": 1.9,
+      "referenceSource": "assets/blender/references/customer-reference.png",
+      "referenceMode": "reference-derived-variant",
       "renderedFile": "/assets/pixel/rendered/characters/customers/customer-4.png",
       "spriteSheet": "/assets/pixel/rendered/characters/customers/customer-4.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/customer-4.png",
       "frameCount": 36,
-      "paletteVersion": "bistro-bloom-reference-canonical-v3",
-      "renderVersion": "0.0.3-blender-4",
+      "paletteVersion": "bistro-bloom-reference-scene-v5",
+      "renderVersion": "0.0.3-blender-7",
       "transparent": true
     },
     {
@@ -581,15 +597,17 @@
         96,
         144
       ],
-      "qualityProfile": "reference-canonical-v3",
+      "qualityProfile": "reference-scene-v5",
       "nativeScale": 1.0,
       "logicalHeightBlocks": 1.9,
+      "referenceSource": "assets/blender/references/customer-reference.png",
+      "referenceMode": "reference-derived-variant",
       "renderedFile": "/assets/pixel/rendered/characters/customers/customer-5.png",
       "spriteSheet": "/assets/pixel/rendered/characters/customers/customer-5.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/customer-5.png",
       "frameCount": 36,
-      "paletteVersion": "bistro-bloom-reference-canonical-v3",
-      "renderVersion": "0.0.3-blender-4",
+      "paletteVersion": "bistro-bloom-reference-scene-v5",
+      "renderVersion": "0.0.3-blender-7",
       "transparent": true
     },
     {
@@ -639,15 +657,17 @@
         96,
         144
       ],
-      "qualityProfile": "reference-canonical-v3",
+      "qualityProfile": "reference-scene-v5",
       "nativeScale": 1.0,
       "logicalHeightBlocks": 1.9,
+      "referenceSource": "assets/blender/references/customer-reference.png",
+      "referenceMode": "reference-derived-variant",
       "renderedFile": "/assets/pixel/rendered/characters/customers/customer-6.png",
       "spriteSheet": "/assets/pixel/rendered/characters/customers/customer-6.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/customer-6.png",
       "frameCount": 36,
-      "paletteVersion": "bistro-bloom-reference-canonical-v3",
-      "renderVersion": "0.0.3-blender-4",
+      "paletteVersion": "bistro-bloom-reference-scene-v5",
+      "renderVersion": "0.0.3-blender-7",
       "transparent": true
     },
     {
@@ -697,15 +717,17 @@
         96,
         144
       ],
-      "qualityProfile": "reference-canonical-v3",
+      "qualityProfile": "reference-scene-v5",
       "nativeScale": 1.0,
       "logicalHeightBlocks": 1.9,
+      "referenceSource": "assets/blender/references/customer-reference.png",
+      "referenceMode": "reference-derived-variant",
       "renderedFile": "/assets/pixel/rendered/characters/customers/customer-7.png",
       "spriteSheet": "/assets/pixel/rendered/characters/customers/customer-7.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/customer-7.png",
       "frameCount": 36,
-      "paletteVersion": "bistro-bloom-reference-canonical-v3",
-      "renderVersion": "0.0.3-blender-4",
+      "paletteVersion": "bistro-bloom-reference-scene-v5",
+      "renderVersion": "0.0.3-blender-7",
       "transparent": true
     },
     {
@@ -755,7 +777,7 @@
         96,
         144
       ],
-      "qualityProfile": "reference-canonical-v3",
+      "qualityProfile": "reference-scene-v5",
       "nativeScale": 1.0,
       "logicalHeightBlocks": 1.9,
       "referenceSource": "assets/blender/references/cook-reference.png",
@@ -764,8 +786,8 @@
       "spriteSheet": "/assets/pixel/rendered/characters/employees/cooks/cook-0.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/cook-0.png",
       "frameCount": 36,
-      "paletteVersion": "bistro-bloom-reference-canonical-v3",
-      "renderVersion": "0.0.3-blender-4",
+      "paletteVersion": "bistro-bloom-reference-scene-v5",
+      "renderVersion": "0.0.3-blender-7",
       "transparent": true
     },
     {
@@ -815,15 +837,17 @@
         96,
         144
       ],
-      "qualityProfile": "reference-canonical-v3",
+      "qualityProfile": "reference-scene-v5",
       "nativeScale": 1.0,
       "logicalHeightBlocks": 1.9,
+      "referenceSource": "assets/blender/references/customer-reference.png",
+      "referenceMode": "reference-derived-variant",
       "renderedFile": "/assets/pixel/rendered/characters/employees/cooks/cook-1.png",
       "spriteSheet": "/assets/pixel/rendered/characters/employees/cooks/cook-1.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/cook-1.png",
       "frameCount": 36,
-      "paletteVersion": "bistro-bloom-reference-canonical-v3",
-      "renderVersion": "0.0.3-blender-4",
+      "paletteVersion": "bistro-bloom-reference-scene-v5",
+      "renderVersion": "0.0.3-blender-7",
       "transparent": true
     },
     {
@@ -873,15 +897,17 @@
         96,
         144
       ],
-      "qualityProfile": "reference-canonical-v3",
+      "qualityProfile": "reference-scene-v5",
       "nativeScale": 1.0,
       "logicalHeightBlocks": 1.9,
+      "referenceSource": "assets/blender/references/customer-reference.png",
+      "referenceMode": "reference-derived-variant",
       "renderedFile": "/assets/pixel/rendered/characters/employees/waiters/waiter-0.png",
       "spriteSheet": "/assets/pixel/rendered/characters/employees/waiters/waiter-0.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/waiter-0.png",
       "frameCount": 36,
-      "paletteVersion": "bistro-bloom-reference-canonical-v3",
-      "renderVersion": "0.0.3-blender-4",
+      "paletteVersion": "bistro-bloom-reference-scene-v5",
+      "renderVersion": "0.0.3-blender-7",
       "transparent": true
     },
     {
@@ -931,15 +957,17 @@
         96,
         144
       ],
-      "qualityProfile": "reference-canonical-v3",
+      "qualityProfile": "reference-scene-v5",
       "nativeScale": 1.0,
       "logicalHeightBlocks": 1.9,
+      "referenceSource": "assets/blender/references/customer-reference.png",
+      "referenceMode": "reference-derived-variant",
       "renderedFile": "/assets/pixel/rendered/characters/employees/waiters/waiter-1.png",
       "spriteSheet": "/assets/pixel/rendered/characters/employees/waiters/waiter-1.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/waiter-1.png",
       "frameCount": 36,
-      "paletteVersion": "bistro-bloom-reference-canonical-v3",
-      "renderVersion": "0.0.3-blender-4",
+      "paletteVersion": "bistro-bloom-reference-scene-v5",
+      "renderVersion": "0.0.3-blender-7",
       "transparent": true
     },
     {
@@ -989,15 +1017,17 @@
         96,
         144
       ],
-      "qualityProfile": "reference-canonical-v3",
+      "qualityProfile": "reference-scene-v5",
       "nativeScale": 1.0,
       "logicalHeightBlocks": 1.9,
+      "referenceSource": "assets/blender/references/customer-reference.png",
+      "referenceMode": "reference-derived-variant",
       "renderedFile": "/assets/pixel/rendered/characters/employees/cleaners/cleaner-0.png",
       "spriteSheet": "/assets/pixel/rendered/characters/employees/cleaners/cleaner-0.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/cleaner-0.png",
       "frameCount": 36,
-      "paletteVersion": "bistro-bloom-reference-canonical-v3",
-      "renderVersion": "0.0.3-blender-4",
+      "paletteVersion": "bistro-bloom-reference-scene-v5",
+      "renderVersion": "0.0.3-blender-7",
       "transparent": true
     },
     {
@@ -1047,15 +1077,17 @@
         96,
         144
       ],
-      "qualityProfile": "reference-canonical-v3",
+      "qualityProfile": "reference-scene-v5",
       "nativeScale": 1.0,
       "logicalHeightBlocks": 1.9,
+      "referenceSource": "assets/blender/references/customer-reference.png",
+      "referenceMode": "reference-derived-variant",
       "renderedFile": "/assets/pixel/rendered/characters/employees/stockers/stocker-0.png",
       "spriteSheet": "/assets/pixel/rendered/characters/employees/stockers/stocker-0.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/stocker-0.png",
       "frameCount": 36,
-      "paletteVersion": "bistro-bloom-reference-canonical-v3",
-      "renderVersion": "0.0.3-blender-4",
+      "paletteVersion": "bistro-bloom-reference-scene-v5",
+      "renderVersion": "0.0.3-blender-7",
       "transparent": true
     },
     {
@@ -1073,7 +1105,7 @@
       ],
       "anchor": [
         0.5,
-        0.85
+        0.9270833333333334
       ],
       "orientations": [
         "ne",
@@ -1095,14 +1127,14 @@
         192
       ],
       "nextLevelAssetId": null,
-      "qualityProfile": "reference-canonical-v3",
+      "qualityProfile": "reference-scene-v5",
       "nativeScale": 1.0,
       "renderedFile": "/assets/pixel/rendered/furniture/tables/table_two.png",
       "spriteSheet": "/assets/pixel/rendered/furniture/tables/table_two.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/table_two.png",
       "frameCount": 1,
-      "paletteVersion": "bistro-bloom-reference-canonical-v3",
-      "renderVersion": "0.0.3-blender-4",
+      "paletteVersion": "bistro-bloom-reference-scene-v5",
+      "renderVersion": "0.0.3-blender-7",
       "transparent": true
     },
     {
@@ -1120,7 +1152,7 @@
       ],
       "anchor": [
         0.5,
-        0.85
+        0.9270833333333334
       ],
       "orientations": [
         "ne",
@@ -1142,14 +1174,14 @@
         192
       ],
       "nextLevelAssetId": null,
-      "qualityProfile": "reference-canonical-v3",
+      "qualityProfile": "reference-scene-v5",
       "nativeScale": 1.0,
       "renderedFile": "/assets/pixel/rendered/furniture/tables/table_four.png",
       "spriteSheet": "/assets/pixel/rendered/furniture/tables/table_four.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/table_four.png",
       "frameCount": 1,
-      "paletteVersion": "bistro-bloom-reference-canonical-v3",
-      "renderVersion": "0.0.3-blender-4",
+      "paletteVersion": "bistro-bloom-reference-scene-v5",
+      "renderVersion": "0.0.3-blender-7",
       "transparent": true
     },
     {
@@ -1167,7 +1199,7 @@
       ],
       "anchor": [
         0.5,
-        0.85
+        0.9270833333333334
       ],
       "orientations": [
         "ne",
@@ -1189,14 +1221,14 @@
         192
       ],
       "nextLevelAssetId": null,
-      "qualityProfile": "reference-canonical-v3",
+      "qualityProfile": "reference-scene-v5",
       "nativeScale": 1.0,
       "renderedFile": "/assets/pixel/rendered/furniture/chairs/chair.png",
       "spriteSheet": "/assets/pixel/rendered/furniture/chairs/chair.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/chair.png",
       "frameCount": 1,
-      "paletteVersion": "bistro-bloom-reference-canonical-v3",
-      "renderVersion": "0.0.3-blender-4",
+      "paletteVersion": "bistro-bloom-reference-scene-v5",
+      "renderVersion": "0.0.3-blender-7",
       "transparent": true
     },
     {
@@ -1214,7 +1246,7 @@
       ],
       "anchor": [
         0.5,
-        0.85
+        0.9270833333333334
       ],
       "orientations": [
         "ne",
@@ -1236,14 +1268,14 @@
         192
       ],
       "nextLevelAssetId": null,
-      "qualityProfile": "reference-canonical-v3",
+      "qualityProfile": "reference-scene-v5",
       "nativeScale": 1.0,
       "renderedFile": "/assets/pixel/rendered/furniture/counters/pickup_counter.png",
       "spriteSheet": "/assets/pixel/rendered/furniture/counters/pickup_counter.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/pickup_counter.png",
       "frameCount": 1,
-      "paletteVersion": "bistro-bloom-reference-canonical-v3",
-      "renderVersion": "0.0.3-blender-4",
+      "paletteVersion": "bistro-bloom-reference-scene-v5",
+      "renderVersion": "0.0.3-blender-7",
       "transparent": true
     },
     {
@@ -1261,7 +1293,7 @@
       ],
       "anchor": [
         0.5,
-        0.85
+        0.9270833333333334
       ],
       "orientations": [
         "ne",
@@ -1283,14 +1315,14 @@
         192
       ],
       "nextLevelAssetId": null,
-      "qualityProfile": "reference-canonical-v3",
+      "qualityProfile": "reference-scene-v5",
       "nativeScale": 1.0,
       "renderedFile": "/assets/pixel/rendered/furniture/counters/prep_counter.png",
       "spriteSheet": "/assets/pixel/rendered/furniture/counters/prep_counter.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/prep_counter.png",
       "frameCount": 1,
-      "paletteVersion": "bistro-bloom-reference-canonical-v3",
-      "renderVersion": "0.0.3-blender-4",
+      "paletteVersion": "bistro-bloom-reference-scene-v5",
+      "renderVersion": "0.0.3-blender-7",
       "transparent": true
     },
     {
@@ -1308,7 +1340,7 @@
       ],
       "anchor": [
         0.5,
-        0.85
+        0.9270833333333334
       ],
       "orientations": [
         "ne",
@@ -1330,14 +1362,14 @@
         192
       ],
       "nextLevelAssetId": null,
-      "qualityProfile": "reference-canonical-v3",
+      "qualityProfile": "reference-scene-v5",
       "nativeScale": 1.0,
       "renderedFile": "/assets/pixel/rendered/furniture/storage/shelf.png",
       "spriteSheet": "/assets/pixel/rendered/furniture/storage/shelf.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/shelf.png",
       "frameCount": 1,
-      "paletteVersion": "bistro-bloom-reference-canonical-v3",
-      "renderVersion": "0.0.3-blender-4",
+      "paletteVersion": "bistro-bloom-reference-scene-v5",
+      "renderVersion": "0.0.3-blender-7",
       "transparent": true
     },
     {
@@ -1355,7 +1387,7 @@
       ],
       "anchor": [
         0.5,
-        0.85
+        0.9270833333333334
       ],
       "orientations": [
         "ne",
@@ -1377,14 +1409,14 @@
         192
       ],
       "nextLevelAssetId": null,
-      "qualityProfile": "reference-canonical-v3",
+      "qualityProfile": "reference-scene-v5",
       "nativeScale": 1.0,
       "renderedFile": "/assets/pixel/rendered/furniture/storage/storage_cabinet.png",
       "spriteSheet": "/assets/pixel/rendered/furniture/storage/storage_cabinet.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/storage_cabinet.png",
       "frameCount": 1,
-      "paletteVersion": "bistro-bloom-reference-canonical-v3",
-      "renderVersion": "0.0.3-blender-4",
+      "paletteVersion": "bistro-bloom-reference-scene-v5",
+      "renderVersion": "0.0.3-blender-7",
       "transparent": true
     },
     {
@@ -1402,7 +1434,7 @@
       ],
       "anchor": [
         0.5,
-        0.85
+        0.9270833333333334
       ],
       "orientations": [
         "ne",
@@ -1424,14 +1456,14 @@
         192
       ],
       "nextLevelAssetId": null,
-      "qualityProfile": "reference-canonical-v3",
+      "qualityProfile": "reference-scene-v5",
       "nativeScale": 1.0,
       "renderedFile": "/assets/pixel/rendered/furniture/decorations/bin.png",
       "spriteSheet": "/assets/pixel/rendered/furniture/decorations/bin.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/bin.png",
       "frameCount": 1,
-      "paletteVersion": "bistro-bloom-reference-canonical-v3",
-      "renderVersion": "0.0.3-blender-4",
+      "paletteVersion": "bistro-bloom-reference-scene-v5",
+      "renderVersion": "0.0.3-blender-7",
       "transparent": true
     },
     {
@@ -1449,7 +1481,7 @@
       ],
       "anchor": [
         0.5,
-        0.85
+        0.9270833333333334
       ],
       "orientations": [
         "ne",
@@ -1471,14 +1503,14 @@
         192
       ],
       "nextLevelAssetId": null,
-      "qualityProfile": "reference-canonical-v3",
+      "qualityProfile": "reference-scene-v5",
       "nativeScale": 1.0,
       "renderedFile": "/assets/pixel/rendered/furniture/decorations/plant.png",
       "spriteSheet": "/assets/pixel/rendered/furniture/decorations/plant.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/plant.png",
       "frameCount": 1,
-      "paletteVersion": "bistro-bloom-reference-canonical-v3",
-      "renderVersion": "0.0.3-blender-4",
+      "paletteVersion": "bistro-bloom-reference-scene-v5",
+      "renderVersion": "0.0.3-blender-7",
       "transparent": true
     },
     {
@@ -1496,7 +1528,7 @@
       ],
       "anchor": [
         0.5,
-        0.85
+        0.9270833333333334
       ],
       "orientations": [
         "ne",
@@ -1520,7 +1552,7 @@
         192
       ],
       "nextLevelAssetId": "stove_level_2",
-      "qualityProfile": "reference-canonical-v3",
+      "qualityProfile": "reference-scene-v5",
       "nativeScale": 1.0,
       "referenceSource": "assets/blender/references/stove-reference.png",
       "referenceMode": "canonical-chroma-key",
@@ -1528,8 +1560,8 @@
       "spriteSheet": "/assets/pixel/rendered/equipment/stoves/stove_level_1.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/stove_level_1.png",
       "frameCount": 4,
-      "paletteVersion": "bistro-bloom-reference-canonical-v3",
-      "renderVersion": "0.0.3-blender-4",
+      "paletteVersion": "bistro-bloom-reference-scene-v5",
+      "renderVersion": "0.0.3-blender-7",
       "transparent": true
     },
     {
@@ -1547,7 +1579,7 @@
       ],
       "anchor": [
         0.5,
-        0.85
+        0.9270833333333334
       ],
       "orientations": [
         "ne",
@@ -1571,14 +1603,14 @@
         192
       ],
       "nextLevelAssetId": "oven_level_2",
-      "qualityProfile": "reference-canonical-v3",
+      "qualityProfile": "reference-scene-v5",
       "nativeScale": 1.0,
       "renderedFile": "/assets/pixel/rendered/equipment/ovens/oven_level_1.png",
       "spriteSheet": "/assets/pixel/rendered/equipment/ovens/oven_level_1.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/oven_level_1.png",
       "frameCount": 4,
-      "paletteVersion": "bistro-bloom-reference-canonical-v3",
-      "renderVersion": "0.0.3-blender-4",
+      "paletteVersion": "bistro-bloom-reference-scene-v5",
+      "renderVersion": "0.0.3-blender-7",
       "transparent": true
     },
     {
@@ -1596,7 +1628,7 @@
       ],
       "anchor": [
         0.5,
-        0.85
+        0.9270833333333334
       ],
       "orientations": [
         "ne",
@@ -1620,7 +1652,7 @@
         192
       ],
       "nextLevelAssetId": "refrigerator_level_2",
-      "qualityProfile": "reference-canonical-v3",
+      "qualityProfile": "reference-scene-v5",
       "nativeScale": 1.0,
       "referenceSource": "assets/blender/references/refrigerator-reference.png",
       "referenceMode": "canonical-chroma-key",
@@ -1628,8 +1660,8 @@
       "spriteSheet": "/assets/pixel/rendered/equipment/refrigerators/refrigerator_level_1.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/refrigerator_level_1.png",
       "frameCount": 4,
-      "paletteVersion": "bistro-bloom-reference-canonical-v3",
-      "renderVersion": "0.0.3-blender-4",
+      "paletteVersion": "bistro-bloom-reference-scene-v5",
+      "renderVersion": "0.0.3-blender-7",
       "transparent": true
     },
     {
@@ -1647,7 +1679,7 @@
       ],
       "anchor": [
         0.5,
-        0.85
+        0.9270833333333334
       ],
       "orientations": [
         "ne",
@@ -1671,14 +1703,14 @@
         192
       ],
       "nextLevelAssetId": "grill_level_2",
-      "qualityProfile": "reference-canonical-v3",
+      "qualityProfile": "reference-scene-v5",
       "nativeScale": 1.0,
       "renderedFile": "/assets/pixel/rendered/equipment/grills/grill_level_1.png",
       "spriteSheet": "/assets/pixel/rendered/equipment/grills/grill_level_1.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/grill_level_1.png",
       "frameCount": 4,
-      "paletteVersion": "bistro-bloom-reference-canonical-v3",
-      "renderVersion": "0.0.3-blender-4",
+      "paletteVersion": "bistro-bloom-reference-scene-v5",
+      "renderVersion": "0.0.3-blender-7",
       "transparent": true
     },
     {
@@ -1696,7 +1728,7 @@
       ],
       "anchor": [
         0.5,
-        0.85
+        0.9270833333333334
       ],
       "orientations": [
         "ne",
@@ -1720,14 +1752,14 @@
         192
       ],
       "nextLevelAssetId": "coffee_machine_level_2",
-      "qualityProfile": "reference-canonical-v3",
+      "qualityProfile": "reference-scene-v5",
       "nativeScale": 1.0,
       "renderedFile": "/assets/pixel/rendered/equipment/coffee-machines/coffee_machine_level_1.png",
       "spriteSheet": "/assets/pixel/rendered/equipment/coffee-machines/coffee_machine_level_1.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/coffee_machine_level_1.png",
       "frameCount": 4,
-      "paletteVersion": "bistro-bloom-reference-canonical-v3",
-      "renderVersion": "0.0.3-blender-4",
+      "paletteVersion": "bistro-bloom-reference-scene-v5",
+      "renderVersion": "0.0.3-blender-7",
       "transparent": true
     },
     {
@@ -1745,7 +1777,7 @@
       ],
       "anchor": [
         0.5,
-        0.85
+        0.9270833333333334
       ],
       "orientations": [
         "ne",
@@ -1769,14 +1801,14 @@
         192
       ],
       "nextLevelAssetId": "preparation_level_2",
-      "qualityProfile": "reference-canonical-v3",
+      "qualityProfile": "reference-scene-v5",
       "nativeScale": 1.0,
       "renderedFile": "/assets/pixel/rendered/equipment/preparation/preparation_level_1.png",
       "spriteSheet": "/assets/pixel/rendered/equipment/preparation/preparation_level_1.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/preparation_level_1.png",
       "frameCount": 4,
-      "paletteVersion": "bistro-bloom-reference-canonical-v3",
-      "renderVersion": "0.0.3-blender-4",
+      "paletteVersion": "bistro-bloom-reference-scene-v5",
+      "renderVersion": "0.0.3-blender-7",
       "transparent": true
     },
     {
@@ -1794,7 +1826,7 @@
       ],
       "anchor": [
         0.5,
-        0.85
+        0.9270833333333334
       ],
       "orientations": [
         "ne",
@@ -1818,14 +1850,14 @@
         192
       ],
       "nextLevelAssetId": "sink_level_2",
-      "qualityProfile": "reference-canonical-v3",
+      "qualityProfile": "reference-scene-v5",
       "nativeScale": 1.0,
       "renderedFile": "/assets/pixel/rendered/equipment/sinks/sink_level_1.png",
       "spriteSheet": "/assets/pixel/rendered/equipment/sinks/sink_level_1.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/sink_level_1.png",
       "frameCount": 4,
-      "paletteVersion": "bistro-bloom-reference-canonical-v3",
-      "renderVersion": "0.0.3-blender-4",
+      "paletteVersion": "bistro-bloom-reference-scene-v5",
+      "renderVersion": "0.0.3-blender-7",
       "transparent": true
     },
     {
@@ -1843,7 +1875,7 @@
       ],
       "anchor": [
         0.5,
-        0.85
+        0.9270833333333334
       ],
       "orientations": [
         "ne",
@@ -1867,14 +1899,14 @@
         192
       ],
       "nextLevelAssetId": "cauldron_level_2",
-      "qualityProfile": "reference-canonical-v3",
+      "qualityProfile": "reference-scene-v5",
       "nativeScale": 1.0,
       "renderedFile": "/assets/pixel/rendered/equipment/cauldrons/cauldron_level_1.png",
       "spriteSheet": "/assets/pixel/rendered/equipment/cauldrons/cauldron_level_1.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/cauldron_level_1.png",
       "frameCount": 4,
-      "paletteVersion": "bistro-bloom-reference-canonical-v3",
-      "renderVersion": "0.0.3-blender-4",
+      "paletteVersion": "bistro-bloom-reference-scene-v5",
+      "renderVersion": "0.0.3-blender-7",
       "transparent": true
     },
     {
@@ -1892,7 +1924,7 @@
       ],
       "anchor": [
         0.5,
-        0.85
+        0.9270833333333334
       ],
       "orientations": [
         "ne",
@@ -1916,14 +1948,14 @@
         192
       ],
       "nextLevelAssetId": "assembly_level_2",
-      "qualityProfile": "reference-canonical-v3",
+      "qualityProfile": "reference-scene-v5",
       "nativeScale": 1.0,
       "renderedFile": "/assets/pixel/rendered/equipment/preparation/assembly_level_1.png",
       "spriteSheet": "/assets/pixel/rendered/equipment/preparation/assembly_level_1.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/assembly_level_1.png",
       "frameCount": 4,
-      "paletteVersion": "bistro-bloom-reference-canonical-v3",
-      "renderVersion": "0.0.3-blender-4",
+      "paletteVersion": "bistro-bloom-reference-scene-v5",
+      "renderVersion": "0.0.3-blender-7",
       "transparent": true
     }
   ]

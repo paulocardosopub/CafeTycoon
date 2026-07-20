@@ -4,7 +4,7 @@ import bpy
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path: sys.path.insert(0, str(SCRIPT_DIR))
-from config.pipeline_config import ANIMATIONS, CHARACTER_FRAME, DIRECTIONS, PALETTE, QUALITY_PROFILE, RENDER_VERSION, WORLD_FRAME, project_root_from_script
+from config.pipeline_config import ANIMATIONS, CHARACTER_FRAME, DIRECTIONS, PALETTE, QUALITY_PROFILE, RENDER_VERSION, WORLD_FLOOR_Y, WORLD_FRAME, project_root_from_script
 
 def validate(project_root: Path):
     manifest_path = project_root / "public/assets/pixel/rendered/asset-manifest.json"
@@ -39,9 +39,10 @@ def validate(project_root: Path):
         if not deployed.exists(): errors.append(f"missing deployed PNG: {asset['assetId']}")
         if asset.get("visualLevel") != 1: errors.append(f"invalid visual level: {asset['assetId']}")
         if asset.get("qualityProfile") != QUALITY_PROFILE or asset.get("nativeScale") != 1.0: errors.append(f"quality metadata mismatch: {asset['assetId']}")
-        if asset.get("referenceMode") == "canonical-chroma-key":
+        reference_mode = asset.get("referenceMode")
+        if reference_mode in {"canonical-chroma-key", "reference-derived-variant"}:
             reference = project_root / asset.get("referenceSource", "")
-            if not reference.exists(): errors.append(f"canonical reference missing: {asset['assetId']}")
+            if not reference.exists(): errors.append(f"visual reference missing: {asset['assetId']}")
         if asset.get("orientations") != list(DIRECTIONS): errors.append(f"directions mismatch: {asset['assetId']}")
         if asset["kind"] == "character":
             if asset.get("anchor") != [48, 136] or asset.get("frameSize") != list(CHARACTER_FRAME): errors.append(f"feet anchor/frame mismatch: {asset['assetId']}")
@@ -50,6 +51,7 @@ def validate(project_root: Path):
         else:
             expected_frame = [256, 192] if asset["assetId"] == "pickup_counter" else list(WORLD_FRAME)
             if asset.get("frameSize") != expected_frame: errors.append(f"world frame mismatch: {asset['assetId']}")
+            if abs(asset.get("anchor", [0, 0])[1] - WORLD_FLOOR_Y / expected_frame[1]) > .0001: errors.append(f"world floor anchor mismatch: {asset['assetId']}")
         if asset["assetId"] == "stove_level_1" and not {"off", "active"}.issubset(asset.get("animations", {})): errors.append("stove states missing")
         if asset["assetId"] == "refrigerator_level_1" and not {"closed", "open"}.issubset(asset.get("animations", {})): errors.append("refrigerator states missing")
         image = bpy.data.images.load(str(rendered), check_existing=False)
@@ -59,8 +61,8 @@ def validate(project_root: Path):
         if not any(alpha < .01 for alpha in alphas): errors.append(f"transparent background missing: {asset['assetId']}")
         if not any(alpha > .5 for alpha in alphas): errors.append(f"empty render: {asset['assetId']}")
         opaque_colors = {tuple(round(value, 3) for value in pixels[index:index+3]) for index in range(0, len(pixels), 4) if pixels[index+3] > .5}
-        if asset.get("referenceMode") != "canonical-chroma-key" and len(opaque_colors) > len(PALETTE) + 2: errors.append(f"uncontrolled/blurred palette: {asset['assetId']} ({len(opaque_colors)} colors)")
-        if asset.get("referenceMode") == "canonical-chroma-key":
+        if reference_mode not in {"canonical-chroma-key", "reference-derived-variant"} and len(opaque_colors) > len(PALETTE) + 2: errors.append(f"uncontrolled/blurred palette: {asset['assetId']} ({len(opaque_colors)} colors)")
+        if reference_mode in {"canonical-chroma-key", "reference-derived-variant"}:
             magenta_pixels = sum(1 for index in range(0, len(pixels), 4) if pixels[index+3] > .5 and pixels[index] > .70 and pixels[index+2] > .62 and pixels[index+1] < .38)
             if magenta_pixels: errors.append(f"reference background leaked: {asset['assetId']} ({magenta_pixels}px)")
         frame_opaque = [(x, y) for y in range(frame_h) for x in range(frame_w) if pixels[(y * image.size[0] + x) * 4 + 3] > .2]
@@ -69,6 +71,7 @@ def validate(project_root: Path):
             coverage_h = max(point[1] for point in frame_opaque) - min(point[1] for point in frame_opaque) + 1
             if asset["kind"] == "character" and (coverage_h < frame_h * .68 or coverage_w < frame_w * .28): errors.append(f"undersized character: {asset['assetId']} ({coverage_w}x{coverage_h})")
             if asset["kind"] == "character" and (min(point[1] for point in frame_opaque) < 3 or max(point[1] for point in frame_opaque) > frame_h - 4): errors.append(f"clipped character frame: {asset['assetId']}")
+            if asset["kind"] != "character" and abs(min(point[1] for point in frame_opaque) - (frame_h - WORLD_FLOOR_Y)) > 2: errors.append(f"world baseline mismatch: {asset['assetId']} ({min(point[1] for point in frame_opaque)})")
             if asset["kind"] == "equipment" and asset["footprint"][0] == 2 and coverage_w < frame_w * .48: errors.append(f"equipment does not fill footprint: {asset['assetId']} ({coverage_w}px)")
             if asset["assetId"] == "pickup_counter" and coverage_w < frame_w * .70: errors.append(f"service counter does not fill footprint: {coverage_w}px")
             if asset["assetId"] == "pickup_counter" and (min(point[0] for point in frame_opaque) < 3 or max(point[0] for point in frame_opaque) > frame_w - 4): errors.append("service counter frame is clipped")

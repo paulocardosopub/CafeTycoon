@@ -7,10 +7,15 @@ export const RESTAURANT_SIZE = { width: 18, height: 18 } as const;
 export const MAP_SIZE = { width: 18, height: 22 } as const;
 export const ENTRANCE: GridPoint = { x: 9, y: 17 };
 export const EXIT: GridPoint = { x: 10, y: 17 };
+export const RESTAURANT_ENTRY_ZONE: GridPoint[] = [ENTRANCE, EXIT];
 export const STREET_ENTRY_POINTS: GridPoint[] = [{ x: 3, y: 21 }, { x: 7, y: 21 }, { x: 13, y: 21 }];
 export const STREET_EXIT_ZONE: GridPoint[] = [{ x: 14, y: 21 }, { x: 15, y: 21 }, { x: 16, y: 21 }, { x: 17, y: 21 }, { x: 13, y: 20 }];
 export const STREET_EXIT: GridPoint = STREET_EXIT_ZONE[2];
-export const CUSTOMER_QUEUE: GridPoint[] = [{ x: 12, y: 16 }, { x: 11, y: 16 }, { x: 10, y: 16 }, { x: 9, y: 16 }];
+export const CUSTOMER_QUEUE: GridPoint[] = [
+  { x: 9, y: 16 }, { x: 8, y: 16 }, { x: 7, y: 16 }, { x: 6, y: 16 }, { x: 5, y: 16 },
+  { x: 4, y: 16 }, { x: 3, y: 16 }, { x: 2, y: 16 }, { x: 1, y: 16 },
+  { x: 8, y: 18 }, { x: 7, y: 18 }, { x: 6, y: 18 }, { x: 5, y: 18 }, { x: 4, y: 18 },
+];
 export const PICKUP_KITCHEN_POINT: GridPoint = { x: 7, y: 6 };
 export const PICKUP_SERVICE_POINT: GridPoint = { x: 7, y: 8 };
 

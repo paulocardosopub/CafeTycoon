@@ -23,7 +23,7 @@ def configure_scene():
     scene.render.use_freestyle = True; scene.render.line_thickness = 1.0
     scene.view_settings.look = "AgX - Medium High Contrast"
     setup_camera(scene); setup_lighting(scene)
-    scene["bistroAssetSourceVersion"] = "0.0.3"; scene["qualityProfile"] = "reference-canonical-v3"
+    scene["bistroAssetSourceVersion"] = "0.0.3"; scene["qualityProfile"] = "reference-scene-v5"
     return scene
 
 def build_family(project_root: Path, definitions, relative_path: str, builder):

@@ -96,11 +96,9 @@ function drawFloor(ctx: Ctx, base: string, line: string, kitchen: boolean): void
   diamond(ctx, 64, 39, 15, 7, base);
   pixelQuad(ctx, [{ x: 49, y: 39 }, { x: 64, y: 46 }, { x: 64, y: 48 }, { x: 49, y: 41 }], line);
   pixelQuad(ctx, [{ x: 79, y: 39 }, { x: 64, y: 46 }, { x: 64, y: 48 }, { x: 79, y: 41 }], line);
-  if (kitchen) {
-    rect(ctx, 58, 38, 2, 1, P.creamLight); rect(ctx, 67, 42, 2, 1, P.creamLight);
-  } else {
-    rect(ctx, 55, 39, 3, 1, line); rect(ctx, 70, 41, 2, 1, line);
-  }
+  rect(ctx, 58, 37, 4, 1, kitchen ? '#e58a58' : '#e99561');
+  rect(ctx, 67, 42, 3, 1, kitchen ? '#8e3f2f' : '#a85135');
+  if (!kitchen) rect(ctx, 53, 40, 2, 1, '#f2b47e');
 }
 
 function drawGrass(ctx: Ctx, alternate: boolean): void {
@@ -132,6 +130,19 @@ function drawWall(ctx: Ctx, side: 'nw' | 'ne'): void {
     ? [{ x: 48, y: 72 }, { x: 64, y: 80 }, { x: 64, y: 38 }, { x: 48, y: 30 }]
     : [{ x: 64, y: 80 }, { x: 80, y: 72 }, { x: 80, y: 30 }, { x: 64, y: 38 }];
   pixelQuad(ctx, base, side === 'nw' ? P.cream : P.creamLight);
+  const tileBand = side === 'nw'
+    ? [{ x: 48, y: 72 }, { x: 64, y: 80 }, { x: 64, y: 57 }, { x: 48, y: 49 }]
+    : [{ x: 64, y: 80 }, { x: 80, y: 72 }, { x: 80, y: 49 }, { x: 64, y: 57 }];
+  pixelQuad(ctx, tileBand, side === 'nw' ? P.sage : P.sageDark);
+  const railStart = side === 'nw' ? { x: 48, y: 49 } : { x: 64, y: 57 };
+  const railEnd = side === 'nw' ? { x: 64, y: 57 } : { x: 80, y: 49 };
+  pixelLine(ctx, railStart, railEnd, P.woodDark);
+  pixelLine(ctx, { x: railStart.x, y: railStart.y - 1 }, { x: railEnd.x, y: railEnd.y - 1 }, P.woodLight);
+  for (let offset = 7; offset <= 13; offset += 6) {
+    const a = side === 'nw' ? { x: 48, y: 49 + offset } : { x: 64, y: 57 + offset };
+    const b = side === 'nw' ? { x: 64, y: 57 + offset } : { x: 80, y: 49 + offset };
+    pixelLine(ctx, a, b, '#6f8b61');
+  }
   const topStart = side === 'nw' ? { x: 48, y: 30 } : { x: 64, y: 38 };
   const topEnd = side === 'nw' ? { x: 64, y: 38 } : { x: 80, y: 30 };
   pixelLine(ctx, topStart, topEnd, P.woodMid);

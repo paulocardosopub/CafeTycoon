@@ -33,8 +33,8 @@ function pngHeader(path: string): { width: number; height: number; colorType: nu
 
 describe('pipeline Blender 0.0.3', () => {
   it('mantÃ©m a versÃ£o do jogo e evolui apenas a revisÃ£o visual', () => {
-    expect(manifest.version).toBe('0.0.3-blender-4');
-    expect(manifest.qualityProfile).toBe('reference-canonical-v3');
+    expect(manifest.version).toBe('0.0.3-blender-7');
+    expect(manifest.qualityProfile).toBe('reference-scene-v5');
   });
 
   it('mantém câmera isométrica ortográfica padronizada', () => {
@@ -60,7 +60,7 @@ describe('pipeline Blender 0.0.3', () => {
     for (const asset of manifest.assets) {
       expect(asset.orientations).toEqual(['ne', 'nw', 'se', 'sw']);
       expect(asset.visualLevel).toBe(1);
-      expect(asset.qualityProfile).toBe('reference-canonical-v3');
+      expect(asset.qualityProfile).toBe('reference-scene-v5');
       expect(asset.nativeScale).toBe(1);
       expect(asset.transparent).toBe(true);
       expect(asset.footprint[0]).toBeGreaterThan(0);
@@ -73,8 +73,10 @@ describe('pipeline Blender 0.0.3', () => {
         expect(Object.keys(asset.animations)).toEqual(expect.arrayContaining(required));
       } else if (asset.assetId === 'pickup_counter') {
         expect(asset.frameSize).toEqual([256, 192]);
+        expect(asset.anchor[1]).toBeCloseTo(178 / 192, 5);
       } else {
         expect(asset.frameSize).toEqual([192, 192]);
+        expect(asset.anchor[1]).toBeCloseTo(178 / 192, 5);
       }
     }
   });
@@ -95,13 +97,22 @@ describe('pipeline Blender 0.0.3', () => {
       expect(asset.referenceSource).toBeTruthy();
       expect(statSync(resolve(projectRoot, asset.referenceSource!)).size).toBeGreaterThan(100_000);
     }
+    const customers = manifest.assets.filter((item) => item.assetId.startsWith('customer-'));
+    expect(customers).toHaveLength(8);
+    expect(customers.slice(1).every((item) => item.referenceMode === 'reference-derived-variant')).toBe(true);
+    expect(new Set(customers.map((item) => statSync(canonicalPng(item)).size)).size).toBeGreaterThanOrEqual(6);
+    const characters = manifest.assets.filter((item) => item.kind === 'character');
+    expect(characters.every((item) => item.referenceSource && ['canonical-chroma-key', 'reference-derived-variant'].includes(item.referenceMode!))).toBe(true);
+    expect(characters.filter((item) => item.referenceMode === 'reference-derived-variant')).toHaveLength(16);
   });
 
   it('serve sprites públicos e invalida cache por revisão visual', () => {
     const scene = readFileSync(resolve(projectRoot, 'src/scenes/RestaurantScene.ts'), 'utf8');
     const worker = readFileSync(resolve(projectRoot, 'scripts/build-worker.mjs'), 'utf8');
     expect(scene).toContain('?v=${encodeURIComponent(asset.renderVersion)}');
-    expect(scene).toContain("return assetId.startsWith('customer-') ? 'customer-0' : 'cook-0'");
+    expect(scene).toContain("variant >= 0 && variant <= 7 ? `customer-${variant}` : 'customer-0'");
+    expect(scene).toContain('HIGH_DETAIL_CHARACTER_ASSETS.has(assetId)');
+    expect(scene).toContain('const stationDepth = isoDepth(base, 30)');
     expect(worker).toContain('env?.ASSETS?.fetch');
     expect(worker).toContain("dist/client");
   });
@@ -125,5 +136,6 @@ describe('pipeline Blender 0.0.3', () => {
     expect(buildScript).toContain('parser.add_argument("--assets")');
     expect(buildScript).toContain('--category');
     expect(buildScript).toContain('item["assetId"] in selected_ids');
+    expect(buildScript).toContain('normalize_world_assets');
   });
 });

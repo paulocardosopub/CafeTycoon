@@ -9,6 +9,7 @@ import bpy
 from config.pipeline_config import ASSETS, PALETTE_VERSION, QUALITY_PROFILE, RENDER_VERSION, project_root_from_script
 from render_common import render_character_sheet, render_world_sheet
 from reference_sprite_import import render_reference_assets
+from normalize_sprite_sheets import normalize_world_assets
 from source_builder import build_source_files
 
 def output_paths(project_root, definition):
@@ -73,6 +74,7 @@ def build_all(project_root: Path, selected=None, category=None, rebuild_sources=
     if rebuild_sources: build_source_files(project_root)
     rendered = render_assets(project_root, selected, category)
     render_reference_assets(project_root, ASSETS, selected)
+    normalize_world_assets(project_root, ASSETS, selected, category)
     manifests = write_manifests(project_root)
     return rendered, manifests
 

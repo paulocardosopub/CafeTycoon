@@ -4,6 +4,13 @@
 
 - Elevado o padrão visual da própria 0.0.3 para `reference-hd-v2`, sem alterar a versão do jogo.
 - Vinculados cozinheira, cliente, fogão e geladeira diretamente aos quatro anexos canônicos no perfil `reference-canonical-v3`.
+- Evoluído o perfil para `reference-family-v4`: anexos viraram referência estilística, oito consumidores receberam identidades distintas e deixaram de repetir literalmente o mesmo exemplo.
+- Evoluído o acabamento para `reference-scene-v5`: jogador e todos os funcionários agora compartilham a densidade e proporção dos consumidores detalhados; piso, paredes e balcão seguem a paleta e os materiais da cena completa de referência.
+- Neutralizadas as sombras roxas das pranchas de referência em favor de sombras marrons semitransparentes integradas ao piso (`0.0.3-blender-7`).
+- Disponibilizada a mesma experiência web para celular, com áreas seguras, altura dinâmica, alvos de toque, gestão rolável e zoom dedicado sem alterar a versão `0.0.3`.
+- Corrigida a fila que podia permanecer travada após carregar: entradas alternativas, posições de espera exclusivas, realocação de NPCs sobrepostos e limpeza de cadeiras reservadas por clientes inexistentes.
+- Corrigido “Apagar save”: o autosave não recria mais o progresso antigo durante o recarregamento.
+- Normalizados os 18 móveis/equipamentos na linha de piso 178/192; corrigidos anchor, margem do frame e depth sorting pela célula frontal do footprint.
 - Corrigida a publicação para servir os PNGs externos e invalidar cache por revisão visual, impedindo o fallback procedural antigo.
 - Personagens passaram de 64×96 para 96×144, com altura útil próxima de dois blocos, anchor centralizado nos pés e escala 1:1 no Phaser.
 - Refeitos todos os personagens, móveis e equipamentos Blender para evitar mistura com os antigos blocos simplificados.

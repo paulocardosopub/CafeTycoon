@@ -61,7 +61,22 @@ def _counter(asset_id, width, collection, materials, service=False):
             cube(f"{asset_id}:service-inlay", (0, -.05, top_z+.085), (width-.12, .33, .012), materials["white_shadow"], collection, .006),
             cube(f"{asset_id}:end-cap.L", (-width-.025, 0, .65), (.035, .46, .48), materials["wood_light"], collection, .010),
             cube(f"{asset_id}:end-cap.R", (width+.025, 0, .65), (.035, .46, .48), materials["wood_light"], collection, .010),
+            cube(f"{asset_id}:display-base", (1.48, -.02, 1.37), (.78, .34, .055), materials["wood_dark"], collection, .016),
+            cube(f"{asset_id}:display-glass-front", (1.48, -.35, 1.64), (.72, .018, .25), materials["glass"], collection, .010),
+            cube(f"{asset_id}:display-glass-back", (1.48, .30, 1.64), (.72, .018, .25), materials["glass"], collection, .010),
+            cube(f"{asset_id}:display-glass-top", (1.48, -.02, 1.91), (.76, .34, .025), materials["blue_light"], collection, .010),
+            cube(f"{asset_id}:display-frame.L", (.74, -.02, 1.64), (.035, .35, .28), materials["chrome"], collection, .008),
+            cube(f"{asset_id}:display-frame.R", (2.22, -.02, 1.64), (.035, .35, .28), materials["chrome"], collection, .008),
+            cylinder(f"{asset_id}:bell", (-.76, -.12, 1.43), .13, .13, materials["gold"], collection, 14),
+            cylinder(f"{asset_id}:bell-button", (-.76, -.12, 1.53), .035, .07, materials["gold_light"], collection, 10),
+            cylinder(f"{asset_id}:herb-pot", (-1.72, .02, 1.39), .12, .18, materials["terracotta"], collection, 12),
         ]
+        for index, (x, z, material) in enumerate(((1.08, 1.49, "gold"), (1.45, 1.49, "terracotta"), (1.82, 1.49, "cream"), (1.26, 1.72, "gold_light"), (1.68, 1.72, "sage_light"))):
+            parts.append(sphere(f"{asset_id}:display-food:{index}", (x, -.38, z), (.13, .07, .08), materials[material], collection))
+        for index, (x, z, material) in enumerate(((-1.82, 1.58, "sage_dark"), (-1.70, 1.70, "sage"), (-1.57, 1.57, "sage_light"))):
+            leaf = sphere(f"{asset_id}:herb:{index}", (x, .02, z), (.10, .05, .16), materials[material], collection)
+            leaf.rotation_euler.y = -.35 if x < -1.70 else .35
+            parts.append(leaf)
     return parts, (width+.11, .56)
 
 
@@ -108,6 +123,6 @@ def create_furniture(definition, collection, materials):
             leaf = sphere(f"{asset_id}:leaf:{index}", (x, y, z), (.18, .08, .30), materials[material], collection); leaf.rotation_euler.y = -.35 if x < 0 else .35; parts.append(leaf)
         shadow_size = (.43, .38)
     parts.append(shadow(asset_id, collection, materials["shadow"], shadow_size)); parent_parts(root, parts)
-    root["qualityProfile"] = "reference-canonical-v3"; root["fillsFootprint"] = True
+    root["qualityProfile"] = "reference-scene-v5"; root["fillsFootprint"] = True
     add_markers(asset_id, collection, counter="counter" in asset_id); tag_collection(collection, definition)
     return root

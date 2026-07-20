@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 import { INGREDIENTS } from '../content/ingredients/ingredients';
 import { STREET_EXIT_ZONE } from '../game/map/initialMap';
@@ -59,8 +61,40 @@ describe('stress inicial controlado', () => {
     expect(simulation.actors.filter((actor) => actor.kind !== 'player')).toHaveLength(4);
     expect(new Set(keys).size).toBe(keys.length);
     expect(new Set(occupiedIds).size).toBe(occupiedIds.length);
+    expect(simulation.customers.some((customer) => customer.state === 'entering')).toBe(false);
+    expect(state.stats.customersServed + state.stats.customersLost).toBeGreaterThan(0);
     expect(error).not.toHaveBeenCalled();
     error.mockRestore();
+  }, 15_000);
+
+  it('recupera fila duplicada e cadeiras-fantasma de um save antigo', () => {
+    const state = fullState(); const source = new RestaurantSimulation(state); source.debugSetAutoSpawn(false);
+    for (let index = 0; index < 20; index += 1) source.debugAddCustomer();
+    source.prepareSave(90);
+    const operation = state.operation!;
+    for (const customer of operation.customers) {
+      customer.position = { x: 3, y: 21 }; customer.visual = { x: 3, y: 21 }; customer.state = 'entering';
+    }
+    for (const table of operation.tables) for (const seat of (table.chairs as Record<string, unknown>[])) {
+      seat.state = 'reserved'; seat.customerId = 'cliente-removido'; seat.reservationId = 'grupo-antigo';
+    }
+    const restored = new RestaurantSimulation(migrateAndSanitizeSave(JSON.parse(JSON.stringify(state)), 90));
+    restored.debugSetAutoSpawn(false);
+    expect(new Set(restored.customers.map((customer) => `${customer.position.x},${customer.position.y}`)).size).toBe(restored.customers.length);
+    expect(restored.customers.filter((customer) => ['entering', 'seeking_table', 'queueing'].includes(customer.state)).length).toBeLessThanOrEqual(4);
+    expect(restored.tables.flatMap((table) => table.chairs).every((seat) => seat.state === 'free')).toBe(true);
+    restored.debugRunFor(120);
+    expect(restored.customers.some((customer) => customer.state === 'entering')).toBe(false);
+    expect(restored.state.stats.customersServed + restored.state.stats.customersLost).toBeGreaterThan(0);
+  }, 15_000);
+
+  it('limita a fila normal e admite grupos compatíveis com as mesas livres', () => {
+    const state = fullState(); const simulation = new RestaurantSimulation(state);
+    for (let elapsed = 0; elapsed < 240; elapsed += 2) {
+      simulation.debugRunFor(2);
+      const waiting = simulation.customers.filter((customer) => ['entering', 'seeking_table', 'queueing'].includes(customer.state));
+      expect(waiting.length).toBeLessThanOrEqual(4);
+    }
   }, 15_000);
 
   it('processa cinquenta entradas e saídas consecutivas sem prender o restaurante', () => {
@@ -75,5 +109,16 @@ describe('stress inicial controlado', () => {
     expect(departures).toBe(50);
     expect(simulation.activeCustomerCount()).toBe(0);
     expect(simulation.customers.some((customer) => customer.state === 'leaving')).toBe(false);
+  });
+});
+
+describe('reset completo do progresso', () => {
+  it('impede o autosave de recriar o save durante o recarregamento', () => {
+    const root = resolve(import.meta.dirname, '../..');
+    const main = readFileSync(resolve(root, 'src/main.ts'), 'utf8');
+    const ui = readFileSync(resolve(root, 'src/ui/GameUI.ts'), 'utf8');
+    expect(ui).toContain("sessionStorage.setItem(SAVE_RESET_SESSION_KEY, '1')");
+    expect(ui.indexOf('sessionStorage.setItem')).toBeLessThan(ui.indexOf('await this.repository.clear()'));
+    expect(main).toContain("if (sessionStorage.getItem(SAVE_RESET_SESSION_KEY) === '1') return");
   });
 });

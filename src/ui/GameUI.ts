@@ -7,7 +7,7 @@ import type { GameState, HelpRole, IngredientId, OfflineReport, ProfessionId, Re
 import { enqueueProduction, readyDishCapacity, readyDishUsed } from '../game/cooking/ProductionService';
 import { canConsumeRecipe, executePurchase, inventoryCapacity, inventoryUsed, quotePurchase, type PurchaseMode, type PurchaseQuote } from '../game/inventory/InventoryService';
 import { calculateOfflineProgress } from '../game/offline/OfflineService';
-import type { SaveRepository } from '../game/save/SaveRepository';
+import { SAVE_RESET_SESSION_KEY, type SaveRepository } from '../game/save/SaveRepository';
 import type { RestaurantSimulation } from '../game/simulation/RestaurantSimulation';
 import type { AudioService } from '../game/audio/AudioService';
 
@@ -27,6 +27,7 @@ export class GameUI {
   private renderQueued = false;
   private technicalMode = false;
   private pendingPurchases: PurchaseQuote[] = [];
+  private resetArmed = false;
 
   constructor(
     private readonly root: HTMLElement,
@@ -66,6 +67,11 @@ export class GameUI {
           <section class="owner-card" id="owner-card"></section>
           <div class="shift-card"><span class="live-dot"></span><div><small>TURNO ABERTO</small><strong id="shift-customers">0 clientes no salão</strong><b id="shift-occupancy">OCUPAÇÃO: 0/10</b></div></div>
           <div class="camera-hint">Arraste para mover · Role para zoom${developmentMode() ? ' · D: modo técnico' : ''}</div>
+          <div class="mobile-camera-controls" aria-label="Zoom do restaurante">
+            <button data-action="camera-zoom-out" aria-label="Diminuir zoom">−</button>
+            <span id="mobile-zoom">100%</span>
+            <button data-action="camera-zoom-in" aria-label="Aumentar zoom">+</button>
+          </div>
           <aside class="panel-host" id="panel-host" aria-live="polite"></aside>
         </main>
         <nav class="management-bar" aria-label="Gestão do restaurante">
@@ -100,6 +106,8 @@ export class GameUI {
       else if (action === 'toggle-mute') { this.audio.update({ muted: !this.audio.settings.muted }); this.open('settings'); }
       else if (action === 'toggle-technical') gameEvents.emit('technical:toggle', undefined);
       else if (action === 'set-speed') { this.simulation.setTimeScale(Number(target.dataset.speed)); this.renderDynamic(); }
+      else if (action === 'camera-zoom-out') gameEvents.emit('camera:zoom-step', -1);
+      else if (action === 'camera-zoom-in') gameEvents.emit('camera:zoom-step', 1);
       else if (action === 'dev-add-customer') this.simulation.debugAddCustomer();
       else if (action === 'dev-add-group') this.simulation.debugAddGroup(4);
       else if (action === 'dev-simulate-order') this.toast(this.simulation.debugSimulateOrder() ? 'Pedido de teste criado.' : 'Não foi possível criar o pedido.', 'info');
@@ -108,7 +116,9 @@ export class GameUI {
       else if (action === 'dev-add-stock') { for (const item of INGREDIENTS) this.state.inventory[item.id] = Math.min(item.maxStock, this.state.inventory[item.id] + item.quickBuyPackSize); this.simulation.retryBlockedOrders(); }
       else if (action === 'dev-empty-stock') { for (const item of INGREDIENTS) this.state.inventory[item.id] = this.state.inventoryReserved[item.id]; }
       else if (action === 'dev-fill-stock') { for (const item of INGREDIENTS) this.state.inventory[item.id] = item.maxStock; }
-      else if (action === 'reset-save') await this.resetSave();
+      else if (action === 'reset-save') { this.resetArmed = true; this.renderPanel(); }
+      else if (action === 'cancel-reset') { this.resetArmed = false; this.renderPanel(); }
+      else if (action === 'confirm-reset') await this.resetSave();
     });
     this.root.addEventListener('input', (event) => {
       const target = event.target as HTMLInputElement;
@@ -170,6 +180,7 @@ export class GameUI {
     const count = this.simulation.activeCustomerCount();
     this.root.querySelector<HTMLElement>('#shift-customers')!.textContent = `${count} ${count === 1 ? 'cliente' : 'clientes'} no salão`;
     this.root.querySelector<HTMLElement>('#shift-occupancy')!.textContent = `OCUPAÇÃO: ${this.simulation.seatedCustomerCount()}/${this.simulation.totalCapacity()}`;
+    this.root.querySelector<HTMLElement>('#mobile-zoom')!.textContent = `${Math.round(this.zoom * 100)}%`;
     this.root.querySelectorAll<HTMLButtonElement>('[data-action="set-speed"]').forEach((button) => button.classList.toggle('active', Number(button.dataset.speed) === this.simulation.timeScale()));
   }
 
@@ -308,7 +319,9 @@ export class GameUI {
     return `<div class="settings-list"><label><span>Volume geral <b data-audio-value="master">${Math.round(this.audio.settings.master * 100)}%</b></span><input data-audio="master" type="range" min="0" max="1" step="0.05" value="${this.audio.settings.master}" /></label><label><span>Efeitos <b data-audio-value="effects">${Math.round(this.audio.settings.effects * 100)}%</b></span><input data-audio="effects" type="range" min="0" max="1" step="0.05" value="${this.audio.settings.effects}" /></label><button class="secondary-button" data-action="toggle-mute">${this.audio.settings.muted ? 'Ativar áudio' : 'Silenciar tudo'}</button>${developmentMode() ? `<button class="secondary-button" data-action="toggle-technical">${this.technicalMode ? 'Desativar' : 'Ativar'} modo técnico</button>` : ''}</div>
       <div class="settings-section"><h3>Progresso offline</h3><p>O cálculo usa no máximo 8 horas e respeita ingredientes, fila e capacidade.</p>${developmentMode() ? '<button class="secondary-button" data-open="offline">Abrir simulador</button>' : ''}</div>
       ${developmentMode() ? `<div class="settings-section"><h3>Painel de desenvolvimento</h3><div class="dev-times"><button data-action="dev-add-customer">+ cliente</button><button data-action="dev-add-group">+ grupo 4</button><button data-action="dev-simulate-order">Simular pedido</button><button data-action="dev-low-patience">Paciência baixa</button><button data-action="dev-dirty-seat">Sujar lugar</button><button data-action="dev-add-stock">+ ingredientes</button><button data-action="dev-empty-stock">Esvaziar estoque</button><button data-action="dev-fill-stock">Preencher estoque</button></div><p>Modo técnico: grade, rotas e reservas. A aba Tarefas mostra a fila central.</p></div>` : ''}
-      <div class="danger-zone"><h3>Recomeçar</h3><p>Apaga o restaurante, personagem e todo o progresso deste dispositivo.</p><button data-action="reset-save">Apagar save…</button></div>`;
+      <div class="danger-zone"><h3>Recomeçar</h3><p>Apaga o restaurante, personagem e todo o progresso deste dispositivo.</p>${this.resetArmed
+        ? '<strong>Esta ação não pode ser desfeita.</strong><div class="button-stack"><button data-action="confirm-reset">Confirmar e recomeçar</button><button class="secondary-button" data-action="cancel-reset">Cancelar</button></div>'
+        : '<button data-action="reset-save">Apagar save…</button>'}</div>`;
   }
 
   private renderSettingsValues(): void {
@@ -370,8 +383,9 @@ export class GameUI {
   }
 
   private async resetSave(): Promise<void> {
-    if (!window.confirm('Apagar definitivamente o Bistrô Bloom e todo o progresso salvo?')) return;
-    await this.repository.clear(); window.location.reload();
+    sessionStorage.setItem(SAVE_RESET_SESSION_KEY, '1');
+    await this.repository.clear();
+    window.location.reload();
   }
 
   private toast(message: string, tone = 'info'): void {

@@ -2,11 +2,12 @@
 
 from pathlib import Path
 
-PALETTE_VERSION = "bistro-bloom-reference-canonical-v3"
-RENDER_VERSION = "0.0.3-blender-4"
-QUALITY_PROFILE = "reference-canonical-v3"
+PALETTE_VERSION = "bistro-bloom-reference-scene-v5"
+RENDER_VERSION = "0.0.3-blender-7"
+QUALITY_PROFILE = "reference-scene-v5"
 CHARACTER_FRAME = (96, 144)
 WORLD_FRAME = (192, 192)
+WORLD_FLOOR_Y = 178
 THUMBNAIL_SIZE = (128, 128)
 DIRECTIONS = ("ne", "nw", "se", "sw")
 ANIMATIONS = {
@@ -71,7 +72,7 @@ def world_asset(asset_id, kind, category, footprint=(1, 1), visual_level=1, fami
     return {
         "assetId": asset_id, "kind": kind, "category": category, "sourceBlend": source,
         "sourceCollection": asset_id, "visualLevel": visual_level, "gameplayLevel": visual_level,
-        "equipmentFamilyId": family, "footprint": list(footprint), "anchor": [0.5, 0.85],
+        "equipmentFamilyId": family, "footprint": list(footprint), "anchor": [0.5, WORLD_FLOOR_Y / frame_size[1]],
         "orientations": list(DIRECTIONS), "animations": {"off": 1, "active": 2, "complete": 1} if kind == "equipment" else {"idle": 1},
         "interactionPoints": [[0, 1]], "frameSize": list(frame_size),
         "nextLevelAssetId": f"{family}_level_2" if family else None,
@@ -106,15 +107,21 @@ ASSETS = CHARACTERS + FURNITURE + EQUIPMENT
 
 REFERENCE_SOURCES = {
     "cook-0": "assets/blender/references/cook-reference.png",
-    "customer-0": "assets/blender/references/customer-reference.png",
     "stove_level_1": "assets/blender/references/stove-reference.png",
     "refrigerator_level_1": "assets/blender/references/refrigerator-reference.png",
+    **{f"customer-{index}": "assets/blender/references/customer-reference.png" for index in range(8)},
+    **{asset_id: "assets/blender/references/customer-reference.png" for asset_id in (
+        "player-style-0", "player-style-1", "player-style-2", "player-style-3",
+        "cook-1", "waiter-0", "waiter-1", "cleaner-0", "stocker-0",
+    )},
 }
 
 for _asset in ASSETS:
     if _asset["assetId"] in REFERENCE_SOURCES:
         _asset["referenceSource"] = REFERENCE_SOURCES[_asset["assetId"]]
-        _asset["referenceMode"] = "canonical-chroma-key"
+        _asset["referenceMode"] = "canonical-chroma-key" if _asset["assetId"] in {
+            "cook-0", "customer-0", "stove_level_1", "refrigerator_level_1"
+        } else "reference-derived-variant"
 
 def project_root_from_script():
     return Path(__file__).resolve().parents[3]

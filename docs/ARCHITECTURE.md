@@ -26,4 +26,4 @@ IDs de conteúdo e de assets são estáveis. `visualLevel` e `gameplayLevel` sã
 
 ## Contrato visual 0.0.3
 
-O manifest `reference-canonical-v3` é a fonte de escala do runtime. Personagens usam anchors em pixels, normalizados pela cena antes de criar o sprite; mundo usa anchors normalizados. `nativeScale` permanece 1, o filtro é nearest e `isoDepth` recebe a posição lógica/visual dos pés. Assim, aumentar a imagem não aumenta footprint, colisão ou alcance de interação.
+O manifest `reference-scene-v5` é a fonte de escala do runtime. Personagens usam anchors em pixels; mundo usa anchor normalizado na linha comum de piso 178/192. `nativeScale` permanece 1, o filtro é nearest e `isoDepth` recebe a célula frontal do footprint. Assim, tamanho visual, camada, colisão e alcance de interação permanecem independentes.

@@ -107,7 +107,7 @@ def render_character_sheet(definition, output_path: Path, thumbnail_path: Path):
 
 def world_camera(definition):
     asset_id = definition["assetId"]
-    if asset_id == "pickup_counter": return 5.15, 1.05
+    if asset_id == "pickup_counter": return 5.60, .92
     if asset_id == "stove_level_1": return 2.82, 1.08
     if asset_id == "refrigerator_level_1": return 3.18, 1.18
     if definition["footprint"][0] == 2: return 2.95, 1.02

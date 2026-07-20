@@ -5,7 +5,7 @@ export const PIXEL_PALETTE = {
   sageLight: '#7d9b68', sage: '#4f7655', sageDark: '#294b3a',
   steelDark: '#2e3840', steel: '#59656a', steelLight: '#899397', steelBright: '#c9d0cd',
   blueDark: '#315b6e', blue: '#4f8293', gold: '#c88b2a', goldLight: '#f1c45b',
-  floorKitchen: '#d9b77e', floorDining: '#d9a960', grout: '#b98551',
+  floorKitchen: '#b85f3d', floorDining: '#c96f48', grout: '#efae78',
   grass: '#466a35', grassLight: '#658548', shadow: 'rgba(28,23,20,.32)', white: '#fff8e9', red: '#c94b3c',
 } as const;
 
