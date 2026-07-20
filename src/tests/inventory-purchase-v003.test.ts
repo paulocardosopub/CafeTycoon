@@ -37,6 +37,21 @@ describe('reservas e compra rápida', () => {
     expect(state.coins).toBe(coinsAfterFirst);
   });
 
+  it('mantém a compra do estoquista manual na 0.0.5', () => {
+    const state = createDefaultState(0);
+    for (const ingredient of INGREDIENTS) state.inventory[ingredient.id] = 0;
+    state.coins = 1_000;
+    const inventoryBefore = { ...state.inventory };
+    const coinsBefore = state.coins;
+    const simulation = new RestaurantSimulation(state);
+    simulation.debugSetAutoSpawn(false);
+
+    simulation.debugRunFor(60);
+
+    expect(state.inventory).toEqual(inventoryBefore);
+    expect(state.coins).toBe(coinsBefore);
+  });
+
   it('retoma pedido bloqueado depois da reposição', () => {
     const state = createDefaultState(0);
     for (const ingredient of INGREDIENTS) state.inventory[ingredient.id] = 0;

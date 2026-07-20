@@ -10,6 +10,20 @@ from setup_camera import setup_camera
 DIRECTION_ROTATION = {"sw": 0, "se": 90, "ne": 180, "nw": 270}
 _PALETTE_CACHE = {}
 
+
+def _controlled_render_palette():
+    """Material hue ramps preserve facial/clothing shading without uncontrolled blur."""
+    colors = []
+    for base in PALETTE.values():
+        for factor in (.70, .84, 1.0, 1.12):
+            candidate = tuple(min(1.0, channel * factor) for channel in base[:3]) + (1.0,)
+            if candidate not in colors:
+                colors.append(candidate)
+    return colors
+
+
+RENDER_PALETTE = _controlled_render_palette()
+
 def show_only_collection(asset_id):
     root = bpy.data.collections.get("BistroAssets")
     if root:
@@ -31,20 +45,40 @@ def pose_character(asset_id, collection, snapshot, animation, phase, direction, 
     root = bpy.data.objects.get(f"{asset_id}:root"); root.rotation_euler.z = radians(DIRECTION_ROTATION[direction])
     arm_l = bpy.data.objects.get(f"{asset_id}:arm.L"); arm_r = bpy.data.objects.get(f"{asset_id}:arm.R")
     leg_l = bpy.data.objects.get(f"{asset_id}:leg.L"); leg_r = bpy.data.objects.get(f"{asset_id}:leg.R")
+    elbow_l = bpy.data.objects.get(f"{asset_id}:arm.L:bend"); elbow_r = bpy.data.objects.get(f"{asset_id}:arm.R:bend")
+    knee_l = bpy.data.objects.get(f"{asset_id}:leg.L:bend"); knee_r = bpy.data.objects.get(f"{asset_id}:leg.R:bend")
     dish = bpy.data.objects.get(f"{asset_id}:carried-dish"); crate = bpy.data.objects.get(f"{asset_id}:carried-crate")
     cycle = sin(tau * phase / max(1, phase_count)); wave = .52 * cycle
     if animation == "walk":
         arm_l.rotation_euler.x = wave; arm_r.rotation_euler.x = -wave; leg_l.rotation_euler.x = -wave; leg_r.rotation_euler.x = wave
+        elbow_l.rotation_euler.x = radians(-10) - .08 * cycle; elbow_r.rotation_euler.x = radians(-10) + .08 * cycle
+        knee_l.rotation_euler.x = max(0, .28 * cycle); knee_r.rotation_euler.x = max(0, -.28 * cycle)
         root.location.z += .035 * abs(cycle); root.rotation_euler.y = radians(1.5) * cycle
-    elif animation in ("carry-dish", "carry-ingredients"): arm_l.rotation_euler.x = arm_r.rotation_euler.x = radians(-48); (dish if animation == "carry-dish" else crate).hide_render = False
-    elif animation in ("work", "cook"): arm_l.rotation_euler.x = radians(-46) - .22 * cycle; arm_r.rotation_euler.x = radians(-46) + .22 * cycle
-    elif animation == "serve": arm_l.rotation_euler.x = arm_r.rotation_euler.x = radians(-48); dish.hide_render = False
+    elif animation in ("carry-plate", "carry-ingredients"):
+        arm_l.rotation_euler.x = arm_r.rotation_euler.x = radians(-38); elbow_l.rotation_euler.x = elbow_r.rotation_euler.x = radians(-58)
+        (dish if animation == "carry-plate" else crate).hide_render = False
+    elif animation in ("cook", "use-appliance"):
+        arm_l.rotation_euler.x = radians(-36) - .18 * cycle; arm_r.rotation_euler.x = radians(-36) + .18 * cycle
+        elbow_l.rotation_euler.x = radians(-55) + .12 * cycle; elbow_r.rotation_euler.x = radians(-55) - .12 * cycle
+    elif animation == "serve":
+        arm_l.rotation_euler.x = arm_r.rotation_euler.x = radians(-38); elbow_l.rotation_euler.x = elbow_r.rotation_euler.x = radians(-58); dish.hide_render = False
     elif animation == "clean": arm_l.rotation_euler.x = radians(-50) + .35 * cycle; arm_r.rotation_euler.x = radians(-42) - .35 * cycle
-    elif animation in ("sit", "seated", "eat"):
-        root.location.z -= .42 if animation != "sit" else .24; leg_l.rotation_euler.x = leg_r.rotation_euler.x = radians(70)
-        if animation == "eat": arm_r.rotation_euler.x = radians(-62) + .16 * cycle; dish.hide_render = False
+    elif animation in ("sit-down", "seated-idle", "seated-waiting", "seated-eating"):
+        seated_amount = (phase + 1) / max(1, phase_count) if animation == "sit-down" else 1.0
+        root.location.z -= .36 * seated_amount
+        root.location.y += .055 * seated_amount
+        leg_l.rotation_euler.x = leg_r.rotation_euler.x = radians(78 * seated_amount)
+        knee_l.rotation_euler.x = knee_r.rotation_euler.x = radians(-84 * seated_amount)
+        if animation == "seated-waiting": root.rotation_euler.y = radians(1.2) * cycle
+        if animation == "seated-eating":
+            arm_r.rotation_euler.x = radians(-38) + .12 * cycle; elbow_r.rotation_euler.x = radians(-64) + .18 * cycle; dish.hide_render = False
     elif animation == "idle": root.location.z += .018 * phase; root.rotation_euler.y = radians(.8) * phase
-    elif animation == "stand": root.location.z -= .24 * (1 - phase); leg_l.rotation_euler.x = leg_r.rotation_euler.x = radians(70 * (1 - phase))
+    elif animation == "stand-up":
+        seated_amount = 1 - (phase + 1) / max(1, phase_count)
+        root.location.z -= .36 * seated_amount; root.location.y += .055 * seated_amount
+        leg_l.rotation_euler.x = leg_r.rotation_euler.x = radians(78 * seated_amount)
+        knee_l.rotation_euler.x = knee_r.rotation_euler.x = radians(-84 * seated_amount)
+    elif animation == "receive-payment": arm_l.rotation_euler.x = radians(-42); arm_r.rotation_euler.x = radians(-55) + .12 * cycle
 
 def quantized_render(width, height, palette=True):
     scene = bpy.context.scene; scene.render.resolution_x = width; scene.render.resolution_y = height; scene.render.resolution_percentage = 100
@@ -56,7 +90,7 @@ def quantized_render(width, height, palette=True):
         bpy.data.images.remove(rendered)
     if source_width != width or source_height != height or len(source) < source_width * source_height * 4:
         raise RuntimeError(f"Invalid render buffer: {source_width}x{source_height}, {len(source)} values")
-    colors = list(PALETTE.values())
+    colors = RENDER_PALETTE
     output = array('f', [0.0]) * (width * height * 4)
     for y in range(height):
         for x in range(width):
@@ -69,7 +103,7 @@ def quantized_render(width, height, palette=True):
                     nearest = min(colors, key=lambda color: (r-color[0])**2 + (g-color[1])**2 + (b-color[2])**2)
                     _PALETTE_CACHE[key] = nearest
                 r, g, b = nearest[:3]
-            crisp_alpha = 0.0 if a < .08 else .45 if a < .72 else 1.0
+            crisp_alpha = 0.0 if a < .06 else .18 if a < .36 else .55 if a < .78 else 1.0
             output[target_index] = r; output[target_index + 1] = g; output[target_index + 2] = b; output[target_index + 3] = crisp_alpha
     return output
 
@@ -98,7 +132,7 @@ def render_character_sheet(definition, output_path: Path, thumbnail_path: Path):
     for row, direction in enumerate(DIRECTIONS):
         column = 0
         for animation, frame_count in ANIMATIONS.items():
-            phases = []; unique_phases = frame_count if animation == "walk" else min(2, frame_count)
+            phases = []; unique_phases = frame_count if animation in ("walk", "cook", "use-appliance", "seated-eating", "clean") else min(2, frame_count)
             for phase in range(unique_phases):
                 pose_character(asset_id, collection, snapshot, animation, phase, direction, unique_phases); phases.append(quantized_render(frame_width, frame_height))
             for frame_index in range(frame_count):
@@ -107,7 +141,7 @@ def render_character_sheet(definition, output_path: Path, thumbnail_path: Path):
 
 def world_camera(definition):
     asset_id = definition["assetId"]
-    if asset_id == "pickup_counter": return 5.60, .92
+    if asset_id.startswith("pickup_counter"): return 5.60, .92
     if asset_id == "stove_level_1": return 2.82, 1.08
     if asset_id == "refrigerator_level_1": return 3.18, 1.18
     if definition["footprint"][0] == 2: return 2.95, 1.02

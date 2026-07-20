@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-describe('experiência mobile da v0.0.3', () => {
+describe('experiência mobile da v0.0.4', () => {
   it('preserva área segura, controles de toque e zoom acessível no celular', () => {
     const root = resolve(import.meta.dirname, '../..');
     const html = readFileSync(resolve(root, 'index.html'), 'utf8');

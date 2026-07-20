@@ -12,6 +12,7 @@ import shutil
 import bpy
 
 from config.pipeline_config import ANIMATIONS, DIRECTIONS, THUMBNAIL_SIZE
+from authorized_character_import import render_authorized_character
 from render_common import blit, save_pixels
 
 
@@ -326,6 +327,28 @@ def _scaled_frame(source, source_width, source_height, bbox, frame_size, max_siz
     return target
 
 
+def _scaled_frame_to_size(source, source_width, source_height, bbox, frame_size, target_size, bottom):
+    """Fit a reference to an exact authored footprint using crisp nearest-neighbour sampling."""
+    frame_width, frame_height = frame_size
+    left, top, right, lower = bbox
+    source_box_width, source_box_height = right - left, lower - top
+    target_width, target_height = target_size
+    target = _blank(frame_width, frame_height)
+    destination_x = (frame_width - target_width) // 2
+    destination_y = bottom - target_height
+    for dy in range(target_height):
+        source_y = top + min(source_box_height - 1, int(dy * source_box_height / target_height))
+        for dx in range(target_width):
+            source_x = left + min(source_box_width - 1, int(dx * source_box_width / target_width))
+            rgba = _pixel(source, source_width, source_height, source_x, source_y)
+            if _is_background(rgba):
+                continue
+            if _is_reference_contact_shadow(rgba):
+                rgba = _neutralized_contact_shadow(rgba)
+            _set_pixel(target, frame_width, frame_height, destination_x + dx, destination_y + dy, rgba)
+    return target
+
+
 def _seated_frame(source, frame_width, frame_height, bottom=136):
     """Keep the detailed upper body while placing the hips on the chair anchor."""
     cutoff = round(frame_height * .67)
@@ -443,7 +466,7 @@ def _equipment_sheet(project_root: Path, definition):
         shared_scale = min(180 / max_width, 170 / max_height)
         off = _scaled_frame(source, width, height, state_boxes[0], (frame_width, frame_height), (180, 170), 178, shared_scale)
         active = _scaled_frame(source, width, height, state_boxes[1], (frame_width, frame_height), (180, 170), 178, shared_scale)
-        if first_off is None:
+        if first_off is None or source_column == 0:
             first_off = off
         for column, frame in enumerate((off, active, active, off)):
             blit(sheet, frame_width * state_columns, frame, frame_width, frame_height, column, runtime_row, state_columns, len(DIRECTIONS))
@@ -464,16 +487,105 @@ def _equipment_sheet(project_root: Path, definition):
     return output, thumbnail
 
 
+def _mirror_frame(frame, width, height):
+    target = _blank(width, height)
+    for y in range(height):
+        for x in range(width):
+            rgba = _pixel(frame, width, height, width - 1 - x, y)
+            if rgba[3] > .04:
+                _set_pixel(target, width, height, x, y, rgba)
+    return target
+
+
+def _chair_layer(frame, width, height, layer_role):
+    if layer_role == "full":
+        return frame
+    left, top, right, bottom = _bbox(frame, width, height, (0, 0, width, height))
+    split = top + round((bottom - top) * .61)
+    target = _blank(width, height)
+    for y in range(top, bottom):
+        keep = y <= split if layer_role == "back" else y > split
+        if not keep:
+            continue
+        for x in range(left, right):
+            rgba = _pixel(frame, width, height, x, y)
+            if rgba[3] > .04:
+                _set_pixel(target, width, height, x, y, rgba)
+    return target
+
+
+def _world_reference_sheet(project_root: Path, definition):
+    source_path = project_root / definition["referenceSource"]
+    source, width, height = _load(source_path)
+    layout = definition["referenceLayout"]
+    frame_width, frame_height = definition["frameSize"]
+    state_columns = sum(definition["animations"].values())
+    sheet = _blank(frame_width * state_columns, frame_height * len(DIRECTIONS))
+    first = None
+
+    if layout["kind"] == "grid":
+        columns, rows, source_row = layout["columns"], layout["rows"], layout["sourceRow"]
+        direction_map = tuple(layout.get("directionMap", EQUIPMENT_COLUMN_MAP))
+        for runtime_row, source_column in enumerate(direction_map):
+            bounds = (
+                round(source_column * width / columns), round(source_row * height / rows),
+                round((source_column + 1) * width / columns), round((source_row + 1) * height / rows),
+            )
+            box = _bbox(source, width, height, bounds)
+            frame = _scaled_frame(
+                source, width, height, box, (frame_width, frame_height), tuple(layout["maxSize"]), 178,
+                scale=layout.get("scale"),
+            )
+            if definition["assetId"].startswith("chair_"):
+                frame = _chair_layer(frame, frame_width, frame_height, definition.get("layerRole", "full"))
+            if first is None or source_column == 0:
+                first = frame
+            for column in range(state_columns):
+                blit(sheet, frame_width * state_columns, frame, frame_width, frame_height, column, runtime_row, state_columns, len(DIRECTIONS))
+    elif layout["kind"] == "stack":
+        rows, source_row = layout["rows"], layout["sourceRow"]
+        bounds = (0, round(source_row * height / rows), width, round((source_row + 1) * height / rows))
+        box = _bbox(source, width, height, bounds)
+        if layout.get("targetSize"):
+            base = _scaled_frame_to_size(
+                source, width, height, box, (frame_width, frame_height), tuple(layout["targetSize"]), 178,
+            )
+        else:
+            base = _scaled_frame(source, width, height, box, (frame_width, frame_height), tuple(layout["maxSize"]), 178)
+        for runtime_row in range(len(DIRECTIONS)):
+            frame = _mirror_frame(base, frame_width, frame_height) if runtime_row in (0, 2) else base
+            if first is None:
+                first = frame
+            for column in range(state_columns):
+                blit(sheet, frame_width * state_columns, frame, frame_width, frame_height, column, runtime_row, state_columns, len(DIRECTIONS))
+    else:
+        raise RuntimeError(f"Unsupported authorized reference layout: {layout['kind']}")
+
+    output, public, thumbnail, public_thumbnail = _paths(project_root, definition)
+    save_pixels(output, frame_width * state_columns, frame_height * len(DIRECTIONS), sheet)
+    first_box = _bbox(first, frame_width, frame_height, (0, 0, frame_width, frame_height))
+    thumb = _scaled_frame(first, frame_width, frame_height, first_box, THUMBNAIL_SIZE, (116, 116), 124)
+    save_pixels(thumbnail, *THUMBNAIL_SIZE, thumb)
+    public.parent.mkdir(parents=True, exist_ok=True)
+    public_thumbnail.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(output, public)
+    shutil.copy2(thumbnail, public_thumbnail)
+    return output, thumbnail
+
+
 def render_reference_assets(project_root: Path, definitions, selected=None):
     selected_ids = {selected} if isinstance(selected, str) else set(selected or [])
     rendered = []
     for definition in definitions:
-        if definition["assetId"] not in REFERENCE_ASSETS or (selected_ids and definition["assetId"] not in selected_ids):
+        reference_mode = definition.get("referenceMode")
+        if reference_mode not in {"authorized-canonical-chroma-key", "authorized-character-sheet"} or (selected_ids and definition["assetId"] not in selected_ids):
             continue
-        if definition["kind"] == "character":
-            output, thumbnail = _character_sheet(project_root, definition)
-        else:
+        if reference_mode == "authorized-character-sheet":
+            output, thumbnail = render_authorized_character(project_root, definition)
+        elif definition["referenceLayout"]["kind"] == "equipment-grid":
             output, thumbnail = _equipment_sheet(project_root, definition)
+        else:
+            output, thumbnail = _world_reference_sheet(project_root, definition)
         rendered.append((definition, output, thumbnail))
-        print(f"REFERENCE {definition['assetId']} -> {output}")
+        print(f"AUTHORIZED_REFERENCE {definition['assetId']} -> {output}")
     return rendered

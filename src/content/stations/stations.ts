@@ -3,11 +3,22 @@ import type { Direction, GridPoint, StationDefinition, StationId, WorldAssetId }
 const station = (
   id: StationId, name: string, asset: WorldAssetId, position: GridPoint, size: GridPoint, interaction: GridPoint,
   visualHeight: number, color: number, front: Direction = 'sw', serviceInteraction?: GridPoint,
-): StationDefinition => ({
-  id, name, icon: '', position, size, interaction, color, orientation: 'sw', front,
-  interactionPoints: serviceInteraction ? [interaction, serviceInteraction] : [interaction], serviceInteraction,
-  asset, anchor: { x: .5, y: id === 'pickup' ? .65 : .85 }, visualHeight, blocksMovement: true, rotatable: false,
-});
+): StationDefinition => {
+  const optionalWorkSlots = id === 'pickup'
+    ? [{ x: interaction.x - 1, y: interaction.y }, { x: interaction.x + 1, y: interaction.y }]
+    : size.x > 1 ? [{ x: interaction.x + 1, y: interaction.y }] : [];
+  const interactionPoints = [interaction, ...optionalWorkSlots, ...(serviceInteraction ? [serviceInteraction] : [])];
+  return {
+    id, name, icon: '', position, size, interaction, color, orientation: 'sw', front,
+    interactionPoints, primaryWorkSlot: interaction, optionalWorkSlots,
+    ingredientSlot: interaction, outputSlot: serviceInteraction ?? interaction,
+    clearanceCells: interactionPoints, serviceInteraction,
+    asset, anchor: { x: .5, y: id === 'pickup' ? .65 : .85 }, visualHeight, blocksMovement: true, rotatable: false,
+    visualSkinId: id === 'pickup' ? 'counter-oak' : 'equipment-steel-level-1',
+    visualBounds: { widthCells: size.x, depthCells: size.y, heightBlocks: visualHeight / 48, overhangCells: .2 },
+    depthOffset: 0,
+  };
+};
 
 export const STATIONS: StationDefinition[] = [
   station('storage', 'Armazenamento', 'storage', { x: 1, y: 2 }, { x: 2, y: 1 }, { x: 1, y: 3 }, 82, 0x70432a),

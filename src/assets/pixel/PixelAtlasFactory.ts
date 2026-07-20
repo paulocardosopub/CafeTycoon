@@ -8,7 +8,7 @@ const WORLD_COLUMNS = 8;
 const CHARACTER_FRAME = { width: 64, height: 96 } as const;
 const CHARACTER_COLUMNS = 32;
 export const CHARACTER_VARIANTS = [
-  'player', 'player-style-0', 'player-style-1', 'player-style-2', 'player-style-3',
+  'player', 'player-style-0', 'player-style-1',
   'cook-0', 'cook-1', 'waiter-0', 'waiter-1', 'cleaner-0', 'stocker-0',
   ...Array.from({ length: 8 }, (_, index) => `customer-${index}`),
 ] as const;
@@ -357,10 +357,10 @@ function drawCharacter(ctx: Ctx, variant: string, animation: PixelAnimationName,
   const back = direction === 'ne' || direction === 'nw';
   const right = direction === 'ne' || direction === 'se';
   const mirror = right ? 1 : -1;
-  const isSeated = animation === 'sit' || animation === 'seated' || animation === 'eat';
+  const isSeated = animation === 'sit-down' || animation === 'seated-idle' || animation === 'seated-waiting' || animation === 'seated-eating';
   const walkPhase = animation === 'walk' ? [0, 2, 4, 0, -2, -4][frame] : 0;
   const bob = animation === 'walk' ? (frame === 1 || frame === 4 ? -2 : 0) : animation === 'idle' ? frame % 2 : 0;
-  const sitDrop = isSeated ? (animation === 'sit' ? 6 + frame * 6 : 12) : 0;
+  const sitDrop = isSeated ? (animation === 'sit-down' ? 6 + frame * 6 : 12) : animation === 'stand-up' ? 12 - frame * 6 : 0;
   const footY = 88;
   pixelEllipse(ctx, 32, 87, isSeated ? 20 : 15, 4, P.shadow);
   if (!isSeated) {
@@ -380,7 +380,8 @@ function drawCharacter(ctx: Ctx, variant: string, animation: PixelAnimationName,
   rect(ctx, 29, torsoY, 7, 26, colors.accent);
   rect(ctx, 26, torsoY, 4, 6, P.creamLight); rect(ctx, 36, torsoY, 4, 6, P.creamLight);
   rect(ctx, 23, torsoY + 22, 18, 4, shade(colors.outfit));
-  const armSwing = animation === 'walk' ? (frame < 3 ? 4 : -4) : animation === 'work' || animation === 'eat' ? (frame % 2 ? 4 : 0) : 0;
+  const activeHands = ['cook', 'use-appliance', 'clean', 'seated-eating'].includes(animation);
+  const armSwing = animation === 'walk' ? (frame < 3 ? 4 : -4) : activeHands ? (frame % 2 ? 4 : 0) : 0;
   rect(ctx, 12 + mirror * armSwing, torsoY + 5, 9, 20, P.outline); rect(ctx, 15 + mirror * armSwing, torsoY + 7, 4, 14, colors.outfit);
   rect(ctx, 13 + mirror * armSwing, torsoY + 21, 8, 8, P.outline); rect(ctx, 15 + mirror * armSwing, torsoY + 22, 6, 6, colors.skin);
   rect(ctx, 43 - mirror * armSwing, torsoY + 5, 9, 20, P.outline); rect(ctx, 45 - mirror * armSwing, torsoY + 7, 4, 14, colors.outfit);
@@ -402,21 +403,21 @@ function drawCharacter(ctx: Ctx, variant: string, animation: PixelAnimationName,
   if (variant.startsWith('cook')) drawChefHat(ctx, headY);
   if (variant.startsWith('waiter')) { rect(ctx, 24, torsoY + 3, 16, 4, P.white); rect(ctx, 30, torsoY + 7, 5, 17, P.outlineSoft); rect(ctx, 27, torsoY + 13, 11, 2, P.gold); }
   if (variant.startsWith('cleaner') || variant.startsWith('stocker')) { rect(ctx, 23, torsoY + 7, 18, 15, P.cream); rect(ctx, 26, torsoY + 5, 4, 19, P.woodDark); rect(ctx, 37, torsoY + 5, 4, 19, P.woodDark); }
-  if (animation === 'carry-dish' || (variant.startsWith('waiter') && animation === 'work')) drawCarriedDish(ctx, right, torsoY);
+  if (animation === 'carry-plate' || animation === 'serve') drawCarriedDish(ctx, right, torsoY);
   if (animation === 'carry-ingredients') drawCrate(ctx, torsoY);
-  if (animation === 'work' && !variant.startsWith('waiter')) { rect(ctx, 47, torsoY + 15 - frame % 2 * 2, 12, 4, P.steelBright); rect(ctx, 56, torsoY + 9 - frame % 2 * 2, 4, 10, P.woodDark); }
-  if (animation === 'eat') { rect(ctx, 44, torsoY + 6 - frame % 2 * 2, 15, 2, P.steelBright); pixelEllipse(ctx, 46, torsoY + 6 - frame % 2 * 2, 4, 2, P.creamLight); }
+  if ((animation === 'cook' || animation === 'use-appliance') && !variant.startsWith('waiter')) { rect(ctx, 47, torsoY + 15 - frame % 2 * 2, 12, 4, P.steelBright); rect(ctx, 56, torsoY + 9 - frame % 2 * 2, 4, 10, P.woodDark); }
+  if (animation === 'seated-eating') { rect(ctx, 44, torsoY + 6 - frame % 2 * 2, 15, 2, P.steelBright); pixelEllipse(ctx, 46, torsoY + 6 - frame % 2 * 2, 4, 2, P.creamLight); }
   ctx.restore();
 }
 
 function characterColors(variant: string, appearance?: CharacterAppearance): CharacterColors {
-  const skins = ['#f4cfb4', '#d99a68', '#9b6646', '#603d29', '#edbd98', '#bc7b54', '#70472f', '#4b3024'];
-  const hairs = ['#3a241d', '#a15432', '#252431', '#70432a', '#d18b45', '#2b1c19', '#5e392d', '#1f2027'];
-  const outfits = ['#4f8293', '#c65b3e', '#7d9b68', '#7a5b83', '#d8954f', '#315b6e', '#9f5b55', '#54704b'];
+  const skins = ['#f4cfb4', '#d99a68', '#9b6646', '#603d29', '#edbd98', '#bc7b54', '#70472f', '#4b3024', '#c4865e', '#573725'];
+  const hairs = ['#3a241d', '#a15432', '#252431', '#70432a', '#d18b45', '#2b1c19', '#5e392d', '#1f2027', '#30211d', '#19191e'];
+  const outfits = ['#4f8293', '#c65b3e', '#7d9b68', '#7a5b83', '#d8954f', '#315b6e', '#9f5b55', '#54704b', '#365b70', '#a65b42'];
   const skinMap: Record<string, string> = { porcelain: '#f6d4bd', honey: '#d99a68', cocoa: '#8b5a3c', ebony: '#553521' };
   const hairMap: Record<string, string> = { espresso: '#3a241d', chestnut: '#74432d', copper: '#b95f3a', midnight: '#242635' };
   const outfitMap: Record<string, string> = { teal: '#1d766d', coral: '#d96652', gold: '#d49a3a', plum: '#76536c' };
-  if (variant.startsWith('player')) return { skin: skinMap[appearance?.skin ?? 'honey'], hair: hairMap[appearance?.hairColor ?? 'espresso'], outfit: outfitMap[appearance?.outfitColor ?? 'teal'], accent: P.creamLight, role: 'player', hairStyle: appearance?.hairStyle ?? 'wave' };
+  if (variant.startsWith('player')) return { skin: skinMap[appearance?.skin ?? 'honey'] ?? skinMap.honey, hair: hairMap[appearance?.hairColor ?? 'espresso'] ?? hairMap.espresso, outfit: outfitMap[appearance?.outfitColor ?? 'teal'] ?? outfitMap.teal, accent: P.creamLight, role: 'player', hairStyle: appearance?.hairStyle ?? 'wave' };
   if (variant.startsWith('cook')) return variant.endsWith('1')
     ? { skin: '#e7b58f', hair: '#74432d', outfit: P.creamLight, accent: P.terracotta, role: 'cook', hairStyle: 'crop' }
     : { skin: '#8b5a3c', hair: '#2b1c19', outfit: P.creamLight, accent: P.white, role: 'cook', hairStyle: 'bun' };
@@ -425,7 +426,7 @@ function characterColors(variant: string, appearance?: CharacterAppearance): Cha
     : { skin: '#e7b58f', hair: '#30231e', outfit: P.terracotta, accent: P.creamLight, role: 'waiter', hairStyle: 'crop' };
   if (variant.startsWith('cleaner')) return { skin: '#6f462f', hair: '#242635', outfit: P.sage, accent: P.cream, role: 'cleaner', hairStyle: 'curls' };
   if (variant.startsWith('stocker')) return { skin: '#d99a68', hair: '#3a241d', outfit: P.blueDark, accent: P.goldLight, role: 'stocker', hairStyle: 'wave' };
-  const index = Number(variant.split('-')[1]) || 0;
+  const index = Math.max(0, Number(variant.split('-')[1]) || 0) % skins.length;
   return { skin: skins[index], hair: hairs[index], outfit: outfits[index], accent: index % 2 ? P.cream : P.goldLight, role: 'customer', hairStyle: ['wave', 'crop', 'bun', 'curls'][index % 4] };
 }
 

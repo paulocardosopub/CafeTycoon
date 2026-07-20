@@ -1,0 +1,100 @@
+import type {
+  Direction, FurnitureCategory, FurnitureCode, FurnitureDefinition, FurnitureWorkSlot, GridPoint,
+} from '../../../core/types';
+
+const ALL_ORIENTATIONS: Direction[] = ['ne', 'nw', 'se', 'sw'];
+const SOURCE = 'assets/blender/equipment/kitchen_equipment.blend';
+const FURNITURE_SOURCE = 'assets/blender/furniture/furniture.blend';
+
+const sprites = (assetId: string): Record<Direction, string> => ({ ne: assetId, nw: assetId, se: assetId, sw: assetId });
+const rectCells = (width: number, depth: number): GridPoint[] => {
+  const cells: GridPoint[] = [];
+  for (let y = 0; y < depth; y += 1) for (let x = 0; x < width; x += 1) cells.push({ x, y });
+  return cells;
+};
+const work = (id: string, offset: GridPoint, role: FurnitureWorkSlot['role'], purpose: FurnitureWorkSlot['purpose'], facing: Direction = 'ne'): FurnitureWorkSlot => ({
+  id, offset, role, purpose, facing, required: true,
+});
+
+interface DefinitionInput {
+  id: string; code: FurnitureCode; category: FurnitureCategory; name: string; width?: number; depth?: number;
+  assetId: string; price: number; functionId?: FurnitureDefinition['functionId']; workSlots?: FurnitureWorkSlot[];
+  skinIds?: string[]; source?: string; essential?: boolean;
+}
+
+function definition(input: DefinitionInput): FurnitureDefinition {
+  const width = input.width ?? 1;
+  const depth = input.depth ?? 1;
+  return {
+    id: input.id,
+    code: input.code,
+    category: input.category,
+    name: input.name,
+    footprintWidth: width,
+    footprintDepth: depth,
+    allowedOrientations: [...ALL_ORIENTATIONS],
+    spriteSet: sprites(input.assetId),
+    blenderSource: input.source ?? SOURCE,
+    baseAnchor: { x: .5, y: 178 / 192 },
+    visualBounds: { widthCells: width, depthCells: depth, heightBlocks: input.category === 'refrigeration' || input.category === 'storage' ? 2.1 : 1.55, overhangCells: .12 },
+    collisionCells: rectCells(width, depth),
+    workSlots: input.workSlots ?? [work('work', { x: Math.floor((width - 1) / 2), y: depth }, 'any', 'work')],
+    frontDirection: 'sw',
+    skinIds: input.skinIds ?? ['steel-standard'],
+    level: 1,
+    price: input.price,
+    resaleValue: Math.floor(input.price * .55),
+    functionId: input.functionId,
+    rotatable: true,
+    essential: input.essential,
+  };
+}
+
+const doubleWork = (purpose: FurnitureWorkSlot['purpose'] = 'work'): FurnitureWorkSlot[] => [
+  work('work-left', { x: 0, y: 1 }, 'any', purpose),
+  work('work-right', { x: 1, y: 1 }, 'any', purpose),
+];
+const serviceSlots = (): FurnitureWorkSlot[] => [
+  work('kitchen-drop', { x: 0, y: -1 }, 'cook', 'kitchen-drop', 'sw'),
+  work('waiter-pickup', { x: 0, y: 1 }, 'waiter', 'waiter-pickup', 'ne'),
+];
+
+export const FURNITURE_DEFINITIONS: readonly FurnitureDefinition[] = [
+  definition({ id: 'cooking.a1.stove', code: 'A1', category: 'cooking', name: 'Fogão industrial com fornos', width: 2, assetId: 'a1_stove_industrial', price: 260, functionId: 'stove', workSlots: doubleWork(), essential: true }),
+  definition({ id: 'cooking.a2.convection', code: 'A2', category: 'cooking', name: 'Forno de convecção', assetId: 'a2_convection_oven', price: 220, functionId: 'oven' }),
+  definition({ id: 'cooking.a3.griddle', code: 'A3', category: 'cooking', name: 'Chapa industrial', assetId: 'a3_griddle', price: 190, functionId: 'grill' }),
+  definition({ id: 'cooking.a4.fryer', code: 'A4', category: 'cooking', name: 'Fritadeira industrial', assetId: 'a4_fryer', price: 210, functionId: 'grill' }),
+  definition({ id: 'cooking.a5.kettle', code: 'A5', category: 'cooking', name: 'Caldeira industrial', assetId: 'a5_kettle', price: 225, functionId: 'cauldron' }),
+  definition({ id: 'cooking.a6.grill', code: 'A6', category: 'cooking', name: 'Grelha industrial', assetId: 'a6_grill', price: 195, functionId: 'grill' }),
+  definition({ id: 'cooking.a7.bakery', code: 'A7', category: 'cooking', name: 'Forno de padaria', assetId: 'a7_bakery_oven', price: 240, functionId: 'oven' }),
+  definition({ id: 'cooking.a8.coffee', code: 'A8', category: 'cooking', name: 'Máquina de café', assetId: 'a8_coffee_machine', price: 175, functionId: 'coffee_machine' }),
+
+  definition({ id: 'refrigeration.b1.fridge', code: 'B1', category: 'refrigeration', name: 'Geladeira industrial', assetId: 'b1_industrial_fridge', price: 210, functionId: 'fridge', essential: true }),
+  definition({ id: 'refrigeration.b2.freezer', code: 'B2', category: 'refrigeration', name: 'Freezer industrial', assetId: 'b2_industrial_freezer', price: 230, functionId: 'fridge' }),
+  definition({ id: 'preparation.b3.counter', code: 'B3', category: 'preparation', name: 'Bancada de preparação', assetId: 'b3_preparation_counter', price: 120, functionId: 'prep', essential: true }),
+  definition({ id: 'preparation.b4.ingredients', code: 'B4', category: 'preparation', name: 'Estação de ingredientes e corte', assetId: 'b4_ingredient_station', price: 170, functionId: 'assembly' }),
+  definition({ id: 'washing.b5.sink', code: 'B5', category: 'washing', name: 'Pia industrial', assetId: 'b5_industrial_sink', price: 130, functionId: 'sink', essential: true }),
+  definition({ id: 'washing.b6.dishwasher', code: 'B6', category: 'washing', name: 'Lava-louças industrial', assetId: 'b6_dishwasher', price: 185, functionId: 'sink' }),
+  definition({ id: 'washing.b7.double-sink', code: 'B7', category: 'washing', name: 'Estação de lavagem com duas cubas', width: 2, assetId: 'b7_double_sink', price: 250, functionId: 'sink', workSlots: doubleWork() }),
+  definition({ id: 'preparation.b8.pastry', code: 'B8', category: 'preparation', name: 'Mesa de massas e confeitaria', width: 2, assetId: 'b8_pastry_table', price: 245, functionId: 'prep', workSlots: doubleWork() }),
+
+  definition({ id: 'service.c1.isolated', code: 'C1', category: 'service', name: 'Balcão de serviço isolado', assetId: 'c1_service_isolated', price: 95, functionId: 'pickup', workSlots: serviceSlots(), skinIds: ['counter-forest', 'counter-oak'], essential: true, source: FURNITURE_SOURCE }),
+  definition({ id: 'service.c2.left', code: 'C2', category: 'service', name: 'Balcão de serviço — conexão esquerda', assetId: 'c2_service_left', price: 95, functionId: 'pickup', workSlots: serviceSlots(), skinIds: ['counter-forest', 'counter-oak'], source: FURNITURE_SOURCE }),
+  definition({ id: 'service.c3.middle', code: 'C3', category: 'service', name: 'Balcão de serviço — conexão central', assetId: 'c3_service_middle', price: 95, functionId: 'pickup', workSlots: serviceSlots(), skinIds: ['counter-forest', 'counter-oak'], source: FURNITURE_SOURCE }),
+  definition({ id: 'service.c4.right', code: 'C4', category: 'service', name: 'Balcão de serviço — conexão direita', assetId: 'c4_service_right', price: 95, functionId: 'pickup', workSlots: serviceSlots(), skinIds: ['counter-forest', 'counter-oak'], source: FURNITURE_SOURCE }),
+  definition({ id: 'storage.c5.pantry', code: 'C5', category: 'storage', name: 'Despensa seca', assetId: 'c5_dry_pantry', price: 145, functionId: 'storage', source: FURNITURE_SOURCE }),
+  definition({ id: 'storage.c6.ingredients', code: 'C6', category: 'storage', name: 'Estante de ingredientes', assetId: 'c6_ingredient_shelf', price: 125, functionId: 'storage', source: FURNITURE_SOURCE }),
+  definition({ id: 'service.c7.plates', code: 'C7', category: 'service', name: 'Estação de pratos e talheres', assetId: 'c7_plate_station', price: 110, functionId: 'storage', source: FURNITURE_SOURCE }),
+  definition({ id: 'service.c8.waste', code: 'C8', category: 'service', name: 'Lixeira e reciclagem', assetId: 'c8_waste_recycling', price: 80, functionId: 'decoration', source: FURNITURE_SOURCE }),
+  definition({ id: 'service.c9.drinks', code: 'C9', category: 'service', name: 'Dispensador de bebidas frias', assetId: 'c9_cold_drinks', price: 150, functionId: 'coffee_machine', source: FURNITURE_SOURCE }),
+  definition({ id: 'preparation.c10.block', code: 'C10', category: 'preparation', name: 'Bancada pequena de corte', assetId: 'c10_cutting_block', price: 115, functionId: 'prep', source: FURNITURE_SOURCE }),
+
+  definition({ id: 'dining.table.basic', code: 'T1', category: 'tables', name: 'Mesa básica', assetId: 'table_two', price: 70, functionId: 'table', skinIds: ['table-oak', 'table-green'], source: FURNITURE_SOURCE, workSlots: [] }),
+  definition({ id: 'dining.chair.basic', code: 'CH1', category: 'chairs', name: 'Cadeira básica', assetId: 'chair_wood', price: 35, functionId: 'chair', skinIds: ['chair-wood', 'chair-upholstered', 'chair-bistro'], source: FURNITURE_SOURCE, workSlots: [] }),
+  definition({ id: 'decor.plant.basic', code: 'D1', category: 'decoration', name: 'Planta em vaso', assetId: 'plant', price: 28, functionId: 'decoration', source: FURNITURE_SOURCE, workSlots: [] }),
+] as const;
+
+export const FURNITURE_BY_ID = Object.fromEntries(FURNITURE_DEFINITIONS.map((item) => [item.id, item])) as Record<string, FurnitureDefinition>;
+export const FURNITURE_BY_CODE = Object.fromEntries(FURNITURE_DEFINITIONS.map((item) => [item.code, item])) as Record<FurnitureCode, FurnitureDefinition>;
+export const KITCHEN_CATALOG = FURNITURE_DEFINITIONS.filter((item) => /^[ABC]/.test(item.code));
+

@@ -4,7 +4,7 @@ import { SAVE_SCHEMA_VERSION } from '../config/balance';
 import type { GameState, GridPoint } from '../core/types';
 import { RestaurantGrid } from '../game/grid/Grid';
 import { gridToScreen, gridToWorld, isoDepth, screenToGrid, worldToGrid } from '../game/grid/IsoGrid';
-import { createGraphicsSaveState, createInitialGrid, createTables, PICKUP_KITCHEN_POINT, PICKUP_SERVICE_POINT } from '../game/map/initialMap';
+import { createGraphicsSaveState, createInitialGrid, createStations, createTables } from '../game/map/initialMap';
 import { findPath } from '../game/navigation/AStar';
 import { advanceTileMover } from '../game/navigation/TileMovement';
 import { createDefaultState } from '../game/save/defaultState';
@@ -22,7 +22,7 @@ describe('grade isométrica 0.0.2', () => {
 
   it('ordena pelos pés/base, não pelo centro visual', () => {
     expect(isoDepth({ x: 5, y: 7 }, 50)).toBeGreaterThan(isoDepth({ x: 5, y: 6 }, 99));
-    expect(CHARACTER_FOOT_ANCHOR).toEqual({ x: 32, y: 88 });
+    expect(CHARACTER_FOOT_ANCHOR).toEqual({ x: 48, y: 136 });
   });
 });
 
@@ -61,8 +61,9 @@ describe('movimento tile-to-tile e reservas', () => {
 describe('footprints e frentes', () => {
   it('usa 3 células na mesa de 2 e 5 na mesa de 4', () => {
     const tables = createTables();
-    expect(tables.filter((table) => table.maxCustomers === 2).every((table) => table.occupiedCells.length === 3)).toBe(true);
-    expect(tables.filter((table) => table.maxCustomers === 4).every((table) => table.occupiedCells.length === 5)).toBe(true);
+    expect(tables).toHaveLength(1);
+    expect(tables[0].maxCustomers).toBe(2);
+    expect(tables[0].occupiedCells).toHaveLength(3);
     expect(tables.every((table) => table.size.x === 1 && table.size.y === 1)).toBe(true);
   });
 
@@ -89,13 +90,14 @@ describe('footprints e frentes', () => {
   });
 
   it('separa os pontos do cozinheiro e do garçom no balcão', () => {
-    const pickup = STATION_BY_ID.pickup;
-    expect(pickup.size).toEqual({ x: 6, y: 1 });
-    expect(pickup.interactionPoints).toContainEqual(PICKUP_KITCHEN_POINT);
-    expect(pickup.interactionPoints).toContainEqual(PICKUP_SERVICE_POINT);
-    expect(PICKUP_KITCHEN_POINT.y).toBeLessThan(pickup.position.y);
-    expect(PICKUP_SERVICE_POINT.y).toBeGreaterThan(pickup.position.y);
-    expect(createInitialGrid().get(pickup.position)?.walkable).toBe(false);
+    const stations = createStations();
+    const pickup = stations.find((station) => station.id === 'pickup')!;
+    expect(pickup.size).toEqual({ x: 1, y: 1 });
+    expect(pickup.interactionPoints).toContainEqual(pickup.primaryWorkSlot);
+    expect(pickup.interactionPoints).toContainEqual(pickup.serviceInteraction);
+    expect(pickup.primaryWorkSlot.y).toBeLessThan(pickup.position.y);
+    expect(pickup.serviceInteraction!.y).toBeGreaterThan(pickup.position.y);
+    expect(createInitialGrid(createTables(), stations).get(pickup.position)?.walkable).toBe(false);
   });
 });
 
@@ -115,7 +117,7 @@ describe('save e atlas 0.0.2', () => {
   it('possui todas as direções e animações obrigatórias no manifesto', () => {
     expect(CHARACTER_DIRECTIONS).toEqual(['ne', 'nw', 'se', 'sw']);
     expect(REQUIRED_CHARACTER_ANIMATIONS.walk.frames).toBe(6);
-    for (const animation of ['idle', 'walk', 'carry-dish', 'carry-ingredients', 'work', 'sit', 'seated', 'eat'] as const) {
+    for (const animation of ['idle', 'walk', 'carry-plate', 'carry-ingredients', 'cook', 'sit-down', 'seated-idle', 'seated-eating'] as const) {
       for (const direction of CHARACTER_DIRECTIONS) expect(characterFrame('player', animation, direction, 0)).toContain(`/${animation}/${direction}/0`);
     }
     expect(WORLD_ASSETS.stove.footprint).toEqual({ width: 2, depth: 1 });

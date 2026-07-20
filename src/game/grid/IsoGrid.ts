@@ -1,6 +1,7 @@
 import type { GridPoint } from '../../core/types';
+import { depthAtBase, roundPixel, VISUAL_METRICS } from '../../assets/pixel/VisualMetrics';
 
-export const ISO_TILE = { width: 64, height: 32 } as const;
+export const ISO_TILE = VISUAL_METRICS.isoTile;
 export interface IsoView { offsetX: number; offsetY: number; zoom: number }
 const DEFAULT_VIEW: IsoView = { offsetX: 0, offsetY: 0, zoom: 1 };
 
@@ -22,7 +23,7 @@ export function worldToGrid(point: GridPoint): GridPoint {
 
 export function gridToScreen(point: GridPoint, view: IsoView = DEFAULT_VIEW): GridPoint {
   const world = gridToWorld(point);
-  return { x: Math.round((world.x - view.offsetX) * view.zoom), y: Math.round((world.y - view.offsetY) * view.zoom) };
+  return { x: roundPixel((world.x - view.offsetX) * view.zoom), y: roundPixel((world.y - view.offsetY) * view.zoom) };
 }
 
 export function screenToGrid(point: GridPoint, view: IsoView = DEFAULT_VIEW): GridPoint {
@@ -30,5 +31,5 @@ export function screenToGrid(point: GridPoint, view: IsoView = DEFAULT_VIEW): Gr
 }
 
 export function isoDepth(point: GridPoint, layer = 0): number {
-  return Math.round((point.x + point.y) * 100 + point.x + layer);
+  return depthAtBase(point, layer);
 }

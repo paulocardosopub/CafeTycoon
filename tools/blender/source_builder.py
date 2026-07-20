@@ -20,10 +20,14 @@ def configure_scene():
     scene.render.resolution_percentage = 100
     scene.render.image_settings.color_depth = "8"
     scene.render.filter_size = 0.01
-    scene.render.use_freestyle = True; scene.render.line_thickness = 1.0
+    scene.render.use_freestyle = True; scene.render.line_thickness = 0.55
+    freestyle = scene.view_layers[0].freestyle_settings
+    if freestyle.linesets:
+        freestyle.linesets[0].linestyle.color = (0.10, 0.045, 0.025)
+        freestyle.linesets[0].linestyle.thickness = 0.55
     scene.view_settings.look = "AgX - Medium High Contrast"
     setup_camera(scene); setup_lighting(scene)
-    scene["bistroAssetSourceVersion"] = "0.0.3"; scene["qualityProfile"] = "reference-scene-v5"
+    scene["bistroAssetSourceVersion"] = "0.0.4"; scene["qualityProfile"] = "bistro-bloom-character-bible-v2"
     return scene
 
 def build_family(project_root: Path, definitions, relative_path: str, builder):

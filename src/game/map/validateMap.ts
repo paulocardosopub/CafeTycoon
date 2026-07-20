@@ -1,4 +1,4 @@
-import type { TableRuntime } from '../../core/types';
+import type { StationDefinition, StationRuntime, TableRuntime } from '../../core/types';
 import type { RestaurantGrid } from '../grid/Grid';
 import { findPath } from '../navigation/AStar';
 import { ENTRANCE } from './initialMap';
@@ -6,11 +6,11 @@ import { STATIONS } from '../../content/stations/stations';
 
 export interface MapValidation { valid: boolean; errors: string[] }
 
-export function validateRestaurantMap(grid: RestaurantGrid, tables: TableRuntime[]): MapValidation {
+export function validateRestaurantMap(grid: RestaurantGrid, tables: TableRuntime[], stations: readonly (StationDefinition | StationRuntime)[] = STATIONS): MapValidation {
   const errors: string[] = [];
   const staticGrid = grid.clone();
   for (const row of staticGrid.cells) for (const cell of row) { cell.occupiedBy = undefined; cell.reservedBy = undefined; }
-  for (const station of STATIONS) {
+  for (const station of stations) {
     if (station.interactionPoints.some((point) => !staticGrid.isWalkable(point) || findPath(staticGrid, ENTRANCE, point).length === 0)) {
       errors.push(`Estação inacessível: ${station.id}`);
     }

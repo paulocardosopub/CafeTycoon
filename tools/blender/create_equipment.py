@@ -128,13 +128,37 @@ def _counter_machine(asset_id, family, width, collection, materials):
             parts.append(cube(f"{asset_id}:grate:{index}", (x, 0, 1.225), (.018, .39, .022), materials["steel_mid"], collection, 0))
         parts.append(_active(cube(f"{asset_id}:state-active:glow", (0, 0, 1.16), (width-.08, .38, .025), materials["orange"], collection, .005)))
     elif family == "sink":
+        # The 1x1 sink has one correctly centred bowl; 2x1 variants have two.
+        # Previous fixed +/- .46 positions forced the small sink outside its cell.
+        double = width > .70
+        basin_centres = (-.46, .46) if double else (0,)
+        basin_width = .34 if double else .36
         parts += [
-            cube(f"{asset_id}:basin.L", (-.46, -.02, 1.17), (.39, .34, .055), materials["blue_dark"], collection, .025),
-            cube(f"{asset_id}:basin.R", (.46, -.02, 1.17), (.39, .34, .055), materials["blue_dark"], collection, .025),
-            cylinder(f"{asset_id}:tap", (0, .25, 1.42), .055, .44, materials["chrome"], collection, 12),
-            cube(f"{asset_id}:spout", (0, .12, 1.62), (.055, .20, .055), materials["chrome"], collection, .020),
+            cube(f"{asset_id}:backsplash", (0, .47, 1.34), (width+.035, .035, .17), materials["steel_light"], collection, .016),
+            cube(f"{asset_id}:front-rail", (0, -.50, 1.12), (width+.025, .025, .09), materials["steel_dark"], collection, .010),
+            cylinder(f"{asset_id}:tap-riser.L", (-.075, .31, 1.42), .038, .42, materials["chrome"], collection, 12),
+            cylinder(f"{asset_id}:tap-riser.R", (.075, .31, 1.42), .038, .42, materials["chrome"], collection, 12),
+            cylinder(f"{asset_id}:tap-bridge", (0, .31, 1.62), .038, .15, materials["chrome"], collection, 12, (0, radians(90), 0)),
+            cylinder(f"{asset_id}:tap-spout", (0, .18, 1.57), .038, .26, materials["chrome"], collection, 12, (radians(90), 0, 0)),
+            cylinder(f"{asset_id}:tap-knob.L", (-.16, .28, 1.28), .055, .055, materials["blue"], collection, 10),
+            cylinder(f"{asset_id}:tap-knob.R", (.16, .28, 1.28), .055, .055, materials["terracotta"], collection, 10),
         ]
-        parts.append(_active(cylinder(f"{asset_id}:state-active:water", (0, -.08, 1.35), .035, .35, materials["blue_light"], collection, 8)))
+        for index, x in enumerate(basin_centres):
+            parts += [
+                cube(f"{asset_id}:basin-rim:{index}", (x, -.03, 1.205), (basin_width, .335, .035), materials["steel_dark"], collection, .018),
+                cube(f"{asset_id}:basin:{index}", (x, -.03, 1.225), (basin_width-.055, .275, .026), materials["blue_dark"], collection, .022),
+                cylinder(f"{asset_id}:drain:{index}", (x, -.03, 1.255), .055, .018, materials["outline"], collection, 12),
+            ]
+        panel_count = 2 if double else 1
+        panel_width = width * 2 / panel_count
+        for index in range(panel_count):
+            x = -width + panel_width * (index + .5)
+            parts += [
+                cube(f"{asset_id}:door:{index}", (x, -.535, .58), (panel_width*.42, .020, .36), materials["steel_light"], collection, .014),
+                cube(f"{asset_id}:door-inset:{index}", (x, -.558, .58), (panel_width*.35, .010, .29), materials["steel_mid"], collection, .008),
+                cylinder(f"{asset_id}:door-handle:{index}", (x, -.585, .76), .023, panel_width*.48, materials["steel_dark"], collection, 10, (0, radians(90), 0)),
+            ]
+        parts.append(_active(cylinder(f"{asset_id}:state-active:water", (0, .03, 1.40), .026, .31, materials["blue_light"], collection, 8)))
     else:
         panel_count = 3 if width > .8 else 1
         panel_width = width * 2 / panel_count
@@ -152,10 +176,44 @@ def _counter_machine(asset_id, family, width, collection, materials):
     return parts, (width + .08, .53), 1.66
 
 
+def _fryer(asset_id, collection, materials):
+    parts, shadow_size, visual_height = _counter_machine(asset_id, "cabinet", .52, collection, materials)
+    parts += [
+        cube(f"{asset_id}:oil-well.L", (-.23, 0, 1.23), (.20, .35, .06), materials["outline"], collection, .012),
+        cube(f"{asset_id}:oil-well.R", (.23, 0, 1.23), (.20, .35, .06), materials["outline"], collection, .012),
+        cube(f"{asset_id}:backsplash", (0, .47, 1.43), (.55, .045, .18), materials["steel_light"], collection, .018),
+    ]
+    for side, x in (("L", -.23), ("R", .23)):
+        for rail in (-.11, 0, .11):
+            parts.append(cube(f"{asset_id}:basket:{side}:{rail}", (x + rail, 0, 1.39), (.012, .29, .12), materials["chrome"], collection, .004))
+        handle = cube(f"{asset_id}:handle:{side}", (x, -.42, 1.45), (.035, .30, .035), materials["outline"], collection, .012)
+        handle.rotation_euler.z = radians(8 if x > 0 else -8); parts.append(handle)
+    parts.append(_active(cylinder(f"{asset_id}:state-active:oil", (0, 0, 1.31), .18, .04, materials["gold"], collection, 14)))
+    return parts, shadow_size, visual_height
+
+
+def _dishwasher(asset_id, collection, materials):
+    parts, shadow_size, visual_height = _counter_machine(asset_id, "cabinet", .52, collection, materials)
+    parts += [
+        cube(f"{asset_id}:door", (0, -.55, .57), (.43, .035, .31), materials["steel_dark"], collection, .018),
+        cube(f"{asset_id}:door-glass", (0, -.59, .57), (.34, .012, .21), materials["glass"], collection, .010),
+        cylinder(f"{asset_id}:door-handle", (0, -.61, .83), .028, .34, materials["chrome"], collection, 10, (0, radians(90), 0)),
+        cube(f"{asset_id}:wash-bed", (0, 0, 1.22), (.43, .36, .045), materials["blue_dark"], collection, .012),
+    ]
+    for x in (-.25, 0, .25):
+        parts.append(_active(cube(f"{asset_id}:state-active:rack:{x}", (x, 0, 1.34), (.012, .29, .12), materials["chrome"], collection, .004)))
+    parts.append(_active(sphere(f"{asset_id}:state-active:water", (0, 0, 1.42), (.28, .18, .05), materials["blue_light"], collection)))
+    return parts, shadow_size, visual_height
+
+
 def create_equipment(definition, collection, materials):
     asset_id = definition["assetId"]; family = definition["equipmentFamilyId"]; root = root_empty(asset_id, collection)
     width = 1.02 if definition["footprint"][0] == 2 else .52
-    if family == "stove":
+    if asset_id == "a4_fryer":
+        parts, shadow_size, visual_height = _fryer(asset_id, collection, materials)
+    elif asset_id == "b6_dishwasher":
+        parts, shadow_size, visual_height = _dishwasher(asset_id, collection, materials)
+    elif family == "stove":
         parts, shadow_size, visual_height = _stove(asset_id, collection, materials)
     elif family == "refrigerator":
         parts, shadow_size, visual_height = _fridge(asset_id, collection, materials, root)
@@ -186,6 +244,8 @@ def create_equipment(definition, collection, materials):
     parts += _legs(asset_id, shadow_size[0] - .04, min(.48, shadow_size[1]), collection, materials)
     parts.append(shadow(asset_id, collection, materials["shadow"], shadow_size))
     parent_parts(root, [part for part in parts if part.parent is None])
-    root["visualHeight"] = visual_height; root["qualityProfile"] = "reference-scene-v5"; root["fillsFootprint"] = True
+    if asset_id in ("b1_industrial_fridge", "b2_industrial_freezer"):
+        root.scale.x = .52
+    root["visualHeight"] = visual_height; root["qualityProfile"] = "bistro-bloom-character-bible-v2"; root["fillsFootprint"] = True
     add_markers(asset_id, collection, equipment=True); tag_collection(collection, definition)
     return root

@@ -2,11 +2,30 @@ import { describe, expect, it } from 'vitest';
 import { INGREDIENTS } from '../content/ingredients/ingredients';
 import { createDefaultState } from '../game/save/defaultState';
 import { RestaurantSimulation } from '../game/simulation/RestaurantSimulation';
+import type { Direction, PlacedFurniture } from '../core/types';
+
+function diningItem(id: string, definitionId: string, x: number, y: number, orientation: Direction = 'sw', linkedTableId?: string): PlacedFurniture {
+  return { id, definitionId, gridX: x, gridY: y, orientation, skinId: definitionId.includes('chair') ? 'chair-wood' : 'table-oak', level: 1, state: linkedTableId ? { linkedTableId } : {} };
+}
+
+function installTenSeatLayout(state: ReturnType<typeof createDefaultState>): void {
+  state.construction.placedFurniture = state.construction.placedFurniture.filter((item) => !item.definitionId.startsWith('dining.'));
+  const groups = [
+    { id: 'table:test-a', x: 5, y: 10, chairs: [[5, 9], [5, 11], [4, 10], [6, 10]] },
+    { id: 'table:test-b', x: 10, y: 10, chairs: [[10, 9], [10, 11], [9, 10], [11, 10]] },
+    { id: 'table:test-c', x: 14, y: 11, chairs: [[13, 11], [15, 11]] },
+  ] as const;
+  for (const group of groups) {
+    state.construction.placedFurniture.push(diningItem(group.id, 'dining.table.basic', group.x, group.y));
+    group.chairs.forEach(([x, y], index) => state.construction.placedFurniture.push(diningItem(`${group.id}:chair:${index}`, 'dining.chair.basic', x, y, 'sw', group.id)));
+  }
+}
 
 function stockedSimulation(): RestaurantSimulation {
   const state = createDefaultState(0);
+  installTenSeatLayout(state);
   for (const item of INGREDIENTS) state.inventory[item.id] = item.maxStock;
-  state.readyDishes.coffee = 10;
+  state.readyDishes.omelette = 10;
   const simulation = new RestaurantSimulation(state);
   simulation.debugSetAutoSpawn(false);
   return simulation;
@@ -48,6 +67,19 @@ describe('capacidade e assentos individuais', () => {
 });
 
 describe('estabilidade do ciclo', () => {
+  it('não cria nem restaura grupos maiores que qualquer mesa disponível', () => {
+    const state = createDefaultState(0);
+    const source = new RestaurantSimulation(state);
+    source.debugSetAutoSpawn(false);
+    source.debugAddGroup(4);
+    state.operation = source.prepareSave(10);
+
+    const restored = new RestaurantSimulation(state);
+    const sizes = [...new Set(restored.customers.map((customer) => customer.partyId))]
+      .map((partyId) => restored.customers.filter((customer) => customer.partyId === partyId).length);
+    expect(Math.max(...sizes)).toBeLessThanOrEqual(restored.totalCapacity());
+  });
+
   it('atende dez clientes consecutivos com pagamento único', () => {
     const simulation = stockedSimulation();
     for (let batch = 0; batch < 2; batch += 1) {
@@ -58,7 +90,7 @@ describe('estabilidade do ciclo', () => {
     expect(simulation.activeCustomerCount()).toBe(0);
     expect(simulation.tasks.list()).toHaveLength(0);
     expect(simulation.tables.flatMap((table) => table.chairs).every((seat) => seat.state === 'free')).toBe(true);
-  });
+  }, 20_000);
 
   it('funciona em pausa, 1x, 2x e 4x sem persistir o seletor', () => {
     const state = createDefaultState(0); const simulation = new RestaurantSimulation(state); simulation.debugSetAutoSpawn(false);

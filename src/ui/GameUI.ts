@@ -10,8 +10,14 @@ import { calculateOfflineProgress } from '../game/offline/OfflineService';
 import { SAVE_RESET_SESSION_KEY, type SaveRepository } from '../game/save/SaveRepository';
 import type { RestaurantSimulation } from '../game/simulation/RestaurantSimulation';
 import type { AudioService } from '../game/audio/AudioService';
+import { ConstructionShop } from './ConstructionShop';
 
 type PanelId = 'stock' | 'recipes' | 'production' | 'orders' | 'upgrades' | 'player' | 'roles' | 'professions' | 'offline' | 'settings' | 'tasks';
+
+function playerSpriteThumb(hairStyle: string): string {
+  const index = Math.max(0, ['wave', 'crop', 'bun', 'curls'].indexOf(hairStyle)) % 2;
+  return `/assets/pixel/rendered/thumbnails/player-style-${index}.png?v=0.0.4-blender-7`;
+}
 
 const ROLE_INFO: Record<HelpRole, { name: string; icon: string; profession: ProfessionId; text: string }> = {
   kitchen: { name: 'Cozinha', icon: '🍳', profession: 'cook', text: 'Ajuda no preparo e reduz a fila da cozinha.' },
@@ -28,6 +34,7 @@ export class GameUI {
   private technicalMode = false;
   private pendingPurchases: PurchaseQuote[] = [];
   private resetArmed = false;
+  private readonly constructionShop: ConstructionShop;
 
   constructor(
     private readonly root: HTMLElement,
@@ -36,6 +43,7 @@ export class GameUI {
     private readonly repository: SaveRepository,
     private readonly audio: AudioService,
   ) {
+    this.constructionShop = new ConstructionShop(root, state, simulation, repository);
     this.renderShell();
     this.bindEvents();
     gameEvents.on<number>('camera:zoom', (zoom) => { this.zoom = zoom; this.queueRender(); });
@@ -76,7 +84,7 @@ export class GameUI {
         </main>
         <nav class="management-bar" aria-label="Gestão do restaurante">
           ${navButton('stock', '▦', 'Estoque')}${navButton('recipes', '▤', 'Receitas')}${navButton('production', '▶', 'Produção')}
-          ${navButton('orders', '✎', 'Pedidos')}${navButton('upgrades', '↑', 'Melhorias')}${navButton('tasks', '✓', 'Tarefas')}
+          ${navButton('orders', '✎', 'Pedidos')}${navButton('upgrades', '↑', 'Melhorias')}<button data-action="open-construction"><span>▧</span><small>Organizar</small></button>${navButton('tasks', '✓', 'Tarefas')}
         </nav>
         <div class="toast-stack" id="toast-stack"></div>
       </div>`;
@@ -105,6 +113,7 @@ export class GameUI {
       else if (action === 'simulate-offline') this.simulateOffline(Number(target.dataset.seconds));
       else if (action === 'toggle-mute') { this.audio.update({ muted: !this.audio.settings.muted }); this.open('settings'); }
       else if (action === 'toggle-technical') gameEvents.emit('technical:toggle', undefined);
+      else if (action === 'open-construction') { this.close(); this.constructionShop.open(); }
       else if (action === 'set-speed') { this.simulation.setTimeScale(Number(target.dataset.speed)); this.renderDynamic(); }
       else if (action === 'camera-zoom-out') gameEvents.emit('camera:zoom-step', -1);
       else if (action === 'camera-zoom-in') gameEvents.emit('camera:zoom-step', 1);
@@ -116,6 +125,7 @@ export class GameUI {
       else if (action === 'dev-add-stock') { for (const item of INGREDIENTS) this.state.inventory[item.id] = Math.min(item.maxStock, this.state.inventory[item.id] + item.quickBuyPackSize); this.simulation.retryBlockedOrders(); }
       else if (action === 'dev-empty-stock') { for (const item of INGREDIENTS) this.state.inventory[item.id] = this.state.inventoryReserved[item.id]; }
       else if (action === 'dev-fill-stock') { for (const item of INGREDIENTS) this.state.inventory[item.id] = item.maxStock; }
+      else if (action === 'dev-swap-skins') { const next = sessionStorage.getItem('bb:visual-skin-set') === 'sage' ? 'bloom' : 'sage'; sessionStorage.setItem('bb:visual-skin-set', next); window.location.reload(); }
       else if (action === 'reset-save') { this.resetArmed = true; this.renderPanel(); }
       else if (action === 'cancel-reset') { this.resetArmed = false; this.renderPanel(); }
       else if (action === 'confirm-reset') await this.resetSave();
@@ -173,7 +183,7 @@ export class GameUI {
     const role = ROLE_INFO[profile.helpRole];
     const profession = profile.professions[role.profession];
     this.root.querySelector<HTMLElement>('#owner-card')!.innerHTML = `
-      <button class="owner-portrait" data-open="player" aria-label="Abrir perfil"><span class="portrait-head" style="--skin:${skinColor(profile.appearance.skin)};--hair:${hairColor(profile.appearance.hairColor)}"></span><i>✦</i></button>
+      <button class="owner-portrait" data-open="player" aria-label="Abrir perfil"><img src="${playerSpriteThumb(profile.appearance.hairStyle)}" alt="" /><i>✦</i></button>
       <div class="owner-copy"><small>PROPRIETÁRIO · NÍVEL ${profile.level}</small><strong>${escapeHtml(profile.name)}</strong><span>${role.icon} ${role.name} · ${this.simulation.playerTaskLabel()}</span><em>Destino ${this.simulation.playerDestinationLabel()} · ${this.simulation.playerIdleReason()}</em>
         <div class="mini-progress"><i style="width:${professionProgress(profession.xp, profession.level)}%"></i></div>
       </div><button class="help-button" data-open="roles">Onde ajudar?</button>`;
@@ -284,7 +294,7 @@ export class GameUI {
   private playerPanel(): string {
     const profile = this.state.profile!; const role = ROLE_INFO[profile.helpRole];
     const totalTasks = Object.values(profile.taskHistory).reduce((sum, value) => sum + value, 0);
-    return `<div class="profile-hero"><div class="large-portrait" style="--skin:${skinColor(profile.appearance.skin)};--hair:${hairColor(profile.appearance.hairColor)};--outfit:${outfitColor(profile.appearance.outfitColor)}"><span></span><i></i></div><div><small>PROPRIETÁRIO DO BISTRÔ</small><h3>${escapeHtml(profile.name)}</h3><p>Nível geral ${profile.level} · ${profile.xp} XP</p></div></div>
+    return `<div class="profile-hero"><div class="large-portrait"><img src="${playerSpriteThumb(profile.appearance.hairStyle)}" alt="Sprite de ${escapeHtml(profile.name)}" /></div><div><small>PROPRIETÁRIO DO BISTRÔ</small><h3>${escapeHtml(profile.name)}</h3><p>Nível geral ${profile.level} · ${profile.xp} XP</p></div></div>
       <div class="profile-stats"><span><small>Função atual</small><b>${role.icon} ${role.name}</b></span><span><small>Tarefa atual</small><b>${this.simulation.playerTaskLabel()}</b></span><span><small>Tarefas feitas</small><b>${totalTasks}</b></span></div>
       <div class="button-stack"><button class="primary-button" data-open="roles">Onde ajudar?</button><button class="secondary-button" data-open="professions">Ver profissões e bônus</button></div>
       <div class="future-note">Personalização adicional e cosméticos serão expandidos em versões futuras.</div>`;
@@ -318,7 +328,7 @@ export class GameUI {
   private settingsPanel(): string {
     return `<div class="settings-list"><label><span>Volume geral <b data-audio-value="master">${Math.round(this.audio.settings.master * 100)}%</b></span><input data-audio="master" type="range" min="0" max="1" step="0.05" value="${this.audio.settings.master}" /></label><label><span>Efeitos <b data-audio-value="effects">${Math.round(this.audio.settings.effects * 100)}%</b></span><input data-audio="effects" type="range" min="0" max="1" step="0.05" value="${this.audio.settings.effects}" /></label><button class="secondary-button" data-action="toggle-mute">${this.audio.settings.muted ? 'Ativar áudio' : 'Silenciar tudo'}</button>${developmentMode() ? `<button class="secondary-button" data-action="toggle-technical">${this.technicalMode ? 'Desativar' : 'Ativar'} modo técnico</button>` : ''}</div>
       <div class="settings-section"><h3>Progresso offline</h3><p>O cálculo usa no máximo 8 horas e respeita ingredientes, fila e capacidade.</p>${developmentMode() ? '<button class="secondary-button" data-open="offline">Abrir simulador</button>' : ''}</div>
-      ${developmentMode() ? `<div class="settings-section"><h3>Painel de desenvolvimento</h3><div class="dev-times"><button data-action="dev-add-customer">+ cliente</button><button data-action="dev-add-group">+ grupo 4</button><button data-action="dev-simulate-order">Simular pedido</button><button data-action="dev-low-patience">Paciência baixa</button><button data-action="dev-dirty-seat">Sujar lugar</button><button data-action="dev-add-stock">+ ingredientes</button><button data-action="dev-empty-stock">Esvaziar estoque</button><button data-action="dev-fill-stock">Preencher estoque</button></div><p>Modo técnico: grade, rotas e reservas. A aba Tarefas mostra a fila central.</p></div>` : ''}
+      ${developmentMode() ? `<div class="settings-section"><h3>Painel de desenvolvimento</h3><div class="dev-times"><button data-action="dev-add-customer">+ cliente</button><button data-action="dev-add-group">+ grupo 4</button><button data-action="dev-simulate-order">Simular pedido</button><button data-action="dev-low-patience">Paciência baixa</button><button data-action="dev-dirty-seat">Sujar lugar</button><button data-action="dev-add-stock">+ ingredientes</button><button data-action="dev-empty-stock">Esvaziar estoque</button><button data-action="dev-fill-stock">Preencher estoque</button><button data-action="dev-swap-skins">Trocar conjunto visual</button></div><p>Modo técnico: grade, rotas, reservas e troca de skins sem alterar footprints.</p></div>` : ''}
       <div class="danger-zone"><h3>Recomeçar</h3><p>Apaga o restaurante, personagem e todo o progresso deste dispositivo.</p>${this.resetArmed
         ? '<strong>Esta ação não pode ser desfeita.</strong><div class="button-stack"><button data-action="confirm-reset">Confirmar e recomeçar</button><button class="secondary-button" data-action="cancel-reset">Cancelar</button></div>'
         : '<button data-action="reset-save">Apagar save…</button>'}</div>`;

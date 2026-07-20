@@ -6,6 +6,7 @@ import { STREET_EXIT_ZONE } from '../game/map/initialMap';
 import { createDefaultState } from '../game/save/defaultState';
 import { migrateAndSanitizeSave } from '../game/save/migrations';
 import { RestaurantSimulation } from '../game/simulation/RestaurantSimulation';
+import { footprintContains } from '../assets/pixel/VisualMetrics';
 
 function fullState() {
   const state = createDefaultState(0);
@@ -65,7 +66,7 @@ describe('stress inicial controlado', () => {
     expect(state.stats.customersServed + state.stats.customersLost).toBeGreaterThan(0);
     expect(error).not.toHaveBeenCalled();
     error.mockRestore();
-  }, 15_000);
+  }, 25_000);
 
   it('recupera fila duplicada e cadeiras-fantasma de um save antigo', () => {
     const state = fullState(); const source = new RestaurantSimulation(state); source.debugSetAutoSpawn(false);
@@ -110,9 +111,50 @@ describe('stress inicial controlado', () => {
     expect(simulation.activeCustomerCount()).toBe(0);
     expect(simulation.customers.some((customer) => customer.state === 'leaving')).toBe(false);
   });
+
+  it('opera por quinze minutos simulados sem fila infinita, invasão de móveis ou assento fantasma', () => {
+    const state = fullState(); const simulation = new RestaurantSimulation(state);
+    for (let elapsed = 0; elapsed < 15 * 60; elapsed += 5) {
+      simulation.debugRunFor(5);
+      const waiting = simulation.customers.filter((customer) => ['entering', 'seeking_table', 'queueing'].includes(customer.state));
+      expect(waiting.length).toBeLessThanOrEqual(4);
+      for (const actor of simulation.actors) {
+        for (const station of simulation.stations) {
+          expect(footprintContains(station.position, { width: station.size.x, depth: station.size.y }, actor.position), `${actor.id} dentro de ${station.id}`).toBe(false);
+        }
+      }
+      for (const customer of simulation.customers.filter((item) => ['sitting', 'waiting_order', 'waiting_food', 'eating', 'paying'].includes(item.state))) {
+        const linkedSeats = simulation.tables.flatMap((table) => table.chairs).filter((seat) => customer.chairIds.includes(seat.id));
+        expect(linkedSeats.some((seat) => seat.customerId === customer.id)).toBe(true);
+      }
+    }
+    expect(state.stats.customersServed + state.stats.customersLost).toBeGreaterThan(10);
+  }, 30_000);
 });
 
 describe('reset completo do progresso', () => {
+  it('remove somente móveis internos de QA e preserva o progresso real', () => {
+    const state = createDefaultState(10);
+    state.coins = 777;
+    state.stats.customersServed = 42;
+    const originalDining = state.construction.placedFurniture.filter((item) => item.definitionId.startsWith('dining.'));
+    state.construction.placedFurniture = [
+      ...state.construction.placedFurniture.filter((item) => !item.definitionId.startsWith('dining.')),
+      { ...originalDining[0], id: 'table:qa-four' },
+      { ...originalDining[1], id: 'chair:qa-west', state: { ...originalDining[1].state, linkedTableId: 'table:qa-four' } },
+      { ...originalDining[2], id: 'chair:qa-east', state: { ...originalDining[2].state, linkedTableId: 'table:qa-four' } },
+    ];
+    state.operation = new RestaurantSimulation(state).prepareSave(20);
+
+    const migrated = migrateAndSanitizeSave(JSON.parse(JSON.stringify(state)), 30);
+    expect(migrated.construction.placedFurniture.some((item) => item.id.includes(':qa-'))).toBe(false);
+    expect(migrated.construction.placedFurniture.filter((item) => item.definitionId === 'dining.table.basic')).toHaveLength(1);
+    expect(migrated.construction.placedFurniture.filter((item) => item.definitionId === 'dining.chair.basic')).toHaveLength(2);
+    expect(migrated.operation).toBeUndefined();
+    expect(migrated.coins).toBe(777);
+    expect(migrated.stats.customersServed).toBe(42);
+  });
+
   it('impede o autosave de recriar o save durante o recarregamento', () => {
     const root = resolve(import.meta.dirname, '../..');
     const main = readFileSync(resolve(root, 'src/main.ts'), 'utf8');

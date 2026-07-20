@@ -1,4 +1,8 @@
-"""Repack world sprites around one shared floor baseline without blurring pixels."""
+"""Align world sprites to one floor line and validate only their physical base.
+
+Furniture may overhang above the floor. Native scale is preserved; only opaque
+contact pixels close to the floor are checked against the logical footprint.
+"""
 
 from array import array
 from pathlib import Path
@@ -56,13 +60,21 @@ def _bbox(frame, width, height):
 
 
 def _limits(definition):
-    if definition["assetId"] == "pickup_counter":
-        return 232, 170
-    if definition["assetId"] in ("stove_level_1", "refrigerator_level_1"):
-        return 180, 170
-    if definition["footprint"][0] >= 2:
-        return 174, 166
-    return 132, 158
+    width, depth = definition["footprint"]
+    projected_width = 32 * (width + depth)
+    return projected_width + 10
+
+
+def _base_bbox(frame, width, height, floor_y):
+    points = []
+    # Quantized shadows are below .78 alpha; feet, legs and plinths are opaque.
+    for y in range(max(0, floor_y - 16), min(height, floor_y + 2)):
+        for x in range(width):
+            if _pixel_top(frame, width, height, x, y)[3] >= .78:
+                points.append((x, y))
+    if not points:
+        return None
+    return min(x for x, _ in points), min(y for _, y in points), max(x for x, _ in points) + 1, max(y for _, y in points) + 1
 
 
 def _repack(frame, width, height, max_width, max_height, floor_y, allow_upscale=False):
@@ -87,15 +99,32 @@ def _repack(frame, width, height, max_width, max_height, floor_y, allow_upscale=
     return output
 
 
+def _align_native(frame, width, height, floor_y):
+    left, top, right, bottom = _bbox(frame, width, height)
+    shift_y = floor_y - bottom
+    output = _blank(width, height)
+    for y in range(top, bottom):
+        destination_y = y + shift_y
+        if destination_y < 0 or destination_y >= height:
+            continue
+        for x in range(left, right):
+            rgba = _pixel_top(frame, width, height, x, y)
+            if rgba[3] > .04:
+                _set_pixel_top(output, width, height, x, destination_y, rgba)
+    return output
+
+
 def _thumbnail(frame, width, height):
     return _repack(frame, width, height, min(118, width - 8), min(118, height - 8), min(124, height - 4), allow_upscale=False)
 
 
-def normalize_world_assets(project_root: Path, definitions, selected=None, category=None):
+def normalize_world_assets(project_root: Path, definitions, selected=None, category=None, include_authorized=False):
     selected_ids = {selected} if isinstance(selected, str) else set(selected or [])
     normalized = []
     for definition in definitions:
         if definition["kind"] == "character":
+            continue
+        if definition.get("referenceMode") == "authorized-canonical-chroma-key" and not include_authorized:
             continue
         if selected_ids and definition["assetId"] not in selected_ids:
             continue
@@ -108,17 +137,25 @@ def normalize_world_assets(project_root: Path, definitions, selected=None, categ
         source, sheet_width, sheet_height = _load(output)
         frame_width, frame_height = definition["frameSize"]
         columns = sum(definition["animations"].values())
-        sheet = _blank(sheet_width, sheet_height)
-        max_width, max_height = _limits(definition)
+        output_width = frame_width * columns
+        output_height = frame_height * len(DIRECTIONS)
+        sheet = _blank(output_width, output_height)
+        base_width_limit = _limits(definition)
         first = None
         for row in range(len(DIRECTIONS)):
             for column in range(columns):
                 frame = _extract(source, sheet_width, sheet_height, frame_width, frame_height, column, row)
-                packed = _repack(frame, frame_width, frame_height, max_width, max_height, WORLD_FLOOR_Y)
+                packed = _align_native(frame, frame_width, frame_height, WORLD_FLOOR_Y)
+                base_box = _base_bbox(packed, frame_width, frame_height, WORLD_FLOOR_Y)
+                base_width = 0 if base_box is None else base_box[2] - base_box[0]
+                if base_width > base_width_limit:
+                    raise RuntimeError(
+                        f"{definition['assetId']} base escapes footprint: {base_width}px > {base_width_limit}px"
+                    )
                 if first is None:
                     first = packed
-                blit(sheet, sheet_width, packed, frame_width, frame_height, column, row, columns, len(DIRECTIONS))
-        save_pixels(output, sheet_width, sheet_height, sheet)
+                blit(sheet, output_width, packed, frame_width, frame_height, column, row, columns, len(DIRECTIONS))
+        save_pixels(output, output_width, output_height, sheet)
         deployed = project_root / "public/assets/pixel/rendered" / relative
         deployed.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(output, deployed)
@@ -143,5 +180,5 @@ def normalize_world_assets(project_root: Path, definitions, selected=None, categ
         deployed_thumb.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(thumb_output, deployed_thumb)
         normalized.append(definition["assetId"])
-        print(f"NORMALIZED {definition['assetId']} floor={WORLD_FLOOR_Y} limits={max_width}x{max_height}")
+        print(f"ALIGNED {definition['assetId']} floor={WORLD_FLOOR_Y} base-limit={base_width_limit}px native-scale=preserved")
     return normalized

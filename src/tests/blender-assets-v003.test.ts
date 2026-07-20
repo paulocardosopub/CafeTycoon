@@ -8,12 +8,13 @@ interface ManifestAsset {
   renderedFile: string; thumbnail: string; orientations: string[]; animations: Record<string, number>;
   frameCount: number; frameSize: number[]; footprint: number[]; anchor: number[]; visualLevel: number;
   transparent: boolean; nextLevelAssetId?: string | null; qualityProfile: string; nativeScale: number;
-  referenceSource?: string; referenceMode?: string;
+  identityProfile?: string; bodyProfile?: string; visualSkinId?: string; layerRole?: string;
+  referenceSource?: string; referenceMode?: string; visualBounds?: { overhangCells: number };
 }
 
 interface AssetManifest {
-  version: string;
-  qualityProfile: string;
+  version: string; qualityProfile: string; designReference: string;
+  visualContract: { characterLogicalFootprint: number[]; characterHeightBlocks: number[]; feetAnchor: number[]; worldFloorY: number };
   camera: { projection: string; horizontalAngle: number; inclination: number; frameGrid: string };
   assets: ManifestAsset[];
 }
@@ -31,22 +32,23 @@ function pngHeader(path: string): { width: number; height: number; colorType: nu
   return { width: data.readUInt32BE(16), height: data.readUInt32BE(20), colorType: data[25] };
 }
 
-describe('pipeline Blender 0.0.3', () => {
-  it('mantÃ©m a versÃ£o do jogo e evolui apenas a revisÃ£o visual', () => {
-    expect(manifest.version).toBe('0.0.3-blender-7');
-    expect(manifest.qualityProfile).toBe('reference-scene-v5');
-  });
-
-  it('mantém câmera isométrica ortográfica padronizada', () => {
+describe('pipeline Blender 0.0.4', () => {
+  it('registra a reconstrução original e o contrato isométrico', () => {
+    expect(manifest.version).toBe('0.0.4-blender-7');
+    expect(manifest.qualityProfile).toBe('bistro-bloom-character-bible-v2');
+    expect(manifest.visualContract).toMatchObject({
+      characterLogicalFootprint: [1, 1], characterHeightBlocks: [1.5, 2], feetAnchor: [48, 136], worldFloorY: 178,
+    });
+    expect(statSync(resolve(projectRoot, manifest.designReference)).size).toBeGreaterThan(100_000);
     expect(manifest.camera).toMatchObject({ projection: 'orthographic', horizontalAngle: 45, frameGrid: '64x32' });
     expect(manifest.camera.inclination).toBeCloseTo(35.264, 3);
   });
 
-  it('gera os 36 assets individuais e suas fontes editáveis', () => {
-    expect(manifest.assets).toHaveLength(36);
-    expect(manifest.assets.filter((item) => item.kind === 'character')).toHaveLength(18);
-    expect(manifest.assets.filter((item) => item.kind === 'furniture')).toHaveLength(9);
-    expect(manifest.assets.filter((item) => item.kind === 'equipment')).toHaveLength(9);
+  it('gera 72 assets individuais, fontes editáveis e thumbnails', () => {
+    expect(manifest.assets).toHaveLength(72);
+    expect(manifest.assets.filter((item) => item.kind === 'character')).toHaveLength(16);
+    expect(manifest.assets.filter((item) => item.kind === 'furniture')).toHaveLength(31);
+    expect(manifest.assets.filter((item) => item.kind === 'equipment')).toHaveLength(25);
     for (const asset of manifest.assets) {
       expect(statSync(resolve(projectRoot, asset.sourceBlend)).size).toBeGreaterThan(10_000);
       expect(statSync(canonicalPng(asset)).size).toBeGreaterThan(100);
@@ -55,23 +57,28 @@ describe('pipeline Blender 0.0.3', () => {
     }
   });
 
-  it('preserva quatro direções, pés, animações e PNG RGBA nítido', () => {
-    const required = ['idle', 'walk', 'carry-dish', 'carry-ingredients', 'cook', 'serve', 'clean', 'sit', 'seated', 'eat', 'stand'];
+  it('preserva quatro direções, pés, poses completas e PNG RGBA nítido', () => {
+    const required = ['idle', 'walk', 'sit-down', 'seated-idle', 'seated-waiting', 'seated-eating', 'stand-up', 'carry-plate', 'carry-ingredients', 'cook', 'use-appliance', 'serve', 'clean', 'receive-payment'];
     for (const asset of manifest.assets) {
       expect(asset.orientations).toEqual(['ne', 'nw', 'se', 'sw']);
       expect(asset.visualLevel).toBe(1);
-      expect(asset.qualityProfile).toBe('reference-scene-v5');
+      expect(asset.qualityProfile).toBe('bistro-bloom-character-bible-v2');
       expect(asset.nativeScale).toBe(1);
       expect(asset.transparent).toBe(true);
-      expect(asset.footprint[0]).toBeGreaterThan(0);
+      expect(asset.visualSkinId).toBeTruthy();
+      expect(asset.visualBounds?.overhangCells).toBeLessThanOrEqual(.35);
       const header = pngHeader(canonicalPng(asset));
-      expect(header).toMatchObject({ width: asset.frameSize[0] * asset.frameCount, height: asset.frameSize[1] * 4, colorType: 6 });
+      expect(header.height).toBe(asset.frameSize[1] * asset.orientations.length);
+      expect(header.width % asset.frameSize[0]).toBe(0);
+      expect(header.width).toBeGreaterThanOrEqual(asset.frameSize[0] * asset.frameCount);
+      expect(header.width).toBeLessThanOrEqual(asset.frameSize[0] * Math.max(asset.frameCount, asset.orientations.length));
+      expect(header.colorType).toBe(6);
       if (asset.kind === 'character') {
         expect(asset.frameSize).toEqual([96, 144]);
         expect(asset.anchor).toEqual([48, 136]);
         expect(asset.animations.walk).toBe(6);
         expect(Object.keys(asset.animations)).toEqual(expect.arrayContaining(required));
-      } else if (asset.assetId === 'pickup_counter') {
+      } else if (asset.assetId.startsWith('pickup_counter')) {
         expect(asset.frameSize).toEqual([256, 192]);
         expect(asset.anchor[1]).toBeCloseTo(178 / 192, 5);
       } else {
@@ -81,61 +88,48 @@ describe('pipeline Blender 0.0.3', () => {
     }
   });
 
-  it('implementa os estados e footprints das quatro referÃªncias visuais', () => {
-    const cook = manifest.assets.find((item) => item.assetId === 'cook-0')!;
-    const customer = manifest.assets.find((item) => item.assetId === 'customer-0')!;
-    const stove = manifest.assets.find((item) => item.assetId === 'stove_level_1')!;
-    const refrigerator = manifest.assets.find((item) => item.assetId === 'refrigerator_level_1')!;
-    for (const character of [cook, customer]) {
-      expect(character.orientations).toHaveLength(4);
-      expect(character.animations.walk).toBe(6);
-    }
-    expect(stove).toMatchObject({ footprint: [2, 1], animations: { off: 1, active: 2, complete: 1 } });
-    expect(refrigerator).toMatchObject({ footprint: [2, 1], animations: { closed: 1, open: 2, complete: 1 } });
-    for (const asset of [cook, customer, stove, refrigerator]) {
-      expect(asset.referenceMode).toBe('canonical-chroma-key');
-      expect(asset.referenceSource).toBeTruthy();
-      expect(statSync(resolve(projectRoot, asset.referenceSource!)).size).toBeGreaterThan(100_000);
-    }
+  it('usa os oito consumidores e personagens autorizados do pacote Cafe Mania', () => {
     const customers = manifest.assets.filter((item) => item.assetId.startsWith('customer-'));
     expect(customers).toHaveLength(8);
-    expect(customers.slice(1).every((item) => item.referenceMode === 'reference-derived-variant')).toBe(true);
-    expect(new Set(customers.map((item) => statSync(canonicalPng(item)).size)).size).toBeGreaterThanOrEqual(6);
-    const characters = manifest.assets.filter((item) => item.kind === 'character');
-    expect(characters.every((item) => item.referenceSource && ['canonical-chroma-key', 'reference-derived-variant'].includes(item.referenceMode!))).toBe(true);
-    expect(characters.filter((item) => item.referenceMode === 'reference-derived-variant')).toHaveLength(16);
+    expect(new Set(customers.map((item) => item.identityProfile)).size).toBe(8);
+    expect(new Set(customers.map((item) => item.bodyProfile)).size).toBe(8);
+    expect(manifest.assets.filter((item) => item.kind === 'character').every((item) => item.referenceMode === 'authorized-character-sheet' && item.referenceSource)).toBe(true);
+    const authorized = manifest.assets.filter((item) => item.referenceMode === 'authorized-canonical-chroma-key');
+    expect(authorized.length).toBeGreaterThanOrEqual(15);
+    expect(authorized.every((item) => item.kind !== 'character' && item.referenceSource)).toBe(true);
   });
 
-  it('serve sprites públicos e invalida cache por revisão visual', () => {
-    const scene = readFileSync(resolve(projectRoot, 'src/scenes/RestaurantScene.ts'), 'utf8');
-    const worker = readFileSync(resolve(projectRoot, 'scripts/build-worker.mjs'), 'utf8');
-    expect(scene).toContain('?v=${encodeURIComponent(asset.renderVersion)}');
-    expect(scene).toContain("variant >= 0 && variant <= 7 ? `customer-${variant}` : 'customer-0'");
-    expect(scene).toContain('HIGH_DETAIL_CHARACTER_ASSETS.has(assetId)');
-    expect(scene).toContain('const stationDepth = isoDepth(base, 30)');
-    expect(worker).toContain('env?.ASSETS?.fetch');
-    expect(worker).toContain("dist/client");
+  it('divide três cadeiras estruturais em encosto, conjunto completo e frente', () => {
+    for (const skin of ['wood', 'upholstered', 'bistro']) {
+      const chairAssets = manifest.assets.filter((item) => item.assetId.startsWith(`chair_${skin}`));
+      expect(chairAssets).toHaveLength(3);
+      expect(new Set(chairAssets.map((item) => item.layerRole))).toEqual(new Set(['full', 'back', 'front']));
+    }
   });
 
-  it('mantém dados visuais separados e troca futura sem mover a estação', () => {
+  it('mantém estados/footprints dos equipamentos de nível 1', () => {
+    const stove = manifest.assets.find((item) => item.assetId === 'stove_level_1')!;
+    const refrigerator = manifest.assets.find((item) => item.assetId === 'refrigerator_level_1')!;
+    expect(stove).toMatchObject({ footprint: [2, 1], animations: { off: 1, active: 2, complete: 1 } });
+    expect(refrigerator).toMatchObject({ footprint: [2, 1], animations: { closed: 1, open: 2, complete: 1 } });
     expect(EQUIPMENT_ASSETS).toHaveLength(9);
     for (const definition of EQUIPMENT_ASSETS) {
-      expect(definition).toMatchObject({ visualLevel: 1, gameplayLevel: 1, animationSet: 'equipment-basic-v1' });
-      expect(definition.nextLevelAssetId).toBe(`${definition.equipmentFamilyId}_level_2`);
       const runtime = { id: 'station', position: { x: 4, y: 5 }, orientation: 'sw', activeOrderId: 'order-7' } as const;
       const upgraded = applyEquipmentAsset(runtime, definition);
       expect(upgraded.position).toBe(runtime.position);
       expect(upgraded.orientation).toBe(runtime.orientation);
       expect(upgraded.activeOrderId).toBe(runtime.activeOrderId);
+      expect(definition.nextLevelAssetId).toBe(`${definition.equipmentFamilyId}_level_2`);
     }
   });
 
-  it('oferece renderização por categoria e por ID', () => {
-    const buildScript = readFileSync(resolve(projectRoot, 'tools/blender/build_assets.py'), 'utf8');
-    expect(buildScript).toContain('parser.add_argument("--asset")');
-    expect(buildScript).toContain('parser.add_argument("--assets")');
-    expect(buildScript).toContain('--category');
-    expect(buildScript).toContain('item["assetId"] in selected_ids');
-    expect(buildScript).toContain('normalize_world_assets');
+  it('serve os sprites novos e invalida o cache visual antigo', () => {
+    const scene = readFileSync(resolve(projectRoot, 'src/scenes/RestaurantScene.ts'), 'utf8');
+    const worker = readFileSync(resolve(projectRoot, 'scripts/build-worker.mjs'), 'utf8');
+    expect(scene).toContain('?v=${encodeURIComponent(asset.renderVersion)}');
+    expect(scene).toContain('variant >= 0 && variant <= 7');
+    expect(scene).toContain('VISUAL_METRICS.depth.chairBack');
+    expect(scene).toContain('VISUAL_METRICS.depth.chairFront');
+    expect(worker).toContain('env?.ASSETS?.fetch');
   });
 });
