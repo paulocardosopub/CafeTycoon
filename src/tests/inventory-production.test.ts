@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
+import { BALANCE } from '../config/balance';
 import { RECIPE_BY_ID } from '../content/recipes/recipes';
 import { createDefaultState } from '../game/save/defaultState';
 import { canConsumeRecipe, consumeRecipe, inventoryCapacity, inventoryUsed } from '../game/inventory/InventoryService';
-import { enqueueProduction, readyDishCapacity, tickProduction } from '../game/cooking/ProductionService';
+import { enqueueProduction, productionDuration, readyDishCapacity, tickProduction } from '../game/cooking/ProductionService';
 
 describe('estoque e receitas', () => {
   it('calcula e consome ingredientes exatamente uma vez', () => {
@@ -24,6 +25,13 @@ describe('estoque e receitas', () => {
 });
 
 describe('produção programada', () => {
+  it('usa movimento e preparo na velocidade 2x', () => {
+    const state = createDefaultState();
+    expect(BALANCE.movementSpeedMultiplier).toBe(2);
+    expect(BALANCE.cookingSpeedMultiplier).toBe(2);
+    expect(productionDuration(state, 'coffee')).toBe(4);
+  });
+
   it('produz prato, consome ingredientes e concede experiência', () => {
     const state = createDefaultState();
     const coffeeBefore = state.inventory.coffee;

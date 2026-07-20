@@ -1,0 +1,794 @@
+{
+  "player-style-0": {
+    "sheet": "/assets/pixel/rendered/characters/player/player-style-0.png",
+    "frameSize": [
+      96,
+      144
+    ],
+    "animations": {
+      "idle": 2,
+      "walk": 6,
+      "carry-dish": 2,
+      "carry-ingredients": 2,
+      "work": 4,
+      "cook": 4,
+      "serve": 2,
+      "clean": 4,
+      "sit": 2,
+      "seated": 2,
+      "eat": 4,
+      "stand": 2
+    },
+    "orientations": [
+      "ne",
+      "nw",
+      "se",
+      "sw"
+    ]
+  },
+  "player-style-1": {
+    "sheet": "/assets/pixel/rendered/characters/player/player-style-1.png",
+    "frameSize": [
+      96,
+      144
+    ],
+    "animations": {
+      "idle": 2,
+      "walk": 6,
+      "carry-dish": 2,
+      "carry-ingredients": 2,
+      "work": 4,
+      "cook": 4,
+      "serve": 2,
+      "clean": 4,
+      "sit": 2,
+      "seated": 2,
+      "eat": 4,
+      "stand": 2
+    },
+    "orientations": [
+      "ne",
+      "nw",
+      "se",
+      "sw"
+    ]
+  },
+  "player-style-2": {
+    "sheet": "/assets/pixel/rendered/characters/player/player-style-2.png",
+    "frameSize": [
+      96,
+      144
+    ],
+    "animations": {
+      "idle": 2,
+      "walk": 6,
+      "carry-dish": 2,
+      "carry-ingredients": 2,
+      "work": 4,
+      "cook": 4,
+      "serve": 2,
+      "clean": 4,
+      "sit": 2,
+      "seated": 2,
+      "eat": 4,
+      "stand": 2
+    },
+    "orientations": [
+      "ne",
+      "nw",
+      "se",
+      "sw"
+    ]
+  },
+  "player-style-3": {
+    "sheet": "/assets/pixel/rendered/characters/player/player-style-3.png",
+    "frameSize": [
+      96,
+      144
+    ],
+    "animations": {
+      "idle": 2,
+      "walk": 6,
+      "carry-dish": 2,
+      "carry-ingredients": 2,
+      "work": 4,
+      "cook": 4,
+      "serve": 2,
+      "clean": 4,
+      "sit": 2,
+      "seated": 2,
+      "eat": 4,
+      "stand": 2
+    },
+    "orientations": [
+      "ne",
+      "nw",
+      "se",
+      "sw"
+    ]
+  },
+  "customer-0": {
+    "sheet": "/assets/pixel/rendered/characters/customers/customer-0.png",
+    "frameSize": [
+      96,
+      144
+    ],
+    "animations": {
+      "idle": 2,
+      "walk": 6,
+      "carry-dish": 2,
+      "carry-ingredients": 2,
+      "work": 4,
+      "cook": 4,
+      "serve": 2,
+      "clean": 4,
+      "sit": 2,
+      "seated": 2,
+      "eat": 4,
+      "stand": 2
+    },
+    "orientations": [
+      "ne",
+      "nw",
+      "se",
+      "sw"
+    ]
+  },
+  "customer-1": {
+    "sheet": "/assets/pixel/rendered/characters/customers/customer-1.png",
+    "frameSize": [
+      96,
+      144
+    ],
+    "animations": {
+      "idle": 2,
+      "walk": 6,
+      "carry-dish": 2,
+      "carry-ingredients": 2,
+      "work": 4,
+      "cook": 4,
+      "serve": 2,
+      "clean": 4,
+      "sit": 2,
+      "seated": 2,
+      "eat": 4,
+      "stand": 2
+    },
+    "orientations": [
+      "ne",
+      "nw",
+      "se",
+      "sw"
+    ]
+  },
+  "customer-2": {
+    "sheet": "/assets/pixel/rendered/characters/customers/customer-2.png",
+    "frameSize": [
+      96,
+      144
+    ],
+    "animations": {
+      "idle": 2,
+      "walk": 6,
+      "carry-dish": 2,
+      "carry-ingredients": 2,
+      "work": 4,
+      "cook": 4,
+      "serve": 2,
+      "clean": 4,
+      "sit": 2,
+      "seated": 2,
+      "eat": 4,
+      "stand": 2
+    },
+    "orientations": [
+      "ne",
+      "nw",
+      "se",
+      "sw"
+    ]
+  },
+  "customer-3": {
+    "sheet": "/assets/pixel/rendered/characters/customers/customer-3.png",
+    "frameSize": [
+      96,
+      144
+    ],
+    "animations": {
+      "idle": 2,
+      "walk": 6,
+      "carry-dish": 2,
+      "carry-ingredients": 2,
+      "work": 4,
+      "cook": 4,
+      "serve": 2,
+      "clean": 4,
+      "sit": 2,
+      "seated": 2,
+      "eat": 4,
+      "stand": 2
+    },
+    "orientations": [
+      "ne",
+      "nw",
+      "se",
+      "sw"
+    ]
+  },
+  "customer-4": {
+    "sheet": "/assets/pixel/rendered/characters/customers/customer-4.png",
+    "frameSize": [
+      96,
+      144
+    ],
+    "animations": {
+      "idle": 2,
+      "walk": 6,
+      "carry-dish": 2,
+      "carry-ingredients": 2,
+      "work": 4,
+      "cook": 4,
+      "serve": 2,
+      "clean": 4,
+      "sit": 2,
+      "seated": 2,
+      "eat": 4,
+      "stand": 2
+    },
+    "orientations": [
+      "ne",
+      "nw",
+      "se",
+      "sw"
+    ]
+  },
+  "customer-5": {
+    "sheet": "/assets/pixel/rendered/characters/customers/customer-5.png",
+    "frameSize": [
+      96,
+      144
+    ],
+    "animations": {
+      "idle": 2,
+      "walk": 6,
+      "carry-dish": 2,
+      "carry-ingredients": 2,
+      "work": 4,
+      "cook": 4,
+      "serve": 2,
+      "clean": 4,
+      "sit": 2,
+      "seated": 2,
+      "eat": 4,
+      "stand": 2
+    },
+    "orientations": [
+      "ne",
+      "nw",
+      "se",
+      "sw"
+    ]
+  },
+  "customer-6": {
+    "sheet": "/assets/pixel/rendered/characters/customers/customer-6.png",
+    "frameSize": [
+      96,
+      144
+    ],
+    "animations": {
+      "idle": 2,
+      "walk": 6,
+      "carry-dish": 2,
+      "carry-ingredients": 2,
+      "work": 4,
+      "cook": 4,
+      "serve": 2,
+      "clean": 4,
+      "sit": 2,
+      "seated": 2,
+      "eat": 4,
+      "stand": 2
+    },
+    "orientations": [
+      "ne",
+      "nw",
+      "se",
+      "sw"
+    ]
+  },
+  "customer-7": {
+    "sheet": "/assets/pixel/rendered/characters/customers/customer-7.png",
+    "frameSize": [
+      96,
+      144
+    ],
+    "animations": {
+      "idle": 2,
+      "walk": 6,
+      "carry-dish": 2,
+      "carry-ingredients": 2,
+      "work": 4,
+      "cook": 4,
+      "serve": 2,
+      "clean": 4,
+      "sit": 2,
+      "seated": 2,
+      "eat": 4,
+      "stand": 2
+    },
+    "orientations": [
+      "ne",
+      "nw",
+      "se",
+      "sw"
+    ]
+  },
+  "cook-0": {
+    "sheet": "/assets/pixel/rendered/characters/employees/cooks/cook-0.png",
+    "frameSize": [
+      96,
+      144
+    ],
+    "animations": {
+      "idle": 2,
+      "walk": 6,
+      "carry-dish": 2,
+      "carry-ingredients": 2,
+      "work": 4,
+      "cook": 4,
+      "serve": 2,
+      "clean": 4,
+      "sit": 2,
+      "seated": 2,
+      "eat": 4,
+      "stand": 2
+    },
+    "orientations": [
+      "ne",
+      "nw",
+      "se",
+      "sw"
+    ]
+  },
+  "cook-1": {
+    "sheet": "/assets/pixel/rendered/characters/employees/cooks/cook-1.png",
+    "frameSize": [
+      96,
+      144
+    ],
+    "animations": {
+      "idle": 2,
+      "walk": 6,
+      "carry-dish": 2,
+      "carry-ingredients": 2,
+      "work": 4,
+      "cook": 4,
+      "serve": 2,
+      "clean": 4,
+      "sit": 2,
+      "seated": 2,
+      "eat": 4,
+      "stand": 2
+    },
+    "orientations": [
+      "ne",
+      "nw",
+      "se",
+      "sw"
+    ]
+  },
+  "waiter-0": {
+    "sheet": "/assets/pixel/rendered/characters/employees/waiters/waiter-0.png",
+    "frameSize": [
+      96,
+      144
+    ],
+    "animations": {
+      "idle": 2,
+      "walk": 6,
+      "carry-dish": 2,
+      "carry-ingredients": 2,
+      "work": 4,
+      "cook": 4,
+      "serve": 2,
+      "clean": 4,
+      "sit": 2,
+      "seated": 2,
+      "eat": 4,
+      "stand": 2
+    },
+    "orientations": [
+      "ne",
+      "nw",
+      "se",
+      "sw"
+    ]
+  },
+  "waiter-1": {
+    "sheet": "/assets/pixel/rendered/characters/employees/waiters/waiter-1.png",
+    "frameSize": [
+      96,
+      144
+    ],
+    "animations": {
+      "idle": 2,
+      "walk": 6,
+      "carry-dish": 2,
+      "carry-ingredients": 2,
+      "work": 4,
+      "cook": 4,
+      "serve": 2,
+      "clean": 4,
+      "sit": 2,
+      "seated": 2,
+      "eat": 4,
+      "stand": 2
+    },
+    "orientations": [
+      "ne",
+      "nw",
+      "se",
+      "sw"
+    ]
+  },
+  "cleaner-0": {
+    "sheet": "/assets/pixel/rendered/characters/employees/cleaners/cleaner-0.png",
+    "frameSize": [
+      96,
+      144
+    ],
+    "animations": {
+      "idle": 2,
+      "walk": 6,
+      "carry-dish": 2,
+      "carry-ingredients": 2,
+      "work": 4,
+      "cook": 4,
+      "serve": 2,
+      "clean": 4,
+      "sit": 2,
+      "seated": 2,
+      "eat": 4,
+      "stand": 2
+    },
+    "orientations": [
+      "ne",
+      "nw",
+      "se",
+      "sw"
+    ]
+  },
+  "stocker-0": {
+    "sheet": "/assets/pixel/rendered/characters/employees/stockers/stocker-0.png",
+    "frameSize": [
+      96,
+      144
+    ],
+    "animations": {
+      "idle": 2,
+      "walk": 6,
+      "carry-dish": 2,
+      "carry-ingredients": 2,
+      "work": 4,
+      "cook": 4,
+      "serve": 2,
+      "clean": 4,
+      "sit": 2,
+      "seated": 2,
+      "eat": 4,
+      "stand": 2
+    },
+    "orientations": [
+      "ne",
+      "nw",
+      "se",
+      "sw"
+    ]
+  },
+  "table_two": {
+    "sheet": "/assets/pixel/rendered/furniture/tables/table_two.png",
+    "frameSize": [
+      192,
+      192
+    ],
+    "animations": {
+      "idle": 1
+    },
+    "orientations": [
+      "ne",
+      "nw",
+      "se",
+      "sw"
+    ]
+  },
+  "table_four": {
+    "sheet": "/assets/pixel/rendered/furniture/tables/table_four.png",
+    "frameSize": [
+      192,
+      192
+    ],
+    "animations": {
+      "idle": 1
+    },
+    "orientations": [
+      "ne",
+      "nw",
+      "se",
+      "sw"
+    ]
+  },
+  "chair": {
+    "sheet": "/assets/pixel/rendered/furniture/chairs/chair.png",
+    "frameSize": [
+      192,
+      192
+    ],
+    "animations": {
+      "idle": 1
+    },
+    "orientations": [
+      "ne",
+      "nw",
+      "se",
+      "sw"
+    ]
+  },
+  "pickup_counter": {
+    "sheet": "/assets/pixel/rendered/furniture/counters/pickup_counter.png",
+    "frameSize": [
+      256,
+      192
+    ],
+    "animations": {
+      "idle": 1
+    },
+    "orientations": [
+      "ne",
+      "nw",
+      "se",
+      "sw"
+    ]
+  },
+  "prep_counter": {
+    "sheet": "/assets/pixel/rendered/furniture/counters/prep_counter.png",
+    "frameSize": [
+      192,
+      192
+    ],
+    "animations": {
+      "idle": 1
+    },
+    "orientations": [
+      "ne",
+      "nw",
+      "se",
+      "sw"
+    ]
+  },
+  "shelf": {
+    "sheet": "/assets/pixel/rendered/furniture/storage/shelf.png",
+    "frameSize": [
+      192,
+      192
+    ],
+    "animations": {
+      "idle": 1
+    },
+    "orientations": [
+      "ne",
+      "nw",
+      "se",
+      "sw"
+    ]
+  },
+  "storage_cabinet": {
+    "sheet": "/assets/pixel/rendered/furniture/storage/storage_cabinet.png",
+    "frameSize": [
+      192,
+      192
+    ],
+    "animations": {
+      "idle": 1
+    },
+    "orientations": [
+      "ne",
+      "nw",
+      "se",
+      "sw"
+    ]
+  },
+  "bin": {
+    "sheet": "/assets/pixel/rendered/furniture/decorations/bin.png",
+    "frameSize": [
+      192,
+      192
+    ],
+    "animations": {
+      "idle": 1
+    },
+    "orientations": [
+      "ne",
+      "nw",
+      "se",
+      "sw"
+    ]
+  },
+  "plant": {
+    "sheet": "/assets/pixel/rendered/furniture/decorations/plant.png",
+    "frameSize": [
+      192,
+      192
+    ],
+    "animations": {
+      "idle": 1
+    },
+    "orientations": [
+      "ne",
+      "nw",
+      "se",
+      "sw"
+    ]
+  },
+  "stove_level_1": {
+    "sheet": "/assets/pixel/rendered/equipment/stoves/stove_level_1.png",
+    "frameSize": [
+      192,
+      192
+    ],
+    "animations": {
+      "off": 1,
+      "active": 2,
+      "complete": 1
+    },
+    "orientations": [
+      "ne",
+      "nw",
+      "se",
+      "sw"
+    ]
+  },
+  "oven_level_1": {
+    "sheet": "/assets/pixel/rendered/equipment/ovens/oven_level_1.png",
+    "frameSize": [
+      192,
+      192
+    ],
+    "animations": {
+      "off": 1,
+      "active": 2,
+      "complete": 1
+    },
+    "orientations": [
+      "ne",
+      "nw",
+      "se",
+      "sw"
+    ]
+  },
+  "refrigerator_level_1": {
+    "sheet": "/assets/pixel/rendered/equipment/refrigerators/refrigerator_level_1.png",
+    "frameSize": [
+      192,
+      192
+    ],
+    "animations": {
+      "closed": 1,
+      "open": 2,
+      "complete": 1
+    },
+    "orientations": [
+      "ne",
+      "nw",
+      "se",
+      "sw"
+    ]
+  },
+  "grill_level_1": {
+    "sheet": "/assets/pixel/rendered/equipment/grills/grill_level_1.png",
+    "frameSize": [
+      192,
+      192
+    ],
+    "animations": {
+      "off": 1,
+      "active": 2,
+      "complete": 1
+    },
+    "orientations": [
+      "ne",
+      "nw",
+      "se",
+      "sw"
+    ]
+  },
+  "coffee_machine_level_1": {
+    "sheet": "/assets/pixel/rendered/equipment/coffee-machines/coffee_machine_level_1.png",
+    "frameSize": [
+      192,
+      192
+    ],
+    "animations": {
+      "off": 1,
+      "active": 2,
+      "complete": 1
+    },
+    "orientations": [
+      "ne",
+      "nw",
+      "se",
+      "sw"
+    ]
+  },
+  "preparation_level_1": {
+    "sheet": "/assets/pixel/rendered/equipment/preparation/preparation_level_1.png",
+    "frameSize": [
+      192,
+      192
+    ],
+    "animations": {
+      "off": 1,
+      "active": 2,
+      "complete": 1
+    },
+    "orientations": [
+      "ne",
+      "nw",
+      "se",
+      "sw"
+    ]
+  },
+  "sink_level_1": {
+    "sheet": "/assets/pixel/rendered/equipment/sinks/sink_level_1.png",
+    "frameSize": [
+      192,
+      192
+    ],
+    "animations": {
+      "off": 1,
+      "active": 2,
+      "complete": 1
+    },
+    "orientations": [
+      "ne",
+      "nw",
+      "se",
+      "sw"
+    ]
+  },
+  "cauldron_level_1": {
+    "sheet": "/assets/pixel/rendered/equipment/cauldrons/cauldron_level_1.png",
+    "frameSize": [
+      192,
+      192
+    ],
+    "animations": {
+      "off": 1,
+      "active": 2,
+      "complete": 1
+    },
+    "orientations": [
+      "ne",
+      "nw",
+      "se",
+      "sw"
+    ]
+  },
+  "assembly_level_1": {
+    "sheet": "/assets/pixel/rendered/equipment/preparation/assembly_level_1.png",
+    "frameSize": [
+      192,
+      192
+    ],
+    "animations": {
+      "off": 1,
+      "active": 2,
+      "complete": 1
+    },
+    "orientations": [
+      "ne",
+      "nw",
+      "se",
+      "sw"
+    ]
+  }
+}

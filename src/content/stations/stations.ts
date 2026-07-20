@@ -1,13 +1,37 @@
-import type { StationDefinition, StationId } from '../../core/types';
+import type { Direction, GridPoint, StationDefinition, StationId, WorldAssetId } from '../../core/types';
+
+const station = (
+  id: StationId, name: string, asset: WorldAssetId, position: GridPoint, size: GridPoint, interaction: GridPoint,
+  visualHeight: number, color: number, front: Direction = 'sw', serviceInteraction?: GridPoint,
+): StationDefinition => {
+  const optionalWorkSlots = id === 'pickup'
+    ? [{ x: interaction.x - 1, y: interaction.y }, { x: interaction.x + 1, y: interaction.y }]
+    : size.x > 1 ? [{ x: interaction.x + 1, y: interaction.y }] : [];
+  const interactionPoints = [interaction, ...optionalWorkSlots, ...(serviceInteraction ? [serviceInteraction] : [])];
+  return {
+    id, name, icon: '', position, size, interaction, color, orientation: 'sw', front,
+    interactionPoints, primaryWorkSlot: interaction, optionalWorkSlots,
+    ingredientSlot: interaction, outputSlot: serviceInteraction ?? interaction,
+    clearanceCells: interactionPoints, serviceInteraction,
+    asset, anchor: { x: .5, y: id === 'pickup' ? .65 : .85 }, visualHeight, blocksMovement: true, rotatable: false,
+    visualSkinId: id === 'pickup' ? 'counter-oak' : 'equipment-steel-level-1',
+    visualBounds: { widthCells: size.x, depthCells: size.y, heightBlocks: visualHeight / 48, overhangCells: .2 },
+    depthOffset: 0,
+  };
+};
 
 export const STATIONS: StationDefinition[] = [
-  { id: 'prep', name: 'Bancada de preparo', icon: '🔪', position: { x: 3, y: 4 }, size: { x: 2, y: 1 }, interaction: { x: 3, y: 5 }, color: 0x65a98f },
-  { id: 'stove', name: 'Fogão', icon: '♨', position: { x: 6, y: 3 }, size: { x: 1, y: 1 }, interaction: { x: 6, y: 4 }, color: 0xe76f51 },
-  { id: 'grill', name: 'Grelha', icon: '▦', position: { x: 8, y: 3 }, size: { x: 1, y: 1 }, interaction: { x: 8, y: 4 }, color: 0xd85b38 },
-  { id: 'cauldron', name: 'Caldeirão', icon: '◒', position: { x: 10, y: 3 }, size: { x: 1, y: 1 }, interaction: { x: 10, y: 4 }, color: 0x735c9f },
-  { id: 'coffee_machine', name: 'Cafeteira', icon: '☕', position: { x: 12, y: 3 }, size: { x: 1, y: 1 }, interaction: { x: 12, y: 4 }, color: 0xb86f52 },
-  { id: 'assembly', name: 'Bancada de montagem', icon: '✦', position: { x: 14, y: 4 }, size: { x: 1, y: 2 }, interaction: { x: 13, y: 5 }, color: 0xe6aa68 },
-  { id: 'pickup', name: 'Balcão de retirada', icon: '🔔', position: { x: 5, y: 7 }, size: { x: 6, y: 1 }, interaction: { x: 8, y: 8 }, color: 0xd99b57 },
+  station('storage', 'Armazenamento', 'storage', { x: 1, y: 2 }, { x: 2, y: 1 }, { x: 1, y: 3 }, 82, 0x70432a),
+  station('prep', 'Bancada de preparo', 'prep', { x: 3, y: 2 }, { x: 2, y: 1 }, { x: 3, y: 3 }, 54, 0x7d9b68),
+  station('stove', 'Fogão', 'stove', { x: 6, y: 2 }, { x: 2, y: 1 }, { x: 6, y: 3 }, 58, 0xc65b3e),
+  station('grill', 'Grelha', 'grill', { x: 9, y: 2 }, { x: 1, y: 1 }, { x: 9, y: 3 }, 58, 0x8e3f2f),
+  station('cauldron', 'Caldeirão', 'cauldron', { x: 11, y: 2 }, { x: 1, y: 1 }, { x: 11, y: 3 }, 66, 0x315b6e),
+  station('coffee_machine', 'Cafeteira', 'coffee_machine', { x: 13, y: 2 }, { x: 1, y: 1 }, { x: 13, y: 3 }, 67, 0x70432a),
+  station('fridge', 'Geladeira', 'fridge', { x: 15, y: 2 }, { x: 2, y: 1 }, { x: 15, y: 3 }, 92, 0x899397),
+  station('oven', 'Forno', 'oven', { x: 1, y: 5 }, { x: 2, y: 1 }, { x: 1, y: 6 }, 78, 0x59656a),
+  station('assembly', 'Bancada de montagem', 'assembly', { x: 11, y: 5 }, { x: 2, y: 1 }, { x: 11, y: 6 }, 54, 0xd8954f),
+  station('sink', 'Pia', 'sink', { x: 14, y: 5 }, { x: 2, y: 1 }, { x: 14, y: 6 }, 58, 0x4f8293),
+  station('pickup', 'Balcão de serviço', 'pickup', { x: 5, y: 7 }, { x: 6, y: 1 }, { x: 7, y: 6 }, 58, 0xa86435, 'ne', { x: 7, y: 8 }),
 ];
 
-export const STATION_BY_ID = Object.fromEntries(STATIONS.map((station) => [station.id, station])) as Record<StationId, StationDefinition>;
+export const STATION_BY_ID = Object.fromEntries(STATIONS.map((item) => [item.id, item])) as Record<StationId, StationDefinition>;

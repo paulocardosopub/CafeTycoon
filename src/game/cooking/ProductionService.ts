@@ -27,7 +27,7 @@ export function productionDuration(state: GameState, recipeId: RecipeId): number
   const stationBonus = state.upgrades.stationSpeed * BALANCE.upgrades.stationSpeed.amount;
   const professionLevel = state.profile?.professions.cook.level ?? 1;
   const playerBonus = state.profile?.helpRole === 'kitchen' ? (professionLevel - 1) * BALANCE.professionSpeedPerLevel : 0;
-  return base * Math.max(0.55, 1 - stationBonus - playerBonus);
+  return base * Math.max(0.55, 1 - stationBonus - playerBonus) / BALANCE.cookingSpeedMultiplier;
 }
 
 export interface ProductionTickResult { produced: Partial<Record<RecipeId, number>>; blocked?: string }

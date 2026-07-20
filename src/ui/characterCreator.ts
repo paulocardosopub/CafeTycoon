@@ -22,8 +22,7 @@ export function showCharacterCreator(root: HTMLElement): Promise<PlayerProfile> 
           <div class="creator-scene" aria-label="Pré-visualização do personagem">
             <div class="window-sun"></div><div class="window-plant">♧</div>
             <div class="character-preview" id="character-preview">
-              <div class="preview-shadow"></div><div class="preview-legs"></div><div class="preview-body"><span>✿</span></div>
-              <div class="preview-head"><i class="eye left"></i><i class="eye right"></i><i class="smile"></i></div><div class="preview-hair"></div>
+              <img id="character-preview-sprite" alt="Sprite definitivo do jogador" draggable="false" />
             </div>
             <div class="preview-name" id="preview-name">Seu personagem</div>
           </div>
@@ -54,11 +53,9 @@ export function showCharacterCreator(root: HTMLElement): Promise<PlayerProfile> 
     const submitButton = root.querySelector<HTMLButtonElement>('.creator-submit')!;
     let confirmationReady = false;
     const refresh = () => {
-      const skin = CHARACTER_OPTIONS.skin.find((item) => item.id === appearance.skin)?.color ?? '#d99a68';
-      const hair = CHARACTER_OPTIONS.hairColor.find((item) => item.id === appearance.hairColor)?.color ?? '#3a241d';
-      const outfit = CHARACTER_OPTIONS.outfitColor.find((item) => item.id === appearance.outfitColor)?.color ?? '#1d766d';
-      preview.style.setProperty('--skin', skin); preview.style.setProperty('--hair', hair); preview.style.setProperty('--outfit', outfit);
       preview.dataset.hair = appearance.hairStyle; preview.dataset.outfit = appearance.outfit; preview.dataset.presentation = appearance.presentation;
+      const styleIndex = Math.max(0, ['wave', 'crop', 'bun', 'curls'].indexOf(appearance.hairStyle)) % 2;
+      root.querySelector<HTMLImageElement>('#character-preview-sprite')!.src = `/assets/pixel/rendered/thumbnails/player-style-${styleIndex}.png?v=0.0.4-blender-7`;
       root.querySelector<HTMLElement>('#preview-name')!.textContent = nameInput.value.trim() || 'Seu personagem';
     };
     form.addEventListener('input', (event) => {

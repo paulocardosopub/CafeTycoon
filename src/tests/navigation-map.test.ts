@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { RestaurantGrid } from '../game/grid/Grid';
 import { findPath } from '../game/navigation/AStar';
-import { createInitialGrid, createTables, ENTRANCE } from '../game/map/initialMap';
+import { createInitialGrid, createStations, createTables, ENTRANCE } from '../game/map/initialMap';
 import { validateRestaurantMap } from '../game/map/validateMap';
 
 describe('A* e mapa', () => {
@@ -22,19 +22,22 @@ describe('A* e mapa', () => {
 
   it('valida mesas, cadeiras, estações e ligação da entrada', () => {
     const tables = createTables();
-    const grid = createInitialGrid(tables);
-    const result = validateRestaurantMap(grid, tables);
+    const stations = createStations();
+    const grid = createInitialGrid(tables, stations);
+    const result = validateRestaurantMap(grid, tables, stations);
     expect(result.errors).toEqual([]);
-    expect(tables).toHaveLength(4);
+    expect(tables).toHaveLength(1);
+    expect(tables.flatMap((table) => table.chairs)).toHaveLength(2);
     expect(tables.every((table) => table.accessible)).toBe(true);
     expect(findPath(grid, ENTRANCE, tables[0].waiterApproach).length).toBeGreaterThan(0);
   });
 
   it('marca mesa sem cadeira alcançável como inválida', () => {
     const tables = createTables();
-    const grid = createInitialGrid(tables);
+    const stations = createStations();
+    const grid = createInitialGrid(tables, stations);
     tables[0].chairs.forEach((chair) => grid.set(chair.approach, { walkable: false, kind: 'blocked' }));
-    const result = validateRestaurantMap(grid, tables);
+    const result = validateRestaurantMap(grid, tables, stations);
     expect(result.valid).toBe(false);
     expect(result.errors.some((error) => error.includes('cadeira acessível'))).toBe(true);
   });

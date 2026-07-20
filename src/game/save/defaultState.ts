@@ -3,6 +3,8 @@ import { INGREDIENTS } from '../../content/ingredients/ingredients';
 import { RECIPES } from '../../content/recipes/recipes';
 import type { GameState, IngredientId, RecipeId } from '../../core/types';
 import { createPersistentId } from '../../core/id';
+import { createGraphicsSaveState } from '../map/initialMap';
+import { createInitialConstructionState } from '../map/initialConstruction';
 
 export function createDefaultState(now = Date.now()): GameState {
   return {
@@ -15,11 +17,14 @@ export function createDefaultState(now = Date.now()): GameState {
     restaurantLevel: 1,
     reputation: BALANCE.startingReputation,
     inventory: Object.fromEntries(INGREDIENTS.map((item) => [item.id, item.startingAmount])) as Record<IngredientId, number>,
+    inventoryReserved: Object.fromEntries(INGREDIENTS.map((item) => [item.id, 0])) as Record<IngredientId, number>,
     readyDishes: Object.fromEntries(RECIPES.map((recipe) => [recipe.id, recipe.id === 'coffee' ? 2 : 0])) as Record<RecipeId, number>,
     productionQueue: [],
     upgrades: { inventory: 0, dishStorage: 0, stationSpeed: 0 },
     lastActiveAt: now,
     offlineClaimId: '',
     stats: { customersServed: 0, customersLost: 0, dishesProduced: 0, coinsEarned: 0 },
+    graphics: createGraphicsSaveState(),
+    construction: createInitialConstructionState(),
   };
 }

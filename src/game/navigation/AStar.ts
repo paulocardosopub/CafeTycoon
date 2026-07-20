@@ -37,8 +37,7 @@ export function findPath(grid: RestaurantGrid, start: GridPoint, goal: GridPoint
     ];
     for (const neighbor of neighbors) {
       const neighborKey = key(neighbor);
-      const isGoal = neighbor.x === goal.x && neighbor.y === goal.y;
-      if (closed.has(neighborKey) || (!isGoal && !grid.isWalkable(neighbor, actorId))) continue;
+      if (closed.has(neighborKey) || !grid.isWalkable(neighbor, actorId)) continue;
       const tentative = (gScore.get(currentKey) ?? Infinity) + 1;
       if (tentative < (gScore.get(neighborKey) ?? Infinity)) {
         cameFrom.set(neighborKey, current);

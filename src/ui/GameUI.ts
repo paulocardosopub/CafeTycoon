@@ -1,16 +1,23 @@
 import { BALANCE, GAME_VERSION } from '../config/balance';
 import { INGREDIENTS, INGREDIENT_BY_ID } from '../content/ingredients/ingredients';
 import { RECIPES, RECIPE_BY_ID } from '../content/recipes/recipes';
+import { EQUIPMENT_ASSETS } from '../content/equipment/equipment';
 import { gameEvents } from '../core/events';
 import type { GameState, HelpRole, IngredientId, OfflineReport, ProfessionId, RecipeId } from '../core/types';
 import { enqueueProduction, readyDishCapacity, readyDishUsed } from '../game/cooking/ProductionService';
-import { buyIngredient, canConsumeRecipe, inventoryCapacity, inventoryUsed } from '../game/inventory/InventoryService';
+import { canConsumeRecipe, executePurchase, inventoryCapacity, inventoryUsed, quotePurchase, type PurchaseMode, type PurchaseQuote } from '../game/inventory/InventoryService';
 import { calculateOfflineProgress } from '../game/offline/OfflineService';
-import type { SaveRepository } from '../game/save/SaveRepository';
+import { SAVE_RESET_SESSION_KEY, type SaveRepository } from '../game/save/SaveRepository';
 import type { RestaurantSimulation } from '../game/simulation/RestaurantSimulation';
 import type { AudioService } from '../game/audio/AudioService';
+import { ConstructionShop } from './ConstructionShop';
 
 type PanelId = 'stock' | 'recipes' | 'production' | 'orders' | 'upgrades' | 'player' | 'roles' | 'professions' | 'offline' | 'settings' | 'tasks';
+
+function playerSpriteThumb(hairStyle: string): string {
+  const index = Math.max(0, ['wave', 'crop', 'bun', 'curls'].indexOf(hairStyle)) % 2;
+  return `/assets/pixel/rendered/thumbnails/player-style-${index}.png?v=0.0.4-blender-7`;
+}
 
 const ROLE_INFO: Record<HelpRole, { name: string; icon: string; profession: ProfessionId; text: string }> = {
   kitchen: { name: 'Cozinha', icon: '🍳', profession: 'cook', text: 'Ajuda no preparo e reduz a fila da cozinha.' },
@@ -24,6 +31,10 @@ export class GameUI {
   private zoom = 1;
   private latestOffline?: OfflineReport;
   private renderQueued = false;
+  private technicalMode = false;
+  private pendingPurchases: PurchaseQuote[] = [];
+  private resetArmed = false;
+  private readonly constructionShop: ConstructionShop;
 
   constructor(
     private readonly root: HTMLElement,
@@ -32,11 +43,13 @@ export class GameUI {
     private readonly repository: SaveRepository,
     private readonly audio: AudioService,
   ) {
+    this.constructionShop = new ConstructionShop(root, state, simulation, repository);
     this.renderShell();
     this.bindEvents();
     gameEvents.on<number>('camera:zoom', (zoom) => { this.zoom = zoom; this.queueRender(); });
     gameEvents.on<{ message: string; tone: string }>('toast', ({ message, tone }) => this.toast(message, tone));
     gameEvents.on('ui:open-player', () => this.open('player'));
+    gameEvents.on<boolean>('technical:changed', (enabled) => { this.technicalMode = enabled; if (this.activePanel === 'settings') this.renderPanel(); });
     setInterval(() => { this.renderDynamic(); this.refreshProductionPanel(); }, 500);
   }
 
@@ -53,18 +66,25 @@ export class GameUI {
         <header class="topbar">
           <div class="game-brand"><span>✿</span><div><strong>Bistrô Bloom</strong><small>v${GAME_VERSION}</small></div></div>
           <div class="hud-stats" id="hud-stats"></div>
+          <div class="speed-controls" aria-label="Velocidade do jogo">${[0, 1, 2, 4].map((speed) => `<button data-action="set-speed" data-speed="${speed}" aria-label="${speed === 0 ? 'Pausar' : `Velocidade ${speed} vezes`}">${speed === 0 ? 'Ⅱ' : `${speed}×`}</button>`).join('')}</div>
           <button class="icon-button" data-open="settings" aria-label="Configurações">⚙</button>
         </header>
         <main class="game-stage">
           <div id="game-canvas" aria-label="Restaurante isométrico"></div>
+          <div class="operation-alerts" id="operation-alerts" aria-live="polite"></div>
           <section class="owner-card" id="owner-card"></section>
-          <div class="shift-card"><span class="live-dot"></span><div><small>TURNO ABERTO</small><strong id="shift-customers">0 clientes no salão</strong></div></div>
-          <div class="camera-hint">Arraste para mover · Role para zoom</div>
+          <div class="shift-card"><span class="live-dot"></span><div><small>TURNO ABERTO</small><strong id="shift-customers">0 clientes no salão</strong><b id="shift-occupancy">OCUPAÇÃO: 0/10</b></div></div>
+          <div class="camera-hint">Arraste para mover · Role para zoom${developmentMode() ? ' · D: modo técnico' : ''}</div>
+          <div class="mobile-camera-controls" aria-label="Zoom do restaurante">
+            <button data-action="camera-zoom-out" aria-label="Diminuir zoom">−</button>
+            <span id="mobile-zoom">100%</span>
+            <button data-action="camera-zoom-in" aria-label="Aumentar zoom">+</button>
+          </div>
           <aside class="panel-host" id="panel-host" aria-live="polite"></aside>
         </main>
         <nav class="management-bar" aria-label="Gestão do restaurante">
           ${navButton('stock', '▦', 'Estoque')}${navButton('recipes', '▤', 'Receitas')}${navButton('production', '▶', 'Produção')}
-          ${navButton('orders', '✎', 'Pedidos')}${navButton('upgrades', '↑', 'Melhorias')}${navButton('tasks', '✓', 'Tarefas')}
+          ${navButton('orders', '✎', 'Pedidos')}${navButton('upgrades', '↑', 'Melhorias')}<button data-action="open-construction"><span>▧</span><small>Organizar</small></button>${navButton('tasks', '✓', 'Tarefas')}
         </nav>
         <div class="toast-stack" id="toast-stack"></div>
       </div>`;
@@ -79,7 +99,11 @@ export class GameUI {
       if (panel) { this.open(panel); return; }
       const action = target.dataset.action;
       if (action === 'close-panel') this.close();
-      else if (action === 'buy-ingredient') this.purchase(target.dataset.id as IngredientId);
+      else if (action === 'prepare-purchase') this.preparePurchase(target.dataset.id as IngredientId, target.dataset.mode as PurchaseMode);
+      else if (action === 'prepare-critical') this.prepareBatchPurchase('critical');
+      else if (action === 'prepare-pending') this.prepareBatchPurchase('pending');
+      else if (action === 'confirm-purchase') this.confirmPurchase();
+      else if (action === 'cancel-purchase') { this.pendingPurchases = []; this.renderPanel(); }
       else if (action === 'enqueue') this.enqueue(target.dataset.id as RecipeId);
       else if (action === 'cancel-production') this.cancelProduction(target.dataset.id!);
       else if (action === 'choose-role') this.chooseRole(target.dataset.id as HelpRole);
@@ -88,7 +112,23 @@ export class GameUI {
       else if (action === 'buy-upgrade') this.buyUpgrade(target.dataset.id as keyof GameState['upgrades']);
       else if (action === 'simulate-offline') this.simulateOffline(Number(target.dataset.seconds));
       else if (action === 'toggle-mute') { this.audio.update({ muted: !this.audio.settings.muted }); this.open('settings'); }
-      else if (action === 'reset-save') await this.resetSave();
+      else if (action === 'toggle-technical') gameEvents.emit('technical:toggle', undefined);
+      else if (action === 'open-construction') { this.close(); this.constructionShop.open(); }
+      else if (action === 'set-speed') { this.simulation.setTimeScale(Number(target.dataset.speed)); this.renderDynamic(); }
+      else if (action === 'camera-zoom-out') gameEvents.emit('camera:zoom-step', -1);
+      else if (action === 'camera-zoom-in') gameEvents.emit('camera:zoom-step', 1);
+      else if (action === 'dev-add-customer') this.simulation.debugAddCustomer();
+      else if (action === 'dev-add-group') this.simulation.debugAddGroup(4);
+      else if (action === 'dev-simulate-order') this.toast(this.simulation.debugSimulateOrder() ? 'Pedido de teste criado.' : 'Não foi possível criar o pedido.', 'info');
+      else if (action === 'dev-low-patience') this.simulation.debugReducePatience();
+      else if (action === 'dev-dirty-seat') this.simulation.debugDirtySeat();
+      else if (action === 'dev-add-stock') { for (const item of INGREDIENTS) this.state.inventory[item.id] = Math.min(item.maxStock, this.state.inventory[item.id] + item.quickBuyPackSize); this.simulation.retryBlockedOrders(); }
+      else if (action === 'dev-empty-stock') { for (const item of INGREDIENTS) this.state.inventory[item.id] = this.state.inventoryReserved[item.id]; }
+      else if (action === 'dev-fill-stock') { for (const item of INGREDIENTS) this.state.inventory[item.id] = item.maxStock; }
+      else if (action === 'dev-swap-skins') { const next = sessionStorage.getItem('bb:visual-skin-set') === 'sage' ? 'bloom' : 'sage'; sessionStorage.setItem('bb:visual-skin-set', next); window.location.reload(); }
+      else if (action === 'reset-save') { this.resetArmed = true; this.renderPanel(); }
+      else if (action === 'cancel-reset') { this.resetArmed = false; this.renderPanel(); }
+      else if (action === 'confirm-reset') await this.resetSave();
     });
     this.root.addEventListener('input', (event) => {
       const target = event.target as HTMLInputElement;
@@ -117,26 +157,41 @@ export class GameUI {
 
   private renderDynamic(): void {
     const stock = `${inventoryUsed(this.state)}/${inventoryCapacity(this.state)}`;
-    const dishes = `${readyDishUsed(this.state)}/${readyDishCapacity(this.state)}`;
     const xpStart = BALANCE.restaurantLevels[this.state.restaurantLevel - 1] ?? 0;
     const xpEnd = BALANCE.restaurantLevels[this.state.restaurantLevel] ?? BALANCE.restaurantLevels.at(-1)!;
     const xpRatio = this.state.restaurantLevel >= 3 ? 1 : (this.state.restaurantXp - xpStart) / Math.max(1, xpEnd - xpStart);
+    const missing = this.simulation.missingIngredients();
+    const outCount = INGREDIENTS.filter((item) => this.state.inventory[item.id] === 0).length;
+    const lowCount = INGREDIENTS.filter((item) => this.state.inventory[item.id] > 0 && this.state.inventory[item.id] <= item.reorderPoint).length;
     this.root.querySelector<HTMLElement>('#hud-stats')!.innerHTML = `
       ${hudPill('coin', '●', this.state.coins.toLocaleString('pt-BR'), 'Moedas')}
       <div class="hud-pill level-pill"><span class="level-badge">${this.state.restaurantLevel}</span><div><small>NÍVEL</small><b>${this.state.restaurantXp} XP</b><i><em style="width:${Math.min(100, xpRatio * 100)}%"></em></i></div></div>
       ${hudPill('rep', '♥', `${Math.round(this.state.reputation)}%`, 'Reputação')}
-      ${hudPill('stock', '▦', stock, 'Estoque')}${hudPill('dish', '◉', dishes, 'Pratos')}${hudPill('zoom', '⌕', `${Math.round(this.zoom * 100)}%`, 'Zoom')}`;
+      <button class="hud-pill stock ${missing.length || outCount ? 'critical' : lowCount ? 'warning' : ''}" data-open="stock"><span>▦</span><div><small>Estoque · ${lowCount} baixos</small><b>${outCount} em falta · ${stock}</b></div>${missing.length ? '<i class="alert-dot"></i>' : ''}</button>
+      ${hudPill('dish', '◉', `${this.simulation.orders.filter((order) => !['consumed', 'cancelled'].includes(order.state)).length} pedidos · ${this.simulation.dishesAwaitingPickup()} retirada`, 'Operação')}${hudPill('zoom', '⌕', `${Math.round(this.zoom * 100)}%`, 'Zoom')}`;
+
+    const alerts: string[] = [];
+    if (missing.length) alerts.push('Sem ingredientes');
+    if (this.simulation.stations.some((station) => station.state === 'blocked')) alerts.push('Estação bloqueada');
+    if (this.simulation.counterSlots.every((slot) => slot.state !== 'free')) alerts.push('Balcão cheio');
+    if (this.simulation.customers.some((customer) => customer.state === 'queueing') && this.simulation.seatedCustomerCount() >= this.simulation.totalCapacity()) alerts.push('Nenhuma mesa disponível');
+    if (this.simulation.customers.some((customer) => customer.patience / customer.maxPatience <= .2)) alerts.push('Cliente perdendo paciência');
+    if (readyDishUsed(this.state) >= readyDishCapacity(this.state)) alerts.push('Armazenamento cheio');
+    this.root.querySelector<HTMLElement>('#operation-alerts')!.innerHTML = alerts.map((alert) => `<span>! ${alert}</span>`).join('');
 
     const profile = this.state.profile!;
     const role = ROLE_INFO[profile.helpRole];
     const profession = profile.professions[role.profession];
     this.root.querySelector<HTMLElement>('#owner-card')!.innerHTML = `
-      <button class="owner-portrait" data-open="player" aria-label="Abrir perfil"><span class="portrait-head" style="--skin:${skinColor(profile.appearance.skin)};--hair:${hairColor(profile.appearance.hairColor)}"></span><i>✦</i></button>
-      <div class="owner-copy"><small>PROPRIETÁRIO · NÍVEL ${profile.level}</small><strong>${escapeHtml(profile.name)}</strong><span>${role.icon} ${role.name} · ${this.simulation.playerTaskLabel()}</span>
+      <button class="owner-portrait" data-open="player" aria-label="Abrir perfil"><img src="${playerSpriteThumb(profile.appearance.hairStyle)}" alt="" /><i>✦</i></button>
+      <div class="owner-copy"><small>PROPRIETÁRIO · NÍVEL ${profile.level}</small><strong>${escapeHtml(profile.name)}</strong><span>${role.icon} ${role.name} · ${this.simulation.playerTaskLabel()}</span><em>Destino ${this.simulation.playerDestinationLabel()} · ${this.simulation.playerIdleReason()}</em>
         <div class="mini-progress"><i style="width:${professionProgress(profession.xp, profession.level)}%"></i></div>
       </div><button class="help-button" data-open="roles">Onde ajudar?</button>`;
     const count = this.simulation.activeCustomerCount();
     this.root.querySelector<HTMLElement>('#shift-customers')!.textContent = `${count} ${count === 1 ? 'cliente' : 'clientes'} no salão`;
+    this.root.querySelector<HTMLElement>('#shift-occupancy')!.textContent = `OCUPAÇÃO: ${this.simulation.seatedCustomerCount()}/${this.simulation.totalCapacity()}`;
+    this.root.querySelector<HTMLElement>('#mobile-zoom')!.textContent = `${Math.round(this.zoom * 100)}%`;
+    this.root.querySelectorAll<HTMLButtonElement>('[data-action="set-speed"]').forEach((button) => button.classList.toggle('active', Number(button.dataset.speed) === this.simulation.timeScale()));
   }
 
   private renderPanel(): void {
@@ -161,10 +216,15 @@ export class GameUI {
   }
 
   private stockPanel(): string {
-    return `<div class="capacity-card"><span>Capacidade total</span><strong>${inventoryUsed(this.state)} / ${inventoryCapacity(this.state)}</strong><div><i style="width:${inventoryUsed(this.state) / inventoryCapacity(this.state) * 100}%"></i></div></div>
-      <div class="item-list">${INGREDIENTS.map((item) => {
-        const amount = this.state.inventory[item.id]; const low = amount < 3; const full = amount >= item.maxAmount || inventoryUsed(this.state) >= inventoryCapacity(this.state);
-        return `<article class="stock-row ${low ? 'low' : ''}"><span class="item-icon">${item.icon}</span><div><strong>${item.name}</strong><small>${amount} / ${item.maxAmount} ${item.unit}${low ? ' · estoque baixo' : ''}</small></div><button data-action="buy-ingredient" data-id="${item.id}" ${full || this.state.coins < item.purchaseCost ? 'disabled' : ''}>+${item.purchaseAmount}<em>${item.purchaseCost} ●</em></button></article>`;
+    const missing = new Map(this.simulation.missingIngredients().map((item) => [item.id, item]));
+    const sorted = [...INGREDIENTS].sort((a, b) => stockUrgency(this.state.inventory[b.id], b.reorderPoint, missing.get(b.id)?.needed ?? 0) - stockUrgency(this.state.inventory[a.id], a.reorderPoint, missing.get(a.id)?.needed ?? 0));
+    const confirmation = this.pendingPurchases.length ? `<div class="purchase-confirm"><strong>CONFIRMAR REPOSIÇÃO</strong><span>${this.pendingPurchases.reduce((sum, quote) => sum + quote.amount, 0)} unidades · ${this.pendingPurchases.reduce((sum, quote) => sum + quote.cost, 0)} moedas · ${this.pendingPurchases.reduce((sum, quote) => sum + quote.spaceNeeded, 0)} espaços</span>${this.pendingPurchases.map((quote) => `<small>${INGREDIENT_BY_ID[quote.ingredientId].name}: +${quote.amount} → ${quote.finalAmount}/${INGREDIENT_BY_ID[quote.ingredientId].maxStock}</small>`).join('')}<div><button data-action="cancel-purchase">Cancelar</button><button data-action="confirm-purchase">Comprar</button></div></div>` : '';
+    return `${confirmation}<div class="capacity-card"><span>Capacidade total</span><strong>${inventoryUsed(this.state)} / ${inventoryCapacity(this.state)}</strong><div><i style="width:${inventoryUsed(this.state) / inventoryCapacity(this.state) * 100}%"></i></div></div>
+      <div class="stock-actions"><button data-action="prepare-critical">Comprar críticos</button><button data-action="prepare-pending">Comprar para pedidos</button></div>
+      <div class="item-list">${sorted.map((item) => {
+        const amount = this.state.inventory[item.id]; const needed = missing.get(item.id)?.needed ?? 0; const status = stockStatus(amount, item.reorderPoint, needed, item.maxStock);
+        const full = amount >= item.maxStock || inventoryUsed(this.state) >= inventoryCapacity(this.state);
+        return `<article class="stock-row ${status.css}"><span class="item-icon">${item.icon}</span><div><strong>${item.name} <i>${status.icon} ${status.label}</i></strong><small>${amount} / ${item.maxStock} ${item.unit} · pedidos: ${needed}</small></div><div class="quick-buttons"><button data-action="prepare-purchase" data-mode="pack" data-id="${item.id}" ${full || this.state.coins < item.purchasePrice ? 'disabled' : ''}>1 pacote<em>${item.purchasePrice} ●</em></button><button data-action="prepare-purchase" data-mode="target" data-id="${item.id}" ${full ? 'disabled' : ''}>Repor meta</button></div></article>`;
       }).join('')}</div>`;
   }
 
@@ -207,7 +267,7 @@ export class GameUI {
   }
 
   private ordersPanel(): string {
-    const active = this.simulation.orders.filter((order) => !['delivered', 'cancelled'].includes(order.state));
+    const active = this.simulation.orders.filter((order) => !['consumed', 'cancelled'].includes(order.state));
     return active.length ? `<div class="order-list">${active.map((order) => { const recipe = RECIPE_BY_ID[order.recipeId]; const customer = this.simulation.customers.find((item) => item.id === order.customerId); return `<article><span>${recipe.icon}</span><div><strong>${recipe.name} × ${order.quantity}</strong><small>${orderState(order.state)} · ${customer ? this.simulation.customerLabel(customer) : ''}</small></div><b>${order.stepIndex}/${recipe.steps.length}</b></article>`; }).join('')}</div>` : emptyState('✓', 'Nenhum pedido pendente', 'A equipe está em dia com o salão.') ;
   }
 
@@ -217,7 +277,8 @@ export class GameUI {
       { id: 'dishStorage', icon: '◉', name: 'Prateleira térmica', text: `+${BALANCE.upgrades.dishStorage.amount} pratos prontos` },
       { id: 'stationSpeed', icon: '⚡', name: 'Utensílios eficientes', text: `${Math.round(BALANCE.upgrades.stationSpeed.amount * 100)}% mais rapidez nas estações` },
     ];
-    return `<p class="panel-intro">Melhorias permanentes para este restaurante.</p><div class="upgrade-list">${items.map((item) => { const level = this.state.upgrades[item.id]; const config = BALANCE.upgrades[item.id]; const cost = config.baseCost * (level + 1); return `<article><span>${item.icon}</span><div><strong>${item.name}</strong><small>${item.text}</small><em>Nível ${level}</em></div><button data-action="buy-upgrade" data-id="${item.id}" ${this.state.coins < cost || level >= 3 ? 'disabled' : ''}>${level >= 3 ? 'Máximo' : `${cost} ●`}</button></article>`; }).join('')}</div>`;
+    const equipment = EQUIPMENT_ASSETS.map((item) => `<article class="equipment-card"><img src="/assets/pixel/rendered/thumbnails/${item.assetId}.png" alt="${item.name}"/><div><strong>${item.name}</strong><small>Nível visual 1 · ${item.footprint.width}×${item.footprint.depth}</small></div></article>`).join('');
+    return `<p class="panel-intro">Melhorias permanentes para este restaurante.</p><div class="upgrade-list">${items.map((item) => { const level = this.state.upgrades[item.id]; const config = BALANCE.upgrades[item.id]; const cost = config.baseCost * (level + 1); return `<article><span>${item.icon}</span><div><strong>${item.name}</strong><small>${item.text}</small><em>Nível ${level}</em></div><button data-action="buy-upgrade" data-id="${item.id}" ${this.state.coins < cost || level >= 3 ? 'disabled' : ''}>${level >= 3 ? 'Máximo' : `${cost} ●`}</button></article>`; }).join('')}</div><h3>Equipamentos instalados</h3><p class="panel-intro">Visuais Blender ativos nesta versão. Os próximos níveis ainda não estão disponíveis.</p><div class="equipment-catalog">${equipment}</div>`;
   }
 
   private rolesPanel(): string {
@@ -233,7 +294,7 @@ export class GameUI {
   private playerPanel(): string {
     const profile = this.state.profile!; const role = ROLE_INFO[profile.helpRole];
     const totalTasks = Object.values(profile.taskHistory).reduce((sum, value) => sum + value, 0);
-    return `<div class="profile-hero"><div class="large-portrait" style="--skin:${skinColor(profile.appearance.skin)};--hair:${hairColor(profile.appearance.hairColor)};--outfit:${outfitColor(profile.appearance.outfitColor)}"><span></span><i></i></div><div><small>PROPRIETÁRIO DO BISTRÔ</small><h3>${escapeHtml(profile.name)}</h3><p>Nível geral ${profile.level} · ${profile.xp} XP</p></div></div>
+    return `<div class="profile-hero"><div class="large-portrait"><img src="${playerSpriteThumb(profile.appearance.hairStyle)}" alt="Sprite de ${escapeHtml(profile.name)}" /></div><div><small>PROPRIETÁRIO DO BISTRÔ</small><h3>${escapeHtml(profile.name)}</h3><p>Nível geral ${profile.level} · ${profile.xp} XP</p></div></div>
       <div class="profile-stats"><span><small>Função atual</small><b>${role.icon} ${role.name}</b></span><span><small>Tarefa atual</small><b>${this.simulation.playerTaskLabel()}</b></span><span><small>Tarefas feitas</small><b>${totalTasks}</b></span></div>
       <div class="button-stack"><button class="primary-button" data-open="roles">Onde ajudar?</button><button class="secondary-button" data-open="professions">Ver profissões e bônus</button></div>
       <div class="future-note">Personalização adicional e cosméticos serão expandidos em versões futuras.</div>`;
@@ -243,30 +304,34 @@ export class GameUI {
     const role = this.state.profile!.helpRole;
     const tasks = this.simulation.tasks.list();
     const player = this.simulation.actors.find((actor) => actor.kind === 'player')!;
-    return `<div class="current-task"><small>SUA PRIORIDADE</small><strong>${ROLE_INFO[role].icon} ${ROLE_INFO[role].name}</strong><span>${player.activity}</span>${player.taskId ? '<button data-action="cancel-player-task">Cancelar se ainda não iniciou</button>' : ''}</div>
-      ${tasks.length ? `<div class="task-list">${tasks.map((task) => `<article class="${task.role === role ? '' : 'muted'}"><span>${taskIcon(task.kind)}</span><div><strong>${taskLabel(task.kind)}</strong><small>${ROLE_INFO[task.role].name} · ${task.status === 'available' ? 'Disponível' : task.status === 'active' ? 'Em execução' : 'Reservada'}</small></div>${task.status === 'available' && task.role === role ? `<button data-action="prioritize-task" data-id="${task.id}">Fazer agora</button>` : `<i>${task.reservedBy ? '✓' : '—'}</i>`}</article>`).join('')}</div>` : emptyState('✓', 'Nenhuma tarefa aguardando', 'A operação está tranquila neste momento.')}`;
+    return `<div class="current-task"><small>SUA PRIORIDADE</small><strong>${ROLE_INFO[role].icon} ${ROLE_INFO[role].name}</strong><span>${player.activity} · destino ${this.simulation.playerDestinationLabel()}</span>${player.taskId ? '<button data-action="cancel-player-task">Cancelar se ainda não iniciou</button>' : ''}</div>
+      ${tasks.length ? `<div class="task-list">${tasks.map((task) => `<article class="${task.role === role ? '' : 'muted'}"><span>${taskIcon(task.kind)}</span><div><strong>${taskLabel(task.kind)}</strong><small>${ROLE_INFO[task.role].name} · ${taskStatusLabel(task.status)} · espera ${Math.floor(task.waitSeconds)}s</small></div>${task.status === 'pending' && task.role === role ? `<button data-action="prioritize-task" data-id="${task.id}">Fazer agora</button>` : `<i>${task.assignedActorId ? '✓' : '—'}</i>`}</article>`).join('')}</div>` : emptyState('✓', 'Nenhuma tarefa aguardando', 'A operação está tranquila neste momento.')}`;
   }
 
   private offlinePanel(): string {
     const report = this.latestOffline;
-    if (!report) return `<p class="panel-intro">Simule o progresso para conferir o cálculo resumido e o limite de 8 horas.</p>${this.devTimeButtons()}`;
+    if (!report) return `<p class="panel-intro">O progresso ausente é calculado automaticamente ao voltar ao bistrô, com limite de 8 horas.</p>${this.devTimeButtons()}`;
     const produced = Object.entries(report.produced).map(([id, amount]) => `${RECIPE_BY_ID[id as RecipeId].icon} ${amount}`).join('  ') || 'Nenhum';
     const sold = Object.entries(report.sold).map(([id, amount]) => `${RECIPE_BY_ID[id as RecipeId].icon} ${amount}`).join('  ') || 'Nenhum';
     return `<div class="offline-hero"><span>☀</span><div><small>TEMPO AUSENTE</small><strong>${formatDuration(report.absentSeconds)}</strong><p>${formatDuration(report.calculatedSeconds)} calculadas ${report.capped ? '· limite aplicado' : ''}</p></div></div>
       <div class="report-grid"><span><small>Produzidos</small><b>${produced}</b></span><span><small>Vendidos</small><b>${sold}</b></span><span><small>Moedas</small><b>+${report.coins} ●</b></span><span><small>Experiência</small><b>+${report.experience} XP</b></span></div>
       <article class="character-report"><span>${ROLE_INFO[report.characterRole].icon}</span><div><strong>${this.state.profile!.name} ajudou em ${ROLE_INFO[report.characterRole].name}</strong><small>${report.characterTasks} tarefas estimadas · +${report.characterGeneralXp} XP geral · +${report.characterProfessionXp} XP profissional</small><p>Bônus aplicado: ${report.bonusPercent}% · sem tarefas/bloqueado: ${formatDuration(report.idleSeconds)}</p></div></article>
       ${report.stoppedReasons.length ? `<div class="stop-reasons"><strong>Observações</strong>${report.stoppedReasons.map((reason) => `<span>• ${reason}</span>`).join('')}</div>` : ''}
-      <h3>Ferramentas de desenvolvimento</h3>${this.devTimeButtons()}`;
+      ${developmentMode() ? `<h3>Ferramentas de desenvolvimento</h3>${this.devTimeButtons()}` : ''}`;
   }
 
   private devTimeButtons(): string {
+    if (!developmentMode()) return '';
     return `<div class="dev-times"><button data-action="simulate-offline" data-seconds="600">10 min</button><button data-action="simulate-offline" data-seconds="3600">1 h</button><button data-action="simulate-offline" data-seconds="14400">4 h</button><button data-action="simulate-offline" data-seconds="28800">8 h</button><button data-action="simulate-offline" data-seconds="36000">10 h → limite</button></div>`;
   }
 
   private settingsPanel(): string {
-    return `<div class="settings-list"><label><span>Volume geral <b data-audio-value="master">${Math.round(this.audio.settings.master * 100)}%</b></span><input data-audio="master" type="range" min="0" max="1" step="0.05" value="${this.audio.settings.master}" /></label><label><span>Efeitos <b data-audio-value="effects">${Math.round(this.audio.settings.effects * 100)}%</b></span><input data-audio="effects" type="range" min="0" max="1" step="0.05" value="${this.audio.settings.effects}" /></label><button class="secondary-button" data-action="toggle-mute">${this.audio.settings.muted ? 'Ativar áudio' : 'Silenciar tudo'}</button></div>
-      <div class="settings-section"><h3>Progresso offline</h3><p>O cálculo usa no máximo 8 horas e respeita ingredientes, fila e capacidade.</p><button class="secondary-button" data-open="offline">Abrir simulador</button></div>
-      <div class="danger-zone"><h3>Recomeçar</h3><p>Apaga o restaurante, personagem e todo o progresso deste dispositivo.</p><button data-action="reset-save">Apagar save…</button></div>`;
+    return `<div class="settings-list"><label><span>Volume geral <b data-audio-value="master">${Math.round(this.audio.settings.master * 100)}%</b></span><input data-audio="master" type="range" min="0" max="1" step="0.05" value="${this.audio.settings.master}" /></label><label><span>Efeitos <b data-audio-value="effects">${Math.round(this.audio.settings.effects * 100)}%</b></span><input data-audio="effects" type="range" min="0" max="1" step="0.05" value="${this.audio.settings.effects}" /></label><button class="secondary-button" data-action="toggle-mute">${this.audio.settings.muted ? 'Ativar áudio' : 'Silenciar tudo'}</button>${developmentMode() ? `<button class="secondary-button" data-action="toggle-technical">${this.technicalMode ? 'Desativar' : 'Ativar'} modo técnico</button>` : ''}</div>
+      <div class="settings-section"><h3>Progresso offline</h3><p>O cálculo usa no máximo 8 horas e respeita ingredientes, fila e capacidade.</p>${developmentMode() ? '<button class="secondary-button" data-open="offline">Abrir simulador</button>' : ''}</div>
+      ${developmentMode() ? `<div class="settings-section"><h3>Painel de desenvolvimento</h3><div class="dev-times"><button data-action="dev-add-customer">+ cliente</button><button data-action="dev-add-group">+ grupo 4</button><button data-action="dev-simulate-order">Simular pedido</button><button data-action="dev-low-patience">Paciência baixa</button><button data-action="dev-dirty-seat">Sujar lugar</button><button data-action="dev-add-stock">+ ingredientes</button><button data-action="dev-empty-stock">Esvaziar estoque</button><button data-action="dev-fill-stock">Preencher estoque</button><button data-action="dev-swap-skins">Trocar conjunto visual</button></div><p>Modo técnico: grade, rotas, reservas e troca de skins sem alterar footprints.</p></div>` : ''}
+      <div class="danger-zone"><h3>Recomeçar</h3><p>Apaga o restaurante, personagem e todo o progresso deste dispositivo.</p>${this.resetArmed
+        ? '<strong>Esta ação não pode ser desfeita.</strong><div class="button-stack"><button data-action="confirm-reset">Confirmar e recomeçar</button><button class="secondary-button" data-action="cancel-reset">Cancelar</button></div>'
+        : '<button data-action="reset-save">Apagar save…</button>'}</div>`;
   }
 
   private renderSettingsValues(): void {
@@ -275,10 +340,27 @@ export class GameUI {
     if (effects) effects.textContent = `${Math.round(this.audio.settings.effects * 100)}%`;
   }
 
-  private purchase(id: IngredientId): void {
-    const result = buyIngredient(this.state, id);
-    if (result.ok) { this.simulation.retryBlockedOrders(); this.toast(`${INGREDIENT_BY_ID[id].name} comprado.`, 'success'); }
-    else this.toast(result.reason ?? 'Não foi possível comprar.', 'warning');
+  private preparePurchase(id: IngredientId, mode: PurchaseMode): void {
+    const quote = quotePurchase(this.state, id, mode);
+    if (!quote.ok) { this.toast(quote.reason ?? 'Não foi possível preparar a compra.', 'warning'); return; }
+    this.pendingPurchases = [quote]; this.renderPanel();
+  }
+
+  private prepareBatchPurchase(kind: 'critical' | 'pending'): void {
+    const missingIds = new Set(this.simulation.missingIngredients().map((item) => item.id));
+    const ids = INGREDIENTS.filter((item) => kind === 'pending' ? missingIds.has(item.id) : missingIds.has(item.id) || this.state.inventory[item.id] <= item.reorderPoint).map((item) => item.id);
+    const shadow = { ...this.state, coins: this.state.coins, inventory: { ...this.state.inventory }, inventoryReserved: { ...this.state.inventoryReserved } };
+    const quotes: PurchaseQuote[] = [];
+    for (const id of ids) { const quote = quotePurchase(shadow, id, kind === 'pending' ? 'minimum' : 'target'); if (quote.ok && executePurchase(shadow, quote).ok) quotes.push(quote); }
+    if (!quotes.length) { this.toast('Nenhuma compra necessária ou possível.', 'info'); return; }
+    this.pendingPurchases = quotes; this.renderPanel();
+  }
+
+  private confirmPurchase(): void {
+    if (!this.pendingPurchases.length) return;
+    let bought = 0;
+    for (const quote of this.pendingPurchases) if (executePurchase(this.state, quote).ok) bought += quote.amount;
+    this.pendingPurchases = []; this.simulation.retryBlockedOrders(); this.toast(bought ? `${bought} ingredientes comprados.` : 'A compra não pôde ser concluída.', bought ? 'success' : 'warning');
     this.renderDynamic(); this.renderPanel();
   }
 
@@ -311,8 +393,9 @@ export class GameUI {
   }
 
   private async resetSave(): Promise<void> {
-    if (!window.confirm('Apagar definitivamente o Bistrô Bloom e todo o progresso salvo?')) return;
-    await this.repository.clear(); window.location.reload();
+    sessionStorage.setItem(SAVE_RESET_SESSION_KEY, '1');
+    await this.repository.clear();
+    window.location.reload();
   }
 
   private toast(message: string, tone = 'info'): void {
@@ -327,7 +410,8 @@ function hudPill(css: string, icon: string, value: string, label: string): strin
 function emptyState(icon: string, title: string, text: string): string { return `<div class="empty-state"><span>${icon}</span><strong>${title}</strong><p>${text}</p></div>`; }
 function escapeHtml(value: string): string { const element = document.createElement('div'); element.textContent = value; return element.innerHTML; }
 function statusLabel(status: string): string { return ({ queued: 'Na fila', producing: 'Em preparo', blocked_ingredients: 'Sem ingredientes', blocked_storage: 'Armazenamento cheio' } as Record<string, string>)[status] ?? status; }
-function orderState(state: string): string { return ({ blocked: 'Sem ingredientes', cooking: 'Em preparo', ready: 'Pronto para servir' } as Record<string, string>)[state] ?? state; }
+function orderState(state: string): string { return ({ requested: 'Solicitado', awaiting_ingredients: 'Sem ingredientes', awaiting_station: 'Aguardando estação', preparing: 'Em preparo', awaiting_pickup: 'No balcão', transporting: 'Em transporte', delivered: 'Entregue', consumed: 'Consumido', cancelled: 'Cancelado' } as Record<string, string>)[state] ?? state; }
+function taskStatusLabel(state: string): string { return ({ pending: 'Pendente', reserved: 'Reservada', moving: 'Em deslocamento', executing: 'Em execução', blocked: 'Bloqueada', completed: 'Concluída', cancelled: 'Cancelada' } as Record<string, string>)[state] ?? state; }
 function taskIcon(kind: string): string { return ({ take_order: '✎', cook_step: '🍳', deliver: '🔔', payment: '●', clean: '✨', stock_support: '▦' } as Record<string, string>)[kind] ?? '•'; }
 function taskLabel(kind: string): string { return ({ take_order: 'Anotar pedido', cook_step: 'Preparar receita', deliver: 'Entregar prato', payment: 'Receber pagamento', clean: 'Limpar mesa', stock_support: 'Apoiar estoque' } as Record<string, string>)[kind] ?? kind; }
 function formatDuration(seconds: number): string { const hours = Math.floor(seconds / 3600); const minutes = Math.floor((seconds % 3600) / 60); return hours ? `${hours}h ${minutes}min` : `${minutes} min`; }
@@ -335,3 +419,12 @@ function professionProgress(xp: number, level: number): number { const start = B
 function skinColor(id: string): string { return ({ porcelain: '#f6d4bd', honey: '#d99a68', cocoa: '#8b5a3c', ebony: '#553521' } as Record<string, string>)[id] ?? '#d99a68'; }
 function hairColor(id: string): string { return ({ espresso: '#3a241d', chestnut: '#74432d', copper: '#b95f3a', midnight: '#242635' } as Record<string, string>)[id] ?? '#3a241d'; }
 function outfitColor(id: string): string { return ({ teal: '#1d766d', coral: '#d96652', gold: '#d49a3a', plum: '#76536c' } as Record<string, string>)[id] ?? '#1d766d'; }
+function stockUrgency(amount: number, reorderPoint: number, needed: number): number { return amount === 0 ? 5 : needed > amount ? 4 : amount <= reorderPoint ? 3 : 1; }
+function stockStatus(amount: number, reorderPoint: number, needed: number, max: number): { css: string; icon: string; label: string } {
+  if (amount >= max) return { css: 'full', icon: '■', label: 'cheio' };
+  if (amount === 0) return { css: 'out', icon: '!', label: 'em falta' };
+  if (needed > amount) return { css: 'critical', icon: '!!', label: 'crítico' };
+  if (amount <= reorderPoint) return { css: 'low', icon: '↓', label: 'baixo' };
+  return { css: 'normal', icon: '✓', label: 'normal' };
+}
+function developmentMode(): boolean { return ['localhost', '127.0.0.1'].includes(window.location.hostname); }

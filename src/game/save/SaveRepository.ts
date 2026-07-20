@@ -4,11 +4,14 @@ export interface SaveRepository {
   load(): Promise<GameState | null>;
   save(state: GameState): Promise<void>;
   clear(): Promise<void>;
+  backupLegacy(state: GameState): Promise<void>;
 }
 
 const DB_NAME = 'bistro-bloom';
 const STORE = 'saves';
 const KEY = 'main';
+const BACKUP_KEY = 'backup-v0.0.4';
+export const SAVE_RESET_SESSION_KEY = 'bistro-bloom-reset-in-progress';
 
 export class IndexedDbSaveRepository implements SaveRepository {
   private async database(): Promise<IDBDatabase> {
@@ -47,6 +50,24 @@ export class IndexedDbSaveRepository implements SaveRepository {
     }
   }
 
+  async backupLegacy(state: GameState): Promise<void> {
+    const clean = JSON.parse(JSON.stringify(state)) as GameState;
+    try {
+      const db = await this.database();
+      const existing = await new Promise<GameState | undefined>((resolve, reject) => {
+        const request = db.transaction(STORE, 'readonly').objectStore(STORE).get(BACKUP_KEY);
+        request.onsuccess = () => resolve(request.result as GameState | undefined); request.onerror = () => reject(request.error);
+      });
+      if (existing) return;
+      await new Promise<void>((resolve, reject) => {
+        const request = db.transaction(STORE, 'readwrite').objectStore(STORE).put(clean, BACKUP_KEY);
+        request.onsuccess = () => resolve(); request.onerror = () => reject(request.error);
+      });
+    } catch {
+      if (!localStorage.getItem(`${DB_NAME}:${BACKUP_KEY}`)) localStorage.setItem(`${DB_NAME}:${BACKUP_KEY}`, JSON.stringify(clean));
+    }
+  }
+
   async clear(): Promise<void> {
     try {
       const db = await this.database();
@@ -56,6 +77,7 @@ export class IndexedDbSaveRepository implements SaveRepository {
       });
     } finally {
       localStorage.removeItem(DB_NAME);
+      localStorage.removeItem(`${DB_NAME}:${BACKUP_KEY}`);
     }
   }
 }

@@ -14,6 +14,14 @@ describe('progresso offline', () => {
     expect(report.capped).toBe(true);
   });
 
+  it.each([600, 3600, 14_400, 28_800, 43_200])('calcula %s segundos sem exceder oito horas', (absent) => {
+    const now = 1_800_000_000_000;
+    const state = createDefaultState(now - absent * 1000);
+    const report = calculateOfflineProgress(state, now);
+    expect(report.calculatedSeconds).toBe(Math.min(absent, BALANCE.offline.maxSeconds));
+    expect(Object.values(state.inventory).every((amount) => amount >= 0)).toBe(true);
+  });
+
   it('produz, vende e não vende pratos inexistentes', () => {
     const now = 1_800_000_000_000;
     const state = createDefaultState(now - 60 * 60 * 1000);
@@ -36,5 +44,26 @@ describe('progresso offline', () => {
     expect(second.calculatedSeconds).toBe(0);
     expect(second.coins).toBe(0);
     expect(state.coins).toBe(coinsAfterFirst);
+  });
+
+  it('para com ingredientes vazios sem gerar estoque negativo', () => {
+    const now = 1_800_000_000_000;
+    const state = createDefaultState(now - 3600 * 1000);
+    for (const id of Object.keys(state.inventory) as (keyof typeof state.inventory)[]) state.inventory[id] = 0;
+    enqueueProduction(state, 'omelette', 3);
+    const report = calculateOfflineProgress(state, now);
+    expect(report.produced.omelette ?? 0).toBe(0);
+    expect(report.stoppedReasons.some((reason) => reason.includes('ingredientes'))).toBe(true);
+    expect(Object.values(state.inventory).every((amount) => amount >= 0)).toBe(true);
+  });
+
+  it('respeita armazenamento cheio durante a produção offline', () => {
+    const now = 1_800_000_000_000;
+    const state = createDefaultState(now - 10 * 1000);
+    state.readyDishes.coffee = BALANCE.readyDishCapacity;
+    enqueueProduction(state, 'omelette', 1);
+    const report = calculateOfflineProgress(state, now);
+    expect(report.produced.omelette ?? 0).toBe(0);
+    expect(report.stoppedReasons.some((reason) => reason.includes('armazenamento'))).toBe(true);
   });
 });
