@@ -114,7 +114,7 @@ export interface CounterSlotRuntime {
 const TASK_LABELS: Record<TaskKind, string> = {
   take_order: 'Anotando pedido', cook_step: 'Preparando prato', deliver: 'Servindo lugar',
   payment: 'Recebendo pagamento', clean: 'Limpando lugar', stock_support: 'Repondo pedido',
-  restock_purchase: 'Guardando ingredientes', production_batch: 'Produzindo lote',
+  restock_purchase: 'Buscando estoque', production_batch: 'Produzindo lote',
 };
 
 const CUSTOMER_LABELS: Record<CustomerState, string> = {
@@ -588,9 +588,9 @@ export class RestaurantSimulation {
         failPurchaseRequest(this.state, request.id, 'O móvel de armazenamento ou seu WorkSlot não está disponível.'); continue;
       }
       this.tasks.add({
-        key: `purchase:${request.id}`, kind: 'restock_purchase', role: 'stock', target: destination.point,
-        duration: 2.4, priority: request.priority,
-        payload: { purchaseRequestId: request.id, storageId: allocation.placedFurnitureId, workSlotId: destination.workSlotId },
+        key: `purchase:${request.id}:outbound`, kind: 'restock_purchase', role: 'stock', target: STREET_ENTRY_POINTS[1],
+        duration: 1.2, priority: request.priority,
+        payload: { purchaseRequestId: request.id, restockStage: 'outbound', storageId: allocation.placedFurnitureId, workSlotId: destination.workSlotId, storageX: destination.point.x, storageY: destination.point.y },
         reservations: [
           { type: 'workSlot', id: destination.workSlotId }, { type: 'storage', id: allocation.placedFurnitureId },
           ...request.lines.map((line) => ({ type: 'ingredient' as const, id: line.ingredientId })),
@@ -693,8 +693,8 @@ export class RestaurantSimulation {
     actor.taskId = task.id; actor.path = path; actor.pathStatus = path.length ? 'moving' : 'arrived';
     if (path.length) this.tasks.markMoving(task.id, actor.id);
     if (task.kind === 'deliver' && task.payload.deliveryStage === 'serve') { actor.carrying = 'dish'; actor.carryingOrderId = String(task.payload.orderId); }
-    if (task.kind === 'stock_support' || task.kind === 'restock_purchase') actor.carrying = 'ingredients';
-    if (task.kind === 'restock_purchase') setPurchaseRequestStage(this.state, String(task.payload.purchaseRequestId), 'delivering', actor.id, Date.now());
+    if (task.kind === 'stock_support' || (task.kind === 'restock_purchase' && task.payload.restockStage === 'inbound')) actor.carrying = 'ingredients';
+    if (task.kind === 'restock_purchase') setPurchaseRequestStage(this.state, String(task.payload.purchaseRequestId), task.payload.restockStage === 'inbound' ? 'delivering' : 'purchasing', actor.id, Date.now());
     if (task.kind === 'production_batch') {
       const productionTask = this.state.production.tasks.find((item) => item.id === task.payload.productionTaskId);
       if (productionTask) productionTask.assignedStaffId = actor.id;
@@ -715,9 +715,10 @@ export class RestaurantSimulation {
       if (order.ingredientsState === 'reserved') order.ingredientsState = 'consumed';
       order.state = 'preparing'; order.assignedActorId = actor.id;
     }
-    if (task.kind === 'restock_purchase') setPurchaseRequestStage(this.state, String(task.payload.purchaseRequestId), 'storing', actor.id, Date.now());
+    if (task.kind === 'restock_purchase' && task.payload.restockStage === 'inbound') setPurchaseRequestStage(this.state, String(task.payload.purchaseRequestId), 'storing', actor.id, Date.now());
     if (task.kind === 'production_batch') markProductionTaskStarted(this.state, String(task.payload.productionTaskId), actor.id, Date.now());
-    actor.taskRemaining = this.taskDuration(actor, task); actor.activity = TASK_LABELS[task.kind]; actor.idleReason = '';
+    actor.taskRemaining = this.taskDuration(actor, task);
+    actor.activity = task.kind === 'restock_purchase' && task.payload.restockStage === 'inbound' ? 'Voltando com o estoque' : TASK_LABELS[task.kind]; actor.idleReason = '';
     const station = this.stationFromTask(task);
     if (station) {
       station.state = 'in_use'; station.workerId = actor.id; station.remaining = actor.taskRemaining;
@@ -766,6 +767,17 @@ export class RestaurantSimulation {
     else if (task.kind === 'clean' && table && seat && seat.state === 'dirty') {
       seat.state = 'free'; seat.orderId = undefined; seat.reservationId = undefined; this.refreshTableState(table);
     } else if (task.kind === 'restock_purchase') {
+      if (task.payload.restockStage === 'outbound') {
+        actor.carrying = 'ingredients';
+        const inbound = this.tasks.add({
+          key: `purchase:${task.payload.purchaseRequestId}:inbound`, kind: 'restock_purchase', role: 'stock',
+          target: { x: Number(task.payload.storageX), y: Number(task.payload.storageY) }, duration: 2.4, priority: Math.min(200, task.priority + 20),
+          payload: { ...task.payload, restockStage: 'inbound' }, reservations: task.reservations,
+        }, this.simulationTime);
+        actor.preferredTaskId = inbound.id;
+        setPurchaseRequestStage(this.state, String(task.payload.purchaseRequestId), 'delivering', actor.id, Date.now());
+        return;
+      }
       actor.carrying = undefined;
       const result = completePurchaseRequest(this.state, String(task.payload.purchaseRequestId), actor.id, Date.now());
       if (result.ok) {
@@ -1363,7 +1375,7 @@ export class RestaurantSimulation {
   }
   private clearActorTask(actor: WorkerActor): void {
     actor.taskId = undefined; actor.taskRemaining = 0; actor.path = []; actor.moveProgress = 0; actor.activity = 'Disponível'; actor.idleReason = 'Aguardando tarefa'; actor.pathStatus = 'idle';
-    if (!actor.carryingOrderId) actor.carrying = undefined;
+    if (!actor.carryingOrderId && !actor.preferredTaskId) actor.carrying = undefined;
     this.grid.releaseReservations(actor.id);
   }
   private rolesForActor(actor: WorkerActor): HelpRole[] {

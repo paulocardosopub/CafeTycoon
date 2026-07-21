@@ -89,7 +89,9 @@ describe('v0.0.6 · armazenamento e reposição', () => {
     const state = createDefaultState(0); state.coins = 1_000; emptyIngredient(state, 'beef');
     expect(createPurchaseRequest(state, [{ ingredientId: 'beef', quantity: 2 }], 'manual', 'teste').ok).toBe(true);
     const simulation = new RestaurantSimulation(state); simulation.debugSetAutoSpawn(false); simulation.update(1);
-    expect(simulation.tasks.list().find((task) => task.kind === 'restock_purchase')?.reservations.some((item) => item.type === 'workSlot')).toBe(true);
+    const task = simulation.tasks.list().find((item) => item.kind === 'restock_purchase');
+    expect(task?.reservations.some((item) => item.type === 'workSlot')).toBe(true);
+    expect(task).toEqual(expect.objectContaining({ target: { x: 7, y: 21 }, payload: expect.objectContaining({ restockStage: 'outbound' }) }));
   });
 
   it('11. mantém estoquista diante do armazenamento, fora do footprint', () => {
@@ -146,7 +148,15 @@ describe('v0.0.6 · armazenamento e reposição', () => {
     state.procurement.policies.find((item) => item.ingredientId === 'beef')!.enabled = true;
     state.procurement.spentThisPeriod = state.procurement.globalSettings.maximumSpendPerPeriod;
     expect(evaluateAutoPurchases(state, true, 10)).toHaveLength(1);
-    const simulation = new RestaurantSimulation(state); simulation.debugSetAutoSpawn(false); simulation.debugRunFor(40);
+    const simulation = new RestaurantSimulation(state); simulation.debugSetAutoSpawn(false);
+    const stocker = simulation.actors.find((actor) => actor.kind === 'stocker')!;
+    let leftRestaurant = false; let returnedCarrying = false;
+    for (let elapsed = 0; elapsed < 60; elapsed += .2) {
+      simulation.debugRunFor(.2, 4);
+      if (stocker.position.y >= 18) leftRestaurant = true;
+      if (leftRestaurant && stocker.position.y < 18 && stocker.carrying === 'ingredients') returnedCarrying = true;
+    }
+    expect(leftRestaurant).toBe(true); expect(returnedCarrying).toBe(true);
     expect(state.inventory.beef).toBeGreaterThan(0);
     expect(state.procurement.history.at(-1)).toEqual(expect.objectContaining({ origin: 'automatic', responsibleStaffId: 'employee-stocker-001', result: 'completed' }));
   });
