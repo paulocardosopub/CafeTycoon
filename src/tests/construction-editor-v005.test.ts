@@ -33,7 +33,8 @@ describe('editor físico e loja da 0.0.5', () => {
   it('respeita footprint 1×1, 2×1 e rotação para 1×2', () => {
     const sink = FURNITURE_BY_ID['washing.b5.sink'];
     const stove = FURNITURE_BY_ID['cooking.a1.stove'];
-    expect(orientedFootprint(sink, 'sw')).toEqual({ width: 1, depth: 1 });
+    expect(orientedFootprint(sink, 'sw')).toEqual({ width: 2, depth: 1 });
+    expect(orientedFootprint(sink, 'se')).toEqual({ width: 1, depth: 2 });
     expect(orientedFootprint(stove, 'sw')).toEqual({ width: 2, depth: 1 });
     expect(orientedFootprint(stove, 'se')).toEqual({ width: 1, depth: 2 });
     expect(occupiedCells(item('a1', stove.id, 5, 5, 'se'))).toEqual(expect.arrayContaining([{ x: 5, y: 5 }, { x: 5, y: 6 }]));

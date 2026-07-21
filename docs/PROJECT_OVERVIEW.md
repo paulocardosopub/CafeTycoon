@@ -8,7 +8,8 @@
 - Estoquista físico com pathfinding, animação de carga, WorkSlots externos e depósito transacional em C5/C6, geladeira ou freezer.
 - Capacidade por móvel e tipo, compra manual/automática com políticas, saldo protegido, limites, lista e histórico.
 - Produção até 999 unidades, lotes, prioridade, estoque-alvo, reservas e distribuição entre balcões modulares 1×1.
-- Save schema 4, migração idempotente da v0.0.5 e offline agregado de até 8 horas com custos e bloqueios.
+- Save schema 5, migração idempotente da v0.0.5, normalização espacial sem perda e offline agregado de até 8 horas com custos e bloqueios.
+- Grade e escala unificadas, móveis ancorados ao vértice inferior do tile, mesas 1×1 com duas cadeiras opostas e editor direto transacional.
 
 - Restaurante lógico 18×18 conectado à rua, grade 64×32, A*, reservas tile-to-tile, câmera com arraste e zoom discreto.
 - Capacidade calculada por cadeira acessível: uma mesa de 2 e duas mesas de 4, totalizando 10 lugares independentes.

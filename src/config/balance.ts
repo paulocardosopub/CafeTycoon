@@ -1,5 +1,5 @@
 export const GAME_VERSION = '0.0.6';
-export const SAVE_SCHEMA_VERSION = 4;
+export const SAVE_SCHEMA_VERSION = 5;
 
 export const BALANCE = {
   startingCoins: 260,

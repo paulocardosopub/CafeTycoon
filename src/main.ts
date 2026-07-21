@@ -1,5 +1,7 @@
 import Phaser from 'phaser';
-import './styles.css';
+// Sufixo estável e próprio evita colisão de cache entre prévias locais que usam
+// o mesmo caminho virtual `/src/styles.css` no navegador integrado.
+import './styles.css?bistro-structural-v006';
 import { showCharacterCreator } from './ui/characterCreator';
 import { GameUI } from './ui/GameUI';
 import { IndexedDbSaveRepository, SAVE_RESET_SESSION_KEY } from './game/save/SaveRepository';
@@ -26,11 +28,11 @@ async function boot(): Promise<void> {
   root.innerHTML = '<div class="boot-screen"><span>✿</span><strong>Abrindo o Bistrô Bloom…</strong></div>';
   const repository = new IndexedDbSaveRepository();
   const rawState = await repository.load();
-  if (rawState && rawState.gameVersion !== GAME_VERSION) await repository.backupLegacy(rawState);
+  if (rawState && (rawState.gameVersion !== GAME_VERSION || rawState.schemaVersion < 5)) await repository.backupLegacy(rawState);
   const state = migrateAndSanitizeSave(rawState);
   const query = new URLSearchParams(window.location.search);
   let localQa = ['localhost', '127.0.0.1'].includes(window.location.hostname) ? query.get('qa') : null;
-  if (localQa && !['creator', 'four-seat-v005', 'v006'].includes(localQa)) {
+  if (localQa && !['creator', 'four-seat-v005', 'v006', 'spatial-fix'].includes(localQa)) {
     query.delete('qa');
     query.delete('assets');
     const suffix = query.toString();
@@ -42,6 +44,7 @@ async function boot(): Promise<void> {
   if (localCreatorPreview) state.profile = undefined;
   if (localQa === 'four-seat-v005') applyFourSeatQaState(state);
   if (localQa === 'v006') applyV006QaState(state);
+  if (localQa === 'spatial-fix') applySpatialFixQaState(state);
 
   if (!state.profile) {
     state.profile = await showCharacterCreator(root);
@@ -56,7 +59,8 @@ async function boot(): Promise<void> {
   if (['localhost', '127.0.0.1'].includes(window.location.hostname)) {
     (window as unknown as { __BISTRO_DEBUG__: { simulation: RestaurantSimulation; state: GameState } }).__BISTRO_DEBUG__ = { simulation, state };
   }
-  if (localQa === 'four-seat-v005') simulation.debugSeatGroupAtFirstTable(4);
+  if (localQa === 'four-seat-v005' || localQa === 'spatial-fix') simulation.debugSeatGroupAtFirstTable(2);
+  if (localQa === 'spatial-fix') arrangeDirectionalQaActors(simulation);
   const validation = validateRestaurantMap(simulation.grid, simulation.tables, simulation.stations);
   if (!validation.valid) console.warn('Validação do mapa:', validation.errors);
 
@@ -119,14 +123,38 @@ function applyFourSeatQaState(state: GameState): void {
   const tableId = 'table:qa-four';
   const table: PlacedFurniture = { id: tableId, definitionId: 'dining.table.basic', gridX: 8, gridY: 11, orientation: 'sw', skinId: 'table-oak', level: 1, state: {} };
   const chairs: PlacedFurniture[] = [
-    { id: 'chair:qa-north', definitionId: 'dining.chair.basic', gridX: 8, gridY: 10, orientation: 'sw', skinId: 'chair-wood', level: 1, state: { linkedTableId: tableId } },
-    { id: 'chair:qa-south', definitionId: 'dining.chair.basic', gridX: 8, gridY: 12, orientation: 'ne', skinId: 'chair-wood', level: 1, state: { linkedTableId: tableId } },
     { id: 'chair:qa-west', definitionId: 'dining.chair.basic', gridX: 7, gridY: 11, orientation: 'se', skinId: 'chair-wood', level: 1, state: { linkedTableId: tableId } },
     { id: 'chair:qa-east', definitionId: 'dining.chair.basic', gridX: 9, gridY: 11, orientation: 'nw', skinId: 'chair-wood', level: 1, state: { linkedTableId: tableId } },
   ];
   construction.placedFurniture.push(table, ...chairs);
   state.construction = construction;
   state.operation = undefined;
+}
+
+function applySpatialFixQaState(state: GameState): void {
+  state.construction = createInitialConstructionState();
+  state.operation = undefined;
+  state.lastActiveAt = Date.now();
+  state.profile = {
+    id: state.playerId, name: 'Jô',
+    appearance: { presentation: 'feminina', skin: 'honey', hairStyle: 'bun', hairColor: 'espresso', face: 'soft', outfit: 'apron', outfitColor: 'teal' },
+    level: 2, xp: 180, helpRole: 'kitchen',
+    professions: { cook: { xp: 90, level: 2, tasksCompleted: 12 }, waiter: { xp: 55, level: 1, tasksCompleted: 9 }, cleaner: { xp: 30, level: 1, tasksCompleted: 5 }, stocker: { xp: 45, level: 1, tasksCompleted: 7 } },
+    taskHistory: { take_order: 9, cook_step: 12, deliver: 8, payment: 7, clean: 5, stock_support: 7, restock_purchase: 3, production_batch: 4 },
+  };
+}
+
+function arrangeDirectionalQaActors(simulation: RestaurantSimulation): void {
+  const routes = [
+    [{ x: 4, y: 9 }, { x: 5, y: 9 }, { x: 6, y: 9 }],
+    [{ x: 12, y: 14 }, { x: 11, y: 14 }, { x: 10, y: 14 }],
+    [{ x: 13, y: 10 }, { x: 13, y: 11 }, { x: 13, y: 12 }],
+    [{ x: 15, y: 13 }, { x: 15, y: 12 }, { x: 15, y: 11 }],
+  ];
+  simulation.debugSetAutoSpawn(false);
+  simulation.actors.slice(0, 4).forEach((actor, index) => {
+    const route = routes[index]; actor.position = { ...route[0] }; actor.visual = { ...route[0] }; actor.path = route.slice(1); actor.pathStatus = 'moving'; actor.motionState = 'walk'; actor.moveProgress = 0;
+  });
 }
 
 function applyV006QaState(state: GameState): void {

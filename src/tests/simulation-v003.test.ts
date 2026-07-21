@@ -8,11 +8,11 @@ function diningItem(id: string, definitionId: string, x: number, y: number, orie
   return { id, definitionId, gridX: x, gridY: y, orientation, skinId: definitionId.includes('chair') ? 'chair-wood' : 'table-oak', level: 1, state: linkedTableId ? { linkedTableId } : {} };
 }
 
-function installTenSeatLayout(state: ReturnType<typeof createDefaultState>): void {
+function installSixSeatLayout(state: ReturnType<typeof createDefaultState>): void {
   state.construction.placedFurniture = state.construction.placedFurniture.filter((item) => !item.definitionId.startsWith('dining.'));
   const groups = [
-    { id: 'table:test-a', x: 5, y: 10, chairs: [[5, 9], [5, 11], [4, 10], [6, 10]] },
-    { id: 'table:test-b', x: 10, y: 10, chairs: [[10, 9], [10, 11], [9, 10], [11, 10]] },
+    { id: 'table:test-a', x: 5, y: 10, chairs: [[4, 10], [6, 10]] },
+    { id: 'table:test-b', x: 10, y: 10, chairs: [[9, 10], [11, 10]] },
     { id: 'table:test-c', x: 14, y: 11, chairs: [[13, 11], [15, 11]] },
   ] as const;
   for (const group of groups) {
@@ -23,7 +23,7 @@ function installTenSeatLayout(state: ReturnType<typeof createDefaultState>): voi
 
 function stockedSimulation(): RestaurantSimulation {
   const state = createDefaultState(0);
-  installTenSeatLayout(state);
+  installSixSeatLayout(state);
   for (const item of INGREDIENTS) state.inventory[item.id] = item.maxStock;
   state.readyDishes.omelette = 10;
   const simulation = new RestaurantSimulation(state);
@@ -32,23 +32,23 @@ function stockedSimulation(): RestaurantSimulation {
 }
 
 describe('capacidade e assentos individuais', () => {
-  it('calcula dez vagas pelas cadeiras acessíveis', () => {
+  it('calcula seis vagas pelas duas cadeiras opostas de cada mesa', () => {
     const simulation = stockedSimulation();
     expect(simulation.tables).toHaveLength(3);
-    expect(simulation.totalCapacity()).toBe(10);
+    expect(simulation.totalCapacity()).toBe(6);
     const blocked = simulation.tables[1].chairs[0];
     blocked.state = 'blocked';
-    expect(simulation.totalCapacity()).toBe(9);
+    expect(simulation.totalCapacity()).toBe(5);
   });
 
-  it('acomoda grupo de quatro na mesma mesa sem compartilhar cadeira', () => {
+  it('acomoda grupo de dois na mesma mesa sem compartilhar cadeira', () => {
     const simulation = stockedSimulation();
-    const group = simulation.debugAddGroup(4);
+    const group = simulation.debugAddGroup(2);
     simulation.debugRunFor(12);
     expect(new Set(group.map((customer) => customer.tableId)).size).toBe(1);
-    expect(new Set(group.map((customer) => customer.seatId)).size).toBe(4);
+    expect(new Set(group.map((customer) => customer.seatId)).size).toBe(2);
     const table = simulation.tables.find((item) => item.id === group[0].tableId)!;
-    expect(table.chairs.filter((seat) => seat.customerId).length).toBe(4);
+    expect(table.chairs.filter((seat) => seat.customerId).length).toBe(2);
   });
 
   it('uma cadeira ocupada não bloqueia as demais e a limpeza é individual', () => {
@@ -80,13 +80,13 @@ describe('estabilidade do ciclo', () => {
     expect(Math.max(...sizes)).toBeLessThanOrEqual(restored.totalCapacity());
   });
 
-  it('atende dez clientes consecutivos com pagamento único', () => {
+  it('atende seis clientes consecutivos com pagamento único', () => {
     const simulation = stockedSimulation();
     for (let batch = 0; batch < 2; batch += 1) {
-      for (let index = 0; index < 5; index += 1) simulation.debugAddCustomer();
+      for (let index = 0; index < 3; index += 1) simulation.debugAddCustomer();
       simulation.debugRunFor(220);
     }
-    expect(simulation.state.stats.customersServed).toBe(10);
+    expect(simulation.state.stats.customersServed).toBe(6);
     expect(simulation.activeCustomerCount()).toBe(0);
     expect(simulation.tasks.list()).toHaveLength(0);
     expect(simulation.tables.flatMap((table) => table.chairs).every((seat) => seat.state === 'free')).toBe(true);

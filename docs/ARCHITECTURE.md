@@ -17,7 +17,7 @@
 - `src/game/inventory/ProcurementService.ts`: solicitações manuais/automáticas, limites financeiros, deduplicação, transação e histórico.
 - `src/game/cooking/ProductionPlanningService.ts`: planos até 999, lotes, estoque-alvo, reservas e distribuição entre módulos de balcão.
 - `src/game/offline/`: cálculo determinístico por eventos, limitado a oito horas, incluindo equipe, salários, compras e produção.
-- `src/game/save/`: IndexedDB, fallback local, schema 4, backup v0.0.5, migração idempotente e saneamento de reservas.
+- `src/game/save/`: IndexedDB, fallback local, schema 5, backup pré-correção espacial, migração idempotente e saneamento de reservas/layout.
 - `src/scenes/`: carregamento de sprite sheets Blender, fallback raster, depth pela base/pés e visualização técnica local.
 - `src/ui/`: criação do perfil, HUD operacional, estoque, tarefas, relatórios e ferramentas apenas em desenvolvimento.
 - `tools/blender/`: fonte automatizada dos modelos, rig, animações, materiais, câmera, luz, render, manifest e validação.
@@ -26,7 +26,11 @@
 
 O save separa estado econômico do estado da operação. `operation` guarda atores, clientes, pedidos, assentos, estações, slots do balcão e tarefas. Ao carregar, posições fixas do mapa prevalecem, reservas são revalidadas, tarefas interrompidas voltam à fila e estados de transporte/preparo são reconciliados sem duplicar prato ou pagamento.
 
-O schema 4 acrescenta `staff`, `storage`, `procurement`, `production`, `tutorial006` e `migration006Report`. O repositório mantém `backup-v0.0.5` antes de substituir um save antigo. A migração deriva a capacidade dos móveis existentes, preserva excedentes em `legacyOverflow`, desliga automações novas e torna uma segunda migração um no-op sem duplicação.
+O schema 5 mantém os sistemas do schema 4 e acrescenta a normalização espacial. O repositório mantém `backup-before-spatial-schema-5`; a migração arredonda posições, hidrata footprint/âncora/escala/slots, limita mesas a duas cadeiras opostas e guarda excedentes sem apagar compras. Uma segunda migração é um no-op.
+
+## Contrato espacial
+
+`src/game/grid/SpatialLayoutService.ts` centraliza grade 64×32, rotação, footprint, contato inferior, escala, bounds, profundidade e slots. `CharacterFacing.ts` deriva facing a partir do vetor visual isométrico. A cena e o editor consomem esse contrato; não mantêm offsets locais por móvel.
 
 IDs de conteúdo e de assets são estáveis. `visualLevel` e `gameplayLevel` são independentes; trocar `renderedAssetId` não altera posição, orientação, fila ou pedido da estação.
 

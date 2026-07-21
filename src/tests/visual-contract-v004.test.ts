@@ -55,7 +55,7 @@ describe('contrato visual central da 0.0.4', () => {
       expect(Math.abs(seat.seatAnchor.x - seat.sitPoint.x)).toBeLessThanOrEqual(.281);
       expect(Math.abs(seat.seatAnchor.y - seat.sitPoint.y)).toBeLessThanOrEqual(.281);
       expect(seat.seatAnchor).toEqual(seat.visualPosition);
-      expect(seat.seatAnchor).not.toEqual(seat.sitPoint);
+      expect(seat.seatAnchor).toEqual(seat.sitPoint);
       expect(seat.layerAssetIds.back).toMatch(/_back$/);
       expect(seat.layerAssetIds.front).toMatch(/_front$/);
       expect(seat.footprint).toEqual({ width: 1, depth: 1 });

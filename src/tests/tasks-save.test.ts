@@ -23,7 +23,7 @@ describe('serialização do save', () => {
     const restored = migrateAndSanitizeSave(JSON.parse(serialized), 456);
     expect(restored.coins).toBe(999);
     expect(restored.inventory.egg).toBe(11);
-    expect(restored.schemaVersion).toBe(4);
+    expect(restored.schemaVersion).toBe(5);
 
     restored.coins = -10;
     restored.inventory.egg = Number.NaN;

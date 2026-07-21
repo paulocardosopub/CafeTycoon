@@ -710,6 +710,11 @@ export class RestaurantSimulation {
       station.state = 'in_use'; station.workerId = actor.id; station.remaining = actor.taskRemaining;
       const equipmentCenter = { x: station.position.x + (station.size.x - 1) / 2, y: station.position.y + (station.size.y - 1) / 2 };
       actor.direction = directionBetween(actor.position, equipmentCenter, actor.direction);
+    } else {
+      const table = this.tableFor(task.payload.tableId);
+      const seat = this.seatFor(task.payload.seatId);
+      const interactionTarget = table?.position ?? seat?.position;
+      if (interactionTarget) actor.direction = directionBetween(actor.position, interactionTarget, actor.direction);
     }
   }
 

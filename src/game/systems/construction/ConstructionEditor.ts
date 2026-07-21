@@ -1,11 +1,13 @@
 import type {
-  ConstructionSaveState, Direction, ExpansionDefinition, GameState, PlacedFurniture, RecipeId, StaffStartPosition,
+  ConstructionSaveState, Direction, ExpansionDefinition, FurnitureEditSession, GameState, PlacedFurniture, RecipeId, StaffStartPosition,
 } from '../../../core/types';
 import { createPersistentId } from '../../../core/id';
 import { EXPANSION_BY_ID } from '../../data/expansions';
 import { FURNITURE_BY_ID } from '../../data/furniture/catalog';
 import { STAFF_BY_ID } from '../../data/staff';
-import { validateFurniturePlacement, validateLayout } from '../furniture/FurniturePlacement';
+import { orientedFootprint, resolvedWorkSlots, validateFurniturePlacement, validateLayout } from '../furniture/FurniturePlacement';
+import { getApproachSlotCells, getSpriteAnchor, getVisualScale, snapToGrid } from '../../grid/SpatialLayoutService';
+import { seatFacingTowardTable } from '../../map/initialMap';
 import { modulesFromFurniture } from '../service-counter/ServiceCounterSystem';
 import { nearestSafeStaffStart, validateStaffStartPosition } from './StaffStartSystem';
 import { storageHasContents } from '../../inventory/StorageService';
@@ -24,6 +26,7 @@ export class ConstructionEditor {
   private undoStack: ConstructionDraft[] = [];
   private redoStack: ConstructionDraft[] = [];
   private active = true;
+  private furnitureEdit?: { session: FurnitureEditSession; before: ConstructionDraft };
 
   constructor(private readonly state: GameState) {
     this.original = clone({ construction: state.construction, coins: state.coins });
@@ -33,6 +36,57 @@ export class ConstructionEditor {
   get draft(): Readonly<ConstructionDraft> { return this.current; }
   get canUndo(): boolean { return this.undoStack.length > 0; }
   get canRedo(): boolean { return this.redoStack.length > 0; }
+  get editSession(): Readonly<FurnitureEditSession> | undefined { return this.furnitureEdit?.session; }
+
+  beginFurnitureEdit(id: string): EditorResult {
+    if (this.furnitureEdit?.session.furnitureId === id) return { ok: true };
+    if (this.furnitureEdit) this.cancelFurnitureEdit();
+    const item = this.current.construction.placedFurniture.find((entry) => entry.id === id);
+    const definition = item ? FURNITURE_BY_ID[item.definitionId] : undefined;
+    if (!item || !definition) return { ok: false, reason: 'Móvel não encontrado.' };
+    const attached = this.current.construction.placedFurniture.filter((entry) => entry.state.linkedTableId === id);
+    this.furnitureEdit = {
+      before: clone(this.current),
+      session: {
+        furnitureId: id,
+        originalGridPosition: { x: item.gridX, y: item.gridY }, originalRotation: item.orientation,
+        originalAttachedFurniture: clone(attached), originalWorkSlots: clone(definition.workSlots),
+        previewGridPosition: { x: item.gridX, y: item.gridY }, previewRotation: item.orientation,
+        previewAttachedFurniture: clone(attached), validationState: 'valid', validationErrors: [], startedAt: Date.now(),
+      },
+    };
+    return { ok: true };
+  }
+
+  previewFurnitureMove(id: string, gridX: number, gridY: number): EditorResult {
+    const started = this.beginFurnitureEdit(id); if (!started.ok) return started;
+    const point = snapToGrid({ x: gridX, y: gridY });
+    return this.applyFurniturePreview(point, this.furnitureEdit!.session.previewRotation);
+  }
+
+  previewFurnitureRotation(id: string): EditorResult {
+    const started = this.beginFurnitureEdit(id); if (!started.ok) return started;
+    const session = this.furnitureEdit!.session;
+    const definition = FURNITURE_BY_ID[this.furnitureEdit!.before.construction.placedFurniture.find((item) => item.id === id)!.definitionId];
+    if (!definition.rotatable) return { ok: false, reason: 'Este móvel não pode ser girado.' };
+    const index = definition.allowedOrientations.indexOf(session.previewRotation);
+    const orientation = definition.allowedOrientations[(index + 1) % definition.allowedOrientations.length];
+    return this.applyFurniturePreview(session.previewGridPosition, orientation);
+  }
+
+  confirmFurnitureEdit(): EditorResult {
+    if (!this.furnitureEdit) return { ok: false, reason: 'Nenhuma alteração pendente.' };
+    if (this.furnitureEdit.session.validationState !== 'valid') return { ok: false, reason: this.furnitureEdit.session.validationErrors[0] ?? 'Posição inválida.' };
+    this.undoStack.push(clone(this.furnitureEdit.before)); this.redoStack = [];
+    this.furnitureEdit = undefined; this.refreshFurnitureRelationships();
+    return { ok: true };
+  }
+
+  cancelFurnitureEdit(): EditorResult {
+    if (!this.furnitureEdit) return { ok: false, reason: 'Nenhuma alteração pendente.' };
+    this.current = clone(this.furnitureEdit.before); this.furnitureEdit = undefined;
+    return { ok: true };
+  }
 
   place(definitionId: string, gridX: number, gridY: number, orientation: Direction = 'sw', skinId?: string, storedItemId?: string): EditorResult {
     const definition = FURNITURE_BY_ID[definitionId];
@@ -44,6 +98,7 @@ export class ConstructionEditor {
       id: createPersistentId('furniture'), definitionId, gridX, gridY, orientation,
       skinId: skinId ?? definition.skinIds[0], level: 1, state: {},
     };
+    Object.assign(item, { gridX: Math.round(gridX), gridY: Math.round(gridY), footprint: orientedFootprint(definition, orientation), anchor: getSpriteAnchor(definition), visualScale: getVisualScale(definition), heightCategory: definition.heightCategory, workSlotIds: definition.workSlots.map((slot) => slot.id) });
     const validation = validateFurniturePlacement(item, this.current.construction.placedFurniture, this.current.construction.builtAreas);
     if (!validation.valid) return { ok: false, reason: validation.errors[0], warnings: validation.warnings };
     this.record();
@@ -174,12 +229,15 @@ export class ConstructionEditor {
 
   confirm(): EditorResult {
     if (!this.active) return { ok: false, reason: 'Editor encerrado.' };
+    if (this.furnitureEdit) return { ok: false, reason: 'Confirme no ✓ ou cancele no × a alteração do móvel selecionado.' };
     this.refreshFurnitureRelationships();
     const definitions = this.current.construction.placedFurniture.map((item) => FURNITURE_BY_ID[item.definitionId]).filter(Boolean);
     const missingEssential = Object.values(FURNITURE_BY_ID).find((definition) => definition.essential && !definitions.some((candidate) => candidate.id === definition.id));
     if (missingEssential) return { ok: false, reason: `${missingEssential.name} é essencial para reabrir o restaurante.` };
     const tables = this.current.construction.placedFurniture.filter((item) => FURNITURE_BY_ID[item.definitionId]?.functionId === 'table');
     const linkedChairs = this.current.construction.placedFurniture.filter((item) => FURNITURE_BY_ID[item.definitionId]?.functionId === 'chair' && typeof item.state.linkedTableId === 'string');
+    const orphanChair = this.current.construction.placedFurniture.find((item) => FURNITURE_BY_ID[item.definitionId]?.functionId === 'chair' && typeof item.state.linkedTableId !== 'string');
+    if (orphanChair) return { ok: false, reason: 'Toda cadeira instalada precisa pertencer a uma mesa com espaço em lado oposto.' };
     if (!tables.length || !linkedChairs.length) return { ok: false, reason: 'Coloque ao menos uma mesa com uma cadeira ao lado para reabrir.' };
     for (const start of this.current.construction.staffStartPositions) {
       const staffValidation = validateStaffStartPosition(start, this.current.construction.placedFurniture, this.current.construction.builtAreas);
@@ -208,25 +266,68 @@ export class ConstructionEditor {
   private refreshFurnitureRelationships(): void {
     const tables = this.current.construction.placedFurniture.filter((item) => FURNITURE_BY_ID[item.definitionId]?.functionId === 'table');
     const chairs = this.current.construction.placedFurniture.filter((item) => FURNITURE_BY_ID[item.definitionId]?.functionId === 'chair');
-    for (const chair of chairs) {
-      const adjacent = tables
-        .map((table) => ({ table, distance: Math.abs(table.gridX - chair.gridX) + Math.abs(table.gridY - chair.gridY) }))
-        .filter((candidate) => candidate.distance === 1)
-        .sort((left, right) => left.table.id.localeCompare(right.table.id));
-      const table = adjacent[0]?.table;
-      chair.state = { ...chair.state };
-      if (!table) {
-        delete chair.state.linkedTableId;
-        delete chair.state.seatFacing;
-        continue;
+    for (const chair of chairs) { chair.state = { ...chair.state }; delete chair.state.linkedTableId; delete chair.state.seatFacing; }
+    const assigned = new Set<string>();
+    for (const table of tables) {
+      const adjacent = chairs.filter((chair) => !assigned.has(chair.id) && Math.abs(table.gridX - chair.gridX) + Math.abs(table.gridY - chair.gridY) === 1)
+        .sort((a, b) => a.id.localeCompare(b.id));
+      let selected: PlacedFurniture[] = [];
+      outer: for (let i = 0; i < adjacent.length; i += 1) for (let j = i + 1; j < adjacent.length; j += 1) {
+        if (adjacent[i].gridX + adjacent[j].gridX === table.gridX * 2 && adjacent[i].gridY + adjacent[j].gridY === table.gridY * 2) { selected = [adjacent[i], adjacent[j]]; break outer; }
       }
-      chair.state.linkedTableId = table.id;
-      chair.state.seatFacing = chair.gridX < table.gridX ? 'se'
-        : chair.gridX > table.gridX ? 'nw'
-          : chair.gridY < table.gridY ? 'sw' : 'ne';
+      if (!selected.length && adjacent[0]) selected = [adjacent[0]];
+      for (const chair of selected) {
+        assigned.add(chair.id); const facing = seatFacingTowardTable({ x: chair.gridX, y: chair.gridY }, { x: table.gridX, y: table.gridY });
+        chair.state = { ...chair.state, linkedTableId: table.id, seatFacing: facing }; chair.orientation = facing;
+        chair.seatSlotIds = [`${chair.id}:seat`]; chair.approachSlotIds = [`${chair.id}:approach`];
+      }
+      table.attachedFurnitureIds = selected.map((chair) => chair.id);
+      table.seatSlotIds = selected.map((chair) => `${chair.id}:seat`);
+      table.approachSlotIds = getApproachSlotCells(table, selected).map((point) => `${point.x},${point.y}`);
     }
     this.refreshCounters();
     for (const module of this.current.construction.serviceCounters) module.assignedRecipeId ??= 'omelette';
+  }
+
+  private furnitureRelationshipErrors(): string[] {
+    const errors: string[] = [];
+    const furniture = this.current.construction.placedFurniture;
+    const chairs = furniture.filter((item) => FURNITURE_BY_ID[item.definitionId]?.functionId === 'chair');
+    for (const chair of chairs) {
+      if (typeof chair.state.linkedTableId !== 'string') errors.push(`A cadeira ${chair.id} precisa ficar adjacente e oposta a outra cadeira da mesa.`);
+    }
+    for (const table of furniture.filter((item) => FURNITURE_BY_ID[item.definitionId]?.functionId === 'table')) {
+      const attached = chairs.filter((chair) => chair.state.linkedTableId === table.id);
+      if (attached.length > 2) errors.push(`A mesa ${table.id} aceita no máximo duas cadeiras.`);
+      if (attached.length === 2 && (attached[0].gridX + attached[1].gridX !== table.gridX * 2 || attached[0].gridY + attached[1].gridY !== table.gridY * 2)) {
+        errors.push(`As duas cadeiras da mesa ${table.id} precisam ficar em lados opostos.`);
+      }
+    }
+    return errors;
+  }
+
+  private applyFurniturePreview(position: { x: number; y: number }, orientation: Direction): EditorResult {
+    const edit = this.furnitureEdit!;
+    this.current = clone(edit.before);
+    const item = this.current.construction.placedFurniture.find((entry) => entry.id === edit.session.furnitureId)!;
+    const definition = FURNITURE_BY_ID[item.definitionId];
+    item.gridX = position.x; item.gridY = position.y; item.orientation = orientation; item.footprint = orientedFootprint(definition, orientation);
+    const turns = (definition.allowedOrientations.indexOf(orientation) - definition.allowedOrientations.indexOf(edit.session.originalRotation) + 4) % 4;
+    for (const originalChair of edit.session.originalAttachedFurniture) {
+      const chair = this.current.construction.placedFurniture.find((entry) => entry.id === originalChair.id); if (!chair) continue;
+      let dx = originalChair.gridX - edit.session.originalGridPosition.x; let dy = originalChair.gridY - edit.session.originalGridPosition.y;
+      for (let turn = 0; turn < turns; turn += 1) [dx, dy] = [-dy, dx];
+      chair.gridX = position.x + dx; chair.gridY = position.y + dy; chair.orientation = seatFacingTowardTable({ x: chair.gridX, y: chair.gridY }, { x: item.gridX, y: item.gridY });
+      chair.state = { ...chair.state, linkedTableId: item.id, seatFacing: chair.orientation };
+    }
+    this.refreshFurnitureRelationships();
+    const validation = validateLayout(this.current.construction.placedFurniture, this.current.construction.builtAreas);
+    const relationshipErrors = this.furnitureRelationshipErrors();
+    const validationErrors = [...validation.errors, ...relationshipErrors];
+    edit.session.previewGridPosition = { ...position }; edit.session.previewRotation = orientation;
+    edit.session.previewAttachedFurniture = clone(this.current.construction.placedFurniture.filter((entry) => entry.state.linkedTableId === item.id));
+    edit.session.validationState = validation.valid && relationshipErrors.length === 0 ? 'valid' : 'invalid'; edit.session.validationErrors = validationErrors;
+    return { ok: edit.session.validationState === 'valid', reason: validationErrors[0], warnings: validation.warnings };
   }
 }
 

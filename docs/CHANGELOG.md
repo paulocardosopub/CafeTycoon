@@ -2,6 +2,16 @@
 
 ## 0.0.6 — 2026-07-21
 
+### Correção estrutural espacial
+
+- Unificadas grade, footprints, âncoras inferiores, escalas, profundidade, WorkSlots, SeatSlots e ApproachSlots.
+- Corrigido o efeito de móveis “flutuando”: o contato visual passa do centro ao vértice inferior do footprint.
+- Normalizadas bases modulares de balcões, fogão, pia, geladeira e armazenamento; elementos funcionais permanecem acima da bancada.
+- Mesas agora ocupam 1×1, aceitam no máximo duas cadeiras opostas e preservam excedentes no inventário.
+- Editor passa a operar diretamente no salão com preview verde/vermelho, clique/arraste, ✓/×/Escape e desseleção ao concluir.
+- Facing usa vetores visuais e personagens parados não permanecem em animação de caminhada.
+- Save atualizado para schema 5 com backup e migração idempotente.
+
 - Adicionados `StaffDefinition`, `StaffInstance` e candidatos data-driven, com contratação confirmada, posição inicial validada, limite configurável, gestão, localização, pausa, demissão e persistência.
 - Adicionados turnos, folha salarial por período, proteção contra saldo negativo, atraso sem demissão automática, experiência moderada e treinamento com custo/duração.
 - Transformado o estoquista em agente físico: compra, transporte, animação de carga, pathfinding, WorkSlot externo e depósito apenas no armazenamento correto.

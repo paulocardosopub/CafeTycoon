@@ -1,6 +1,8 @@
 export type GridPoint = { x: number; y: number };
 export type Direction = 'ne' | 'nw' | 'se' | 'sw';
 export type Orientation = Direction;
+export type ScreenFacing = 'front' | 'back' | 'left' | 'right';
+export type FurnitureHeightCategory = 'LOW' | 'STANDARD_COUNTER' | 'TALL';
 export type FurnitureCode = `A${1 | 2 | 3 | 4 | 5 | 6 | 7 | 8}` |
   `B${1 | 2 | 3 | 4 | 5 | 6 | 7 | 8}` |
   `C${1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10}` | 'T1' | 'CH1' | 'D1';
@@ -35,6 +37,8 @@ export interface FurnitureDefinition {
   spriteSet: Record<Direction, string>;
   blenderSource: string;
   baseAnchor: GridPoint;
+  visualScale: number;
+  heightCategory: FurnitureHeightCategory;
   visualBounds: VisualBounds;
   collisionCells: GridPoint[];
   workSlots: FurnitureWorkSlot[];
@@ -57,6 +61,40 @@ export interface PlacedFurniture {
   skinId: string;
   level: number;
   state: Record<string, unknown>;
+  footprint?: { width: number; depth: number };
+  anchor?: GridPoint;
+  visualScale?: number;
+  heightCategory?: FurnitureHeightCategory;
+  attachedFurnitureIds?: string[];
+  workSlotIds?: string[];
+  seatSlotIds?: string[];
+  approachSlotIds?: string[];
+}
+
+export interface FurnitureEditSession {
+  furnitureId: string;
+  originalGridPosition: GridPoint;
+  originalRotation: Direction;
+  originalAttachedFurniture: PlacedFurniture[];
+  originalWorkSlots: FurnitureWorkSlot[];
+  previewGridPosition: GridPoint;
+  previewRotation: Direction;
+  previewAttachedFurniture: PlacedFurniture[];
+  validationState: 'valid' | 'invalid';
+  validationErrors: string[];
+  startedAt: number;
+}
+
+export interface CharacterFacingState {
+  currentFacing: Direction;
+  screenFacing: ScreenFacing;
+  movementVectorGrid: GridPoint;
+  movementVectorScreen: GridPoint;
+  targetFacing: Direction;
+  action: 'walking' | 'idle' | 'seated' | 'ordering' | 'cooking' | 'serving' | 'carrying' | 'cleaning' | 'stocking' | 'talking' | 'waiting' | 'exiting';
+  animationKey: PixelAnimationName;
+  lastDirectionChangeAt: number;
+  reason: string;
 }
 
 export interface ServiceCounterModule {
@@ -459,6 +497,8 @@ export interface StationDefinition {
   visualSkinId: VisualSkinId;
   visualBounds: VisualBounds;
   depthOffset: number;
+  visualScale?: number;
+  heightCategory?: FurnitureHeightCategory;
   serviceInteraction?: GridPoint;
   equipmentFamilyId?: string;
   visualLevel?: number;

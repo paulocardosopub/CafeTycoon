@@ -72,7 +72,17 @@ export class ConstructionShop {
         this.pendingWorldCellTimer = undefined;
         this.selectStaff(staffId);
       }),
+      gameEvents.on<{ itemId: string; x: number; y: number }>('construction:world-drag', ({ itemId, x, y }) => {
+        if (this.pendingDefinitionId || this.pendingStoredItemId || this.staffPlacementId) return;
+        if (this.selectedItemId !== itemId) this.selectItem(itemId);
+        this.apply(this.editor!.previewFurnitureMove(itemId, x, y), 'Prévia reposicionada. Use ✓ para confirmar.');
+      }),
+      gameEvents.on('construction:edit-confirm', () => this.confirmSelectedEdit()),
+      gameEvents.on('construction:edit-cancel', () => this.cancelSelectedEdit()),
     ];
+    const keyHandler = (event: KeyboardEvent) => { if (event.key === 'Escape' && this.editor?.editSession) this.cancelSelectedEdit(); };
+    window.addEventListener('keydown', keyHandler);
+    this.previewUnsubscribers.push(() => window.removeEventListener('keydown', keyHandler));
     this.render();
   }
 
@@ -95,7 +105,8 @@ export class ConstructionShop {
     this.pendingStoredItemId = undefined;
     this.staffPlacementId = undefined;
     this.moveMode = true;
-    this.setStatus('Móvel selecionado. Toque diretamente em outro quadrado do salão para movê-lo.', 'info');
+    this.editor?.beginFurnitureEdit(itemId);
+    this.setStatus('Móvel selecionado. Clique ou arraste; ✓ confirma e × restaura.', 'info');
   }
 
   private selectStaff(staffId: string): void {
@@ -152,7 +163,9 @@ export class ConstructionShop {
       this.setStatus(this.moveMode ? 'Toque no novo quadrado diretamente no restaurante.' : 'Selecione um móvel no restaurante primeiro.', this.moveMode ? 'info' : 'warning');
       return;
     }
-    if (action === 'rotate' && this.selectedItemId) this.apply(this.editor.rotate(this.selectedItemId), 'Móvel girado.');
+    if (action === 'rotate' && this.selectedItemId) this.apply(this.editor.previewFurnitureRotation(this.selectedItemId), 'Prévia girada. Use ✓ para confirmar.');
+    else if (action === 'confirm-item') this.confirmSelectedEdit();
+    else if (action === 'cancel-item') this.cancelSelectedEdit();
     else if (action === 'store' && this.selectedItemId) this.apply(this.editor.store(this.selectedItemId, true), 'Móvel guardado sem perder a compra.');
     else if (action === 'sell' && this.selectedItemId) {
       if (!window.confirm('Vender este móvel pelo valor de revenda?')) return;
@@ -209,15 +222,16 @@ export class ConstructionShop {
         this.selectedItemId = this.editor.draft.construction.placedFurniture.find((item) => !before.has(item.id))?.id;
         this.pendingDefinitionId = undefined;
         this.pendingStoredItemId = undefined;
+        if (this.selectedItemId) this.editor.beginFurnitureEdit(this.selectedItemId);
       }
       this.apply(result, 'Móvel colocado.');
       return;
     }
     if (this.selectedItemId) {
-      const result = this.editor.move(this.selectedItemId, x, y);
+      const result = this.editor.previewFurnitureMove(this.selectedItemId, x, y);
       if (!result.ok && result.reason) result.reason = `Quadrado ${x},${y}: ${result.reason}`;
       if (result.ok) this.moveMode = true;
-      this.apply(result, 'Móvel reposicionado.');
+      this.apply(result, 'Prévia reposicionada. Use ✓ para confirmar.');
       return;
     }
     this.setStatus('Escolha um móvel na loja ou selecione um item já colocado.', 'info');
@@ -239,6 +253,20 @@ export class ConstructionShop {
     this.status = message;
     this.statusTone = tone;
     this.render();
+  }
+
+  private confirmSelectedEdit(): void {
+    if (!this.editor?.editSession) return;
+    const result = this.editor.confirmFurnitureEdit();
+    if (result.ok) { this.moveMode = false; this.selectedItemId = undefined; }
+    this.apply(result, 'Posição confirmada. Móvel desselecionado.');
+  }
+
+  private cancelSelectedEdit(): void {
+    if (!this.editor?.editSession) return;
+    const result = this.editor.cancelFurnitureEdit();
+    if (result.ok) { this.moveMode = false; this.selectedItemId = undefined; }
+    this.apply(result, 'Alteração cancelada; posição original restaurada.');
   }
 
   private cancel(): void {
@@ -277,22 +305,20 @@ export class ConstructionShop {
     const draft = this.editor.draft;
     const selected = draft.construction.placedFurniture.find((item) => item.id === this.selectedItemId);
     const selectedDefinition = selected ? FURNITURE_BY_ID[selected.definitionId] : undefined;
+    const editSession = this.editor.editSession;
     const selectedCounter = selected ? draft.construction.serviceCounters.find((module) => module.id === selected.id) : undefined;
     const visibleCatalog = FURNITURE_DEFINITIONS.filter((definition) => matchesGroup(definition.category, this.group));
     const selectedPanel = selected && selectedDefinition ? `
       <article class="construction-selected">
         <img src="${thumbnail(selectedDefinition.spriteSet[selected.orientation])}" alt="" />
         <div><small>${selectedDefinition.code} · ${selectedDefinition.footprintWidth}×${selectedDefinition.footprintDepth}</small><strong>${escapeHtml(selectedDefinition.name)}</strong><span>Posição ${selected.gridX},${selected.gridY} · ${directionLabel(selected.orientation)}</span></div>
-        <div class="construction-actions"><button data-editor-action="move">Mover</button><button data-editor-action="rotate">Girar</button><button data-editor-action="store">Guardar</button><button data-editor-action="sell">Vender ${selectedDefinition.resaleValue}</button></div>
+        <div class="construction-actions contextual"><button class="confirm-placement" data-editor-action="confirm-item" ${editSession?.validationState === 'invalid' ? 'disabled' : ''} aria-label="Confirmar posição">✓</button><button class="cancel-placement" data-editor-action="cancel-item" aria-label="Cancelar e restaurar">×</button><button data-editor-action="rotate">↻ Girar</button><button data-editor-action="store">Guardar</button><button data-editor-action="sell">Vender ${selectedDefinition.resaleValue}</button></div>
+        ${editSession?.validationErrors.length ? `<p class="placement-error">${escapeHtml(editSession.validationErrors[0])}</p>` : ''}
         <div class="skin-actions">${selectedDefinition.skinIds.map((skin) => `<button data-editor-action="skin" data-id="${skin}" class="${selected.skinId === skin ? 'active' : ''}">${skin.replaceAll('-', ' ')}</button>`).join('')}${selectedCounter ? RECIPES.filter((recipe) => recipe.requiredLevel <= this.state.restaurantLevel).map((recipe) => `<button data-editor-action="counter-recipe" data-id="${recipe.id}" class="${selectedCounter.assignedRecipeId === recipe.id ? 'active' : ''}">${recipe.icon} ${escapeHtml(recipe.name)}</button>`).join('') : ''}</div>
       </article>` : '<div class="construction-empty-selection">Selecione um móvel colocado para editar.</div>';
     const stored = draft.construction.storedFurniture.map((item) => {
       const definition = FURNITURE_BY_ID[item.definitionId];
       return definition ? `<button class="stored-card" data-editor-action="stored" data-id="${item.id}"><img src="${thumbnail(definition.spriteSet.sw)}" alt=""/><span><b>${definition.code}</b>${escapeHtml(definition.name)}</span></button>` : '';
-    }).join('');
-    const placed = draft.construction.placedFurniture.map((item) => {
-      const definition = FURNITURE_BY_ID[item.definitionId];
-      return definition ? `<button class="stored-card ${item.id === this.selectedItemId ? 'selected' : ''}" data-editor-action="select-item" data-id="${item.id}"><img src="${thumbnail(definition.spriteSet[item.orientation])}" alt=""/><span><b>${definition.code} · ${escapeHtml(definition.name)}</b><small>quadrado ${item.gridX},${item.gridY}</small></span></button>` : '';
     }).join('');
     const staffIds = new Set(draft.construction.staffStartPositions.map((item) => item.staffId));
     const activeStaff = [
@@ -311,7 +337,6 @@ export class ConstructionShop {
         <div class="construction-workspace construction-live-workspace">
           <aside class="construction-catalog">
             <div class="catalog-tabs">${GROUPS.map((group) => `<button data-editor-action="category" data-id="${group.id}" class="${this.group === group.id ? 'active' : ''}">${group.label}</button>`).join('')}</div>
-            <details class="live-placed-list" open><summary>No salão (${draft.construction.placedFurniture.length})</summary><div class="stored-list">${placed}</div></details>
             <div class="catalog-items">${visibleCatalog.map((definition) => `<button class="catalog-card ${this.pendingDefinitionId === definition.id ? 'selected' : ''}" data-editor-action="catalog" data-id="${definition.id}" ${definition.level > this.state.restaurantLevel ? 'disabled' : ''}><img src="${thumbnail(definition.spriteSet.sw)}" alt=""/><span><small>${definition.code} · ${definition.footprintWidth}×${definition.footprintDepth}</small><b>${escapeHtml(definition.name)}</b><em>${definition.price} moedas</em></span></button>`).join('')}</div>
             <details ${stored ? 'open' : ''}><summary>Itens guardados (${draft.construction.storedFurniture.length})</summary><div class="stored-list">${stored || '<p>Nenhum móvel guardado.</p>'}</div></details>
           </aside>
@@ -331,6 +356,7 @@ export class ConstructionShop {
       construction: draft.construction,
       selectedItemId: this.selectedItemId,
       selectedStaffId: this.staffPlacementId,
+      editSession: this.editor.editSession,
       interactionMode: this.pendingDefinitionId || this.pendingStoredItemId ? 'place' : this.staffPlacementId ? 'staff' : this.selectedItemId ? 'move' : 'select',
       placementActive: Boolean(this.pendingDefinitionId || this.pendingStoredItemId || this.staffPlacementId || this.selectedItemId),
     });

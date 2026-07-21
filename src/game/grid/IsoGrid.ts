@@ -1,5 +1,6 @@
 import type { GridPoint } from '../../core/types';
 import { depthAtBase, roundPixel, VISUAL_METRICS } from '../../assets/pixel/VisualMetrics';
+import { gridToWorld as spatialGridToWorld, worldToGrid as spatialWorldToGrid } from './SpatialLayoutService';
 
 export const ISO_TILE = VISUAL_METRICS.isoTile;
 export interface IsoView { offsetX: number; offsetY: number; zoom: number }
@@ -7,18 +8,11 @@ const DEFAULT_VIEW: IsoView = { offsetX: 0, offsetY: 0, zoom: 1 };
 
 /** Returns the exact world-space center/feet anchor of one logical cell. */
 export function gridToWorld(point: GridPoint): GridPoint {
-  return {
-    x: (point.x - point.y) * ISO_TILE.width / 2,
-    y: (point.x + point.y) * ISO_TILE.height / 2 + ISO_TILE.height / 2,
-  };
+  return spatialGridToWorld(point);
 }
 
 export function worldToGrid(point: GridPoint): GridPoint {
-  const centeredY = point.y - ISO_TILE.height / 2;
-  return {
-    x: Math.round(point.x / ISO_TILE.width + centeredY / ISO_TILE.height),
-    y: Math.round(centeredY / ISO_TILE.height - point.x / ISO_TILE.width),
-  };
+  return spatialWorldToGrid(point);
 }
 
 export function gridToScreen(point: GridPoint, view: IsoView = DEFAULT_VIEW): GridPoint {
