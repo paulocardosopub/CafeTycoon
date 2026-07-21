@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { INGREDIENTS } from '../content/ingredients/ingredients';
-import type { GameState } from '../core/types';
+import type { GameState, PlacedFurniture } from '../core/types';
 import { completeProductionTask, createProductionPlan, markProductionTaskStarted, prepareNextProductionTask } from '../game/cooking/ProductionPlanningService';
 import { createPurchaseRequest, evaluateAutoPurchases } from '../game/inventory/ProcurementService';
 import { reconcileStorage } from '../game/inventory/StorageService';
@@ -16,8 +16,10 @@ function empty(state: GameState, ingredientId: keyof GameState['inventory']): vo
 describe('fluxos integrados da v0.0.6', () => {
   it('FLUXO A · contrata, posiciona e materializa funcionário no salão', () => {
     const state = createDefaultState(0); state.coins = 2_000;
+    const extraStove: PlacedFurniture = { id: 'stove:extra', definitionId: 'cooking.a1.stove', gridX: 12, gridY: 14, orientation: 'sw', skinId: 'steel-standard', level: 1, state: {} };
+    state.construction.placedFurniture.push(extraStove);
     const hired = hireStaff(state, 'cook-1', { x: 14, y: 14 }, 10); expect(hired.ok).toBe(true);
-    const simulation = new RestaurantSimulation(state); expect(simulation.actors.find((actor) => actor.id === hired.instance!.id)?.position).toEqual({ x: 14, y: 14 });
+    const simulation = new RestaurantSimulation(state); expect(simulation.actors.find((actor) => actor.id === hired.instance!.id)?.position).toEqual({ x: 12, y: 15 });
   });
 
   it('FLUXO B · compra manual, transporta, armazena e atualiza estoque', () => {

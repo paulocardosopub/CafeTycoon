@@ -147,6 +147,7 @@ export interface BuiltAreaRect {
 
 export interface StaffStartPosition {
   staffId: string;
+  linkedFurnitureId?: string;
   gridX: number;
   gridY: number;
   facing: Direction;
@@ -632,6 +633,7 @@ export interface GameState {
   inventory: Record<IngredientId, number>;
   inventoryReserved: Record<IngredientId, number>;
   readyDishes: Record<RecipeId, number>;
+  enabledRecipeIds: RecipeId[];
   productionQueue: ProductionQueueItem[];
   upgrades: UpgradeState;
   lastActiveAt: number;

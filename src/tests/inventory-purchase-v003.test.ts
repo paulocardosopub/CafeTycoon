@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { RECIPE_BY_ID } from '../content/recipes/recipes';
 import { createDefaultState } from '../game/save/defaultState';
 import { availableIngredient, consumeReservation, executePurchase, quotePurchase, releaseReservation, reserveRecipe } from '../game/inventory/InventoryService';
-import { INGREDIENTS } from '../content/ingredients/ingredients';
+import { INGREDIENTS, INGREDIENT_BY_ID } from '../content/ingredients/ingredients';
 import { RestaurantSimulation } from '../game/simulation/RestaurantSimulation';
 
 describe('reservas e compra rápida', () => {
@@ -24,7 +24,7 @@ describe('reservas e compra rápida', () => {
     expect(quote.ok).toBe(true); expect(quote.amount).toBeGreaterThan(0); expect(quote.finalAmount).toBe(quote.amount);
     const coins = state.coins; expect(executePurchase(state, quote).ok).toBe(true); expect(state.coins).toBe(coins - quote.cost);
     state.coins = 0; expect(quotePurchase(state, 'beef', 'pack').ok).toBe(false);
-    state.coins = 999; state.inventory.beef = 18; expect(quotePurchase(state, 'beef', 'pack').reason).toContain('cheio');
+    state.coins = 999; state.inventory.beef = INGREDIENT_BY_ID.beef.maxStock; expect(quotePurchase(state, 'beef', 'pack').reason).toContain('cheio');
   });
 
   it('impede confirmar duas vezes a mesma reposição', () => {

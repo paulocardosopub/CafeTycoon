@@ -1,7 +1,7 @@
 import { GAME_VERSION, SAVE_SCHEMA_VERSION } from '../../config/balance';
 import type { ConstructionSaveState, GameState, GraphicsSaveState, PlacedFurniture, RecipeId } from '../../core/types';
 import { sanitizeInventory } from '../inventory/InventoryService';
-import { createInitialConstructionState } from '../map/initialConstruction';
+import { createInitialConstructionState, MOVABLE_DECORATION_MIGRATION } from '../map/initialConstruction';
 import { FURNITURE_BY_ID } from '../data/furniture/catalog';
 import { modulesFromFurniture } from '../systems/service-counter/ServiceCounterSystem';
 import { createDefaultState } from './defaultState';
@@ -12,6 +12,9 @@ import { sanitizeProductionState } from '../cooking/ProductionPlanningService';
 import { orientedFootprint, resolvedWorkSlots } from '../systems/furniture/FurniturePlacement';
 import { getApproachSlotCells, getSpriteAnchor, getVisualScale } from '../grid/SpatialLayoutService';
 import { seatFacingTowardTable } from '../map/initialMap';
+import { RECIPE_BY_ID } from '../../content/recipes/recipes';
+import { STAFF_BY_ID, STAFF_CATALOG } from '../data/staff';
+import { availableStaffFurniture, linkedStaffStart, syncLinkedStaffStarts } from '../systems/construction/StaffStartSystem';
 
 export function migrateAndSanitizeSave(raw: GameState | null, now = Date.now()): GameState {
   if (!raw || typeof raw !== 'object') return createDefaultState(now);
@@ -34,6 +37,9 @@ export function migrateAndSanitizeSave(raw: GameState | null, now = Date.now()):
     inventory,
     inventoryReserved: sanitizeReservations(raw.inventoryReserved, inventory),
     readyDishes: { ...fallback.readyDishes, ...(raw.readyDishes ?? {}) },
+    enabledRecipeIds: Array.isArray(raw.enabledRecipeIds)
+      ? [...new Set(raw.enabledRecipeIds.filter((id): id is RecipeId => Boolean(RECIPE_BY_ID[id])))]
+      : fallback.enabledRecipeIds,
     productionQueue: Array.isArray(raw.productionQueue) ? raw.productionQueue.slice(0, 20) : [],
     upgrades: { ...fallback.upgrades, ...(raw.upgrades ?? {}) },
     stats: { ...fallback.stats, ...(raw.stats ?? {}) },
@@ -101,6 +107,15 @@ function sanitizeConstruction(
   const qaResidueRemoved = hasQaResidue(input.placedFurniture) || hasQaResidue(input.storedFurniture);
   const placedFurniture = input.placedFurniture.filter((item) => item && FURNITURE_BY_ID[item.definitionId] && !isQaFurniture(item)).map(sanitizePlaced);
   const storedFurniture = Array.isArray(input.storedFurniture) ? input.storedFurniture.filter((item) => item && FURNITURE_BY_ID[item.definitionId] && !isQaFurniture(item)).map(sanitizePlaced) : [];
+  const previousMigrationLog = Array.isArray(input.migrationLog) ? input.migrationLog.slice(-99) : [];
+  const migrateFixedDecorations = !previousMigrationLog.includes(MOVABLE_DECORATION_MIGRATION);
+  if (migrateFixedDecorations) {
+    for (const legacyId of ['decor:plant-a', 'decor:plant-b', 'decor:bin']) {
+      if (placedFurniture.some((item) => item.id === legacyId) || storedFurniture.some((item) => item.id === legacyId)) continue;
+      const replacement = fallback.placedFurniture.find((item) => item.id === legacyId);
+      if (replacement) placeNearestFree(sanitizePlaced({ ...replacement, state: { ...replacement.state } }), placedFurniture);
+    }
+  }
   if (qaResidueRemoved && !placedFurniture.some((item) => FURNITURE_BY_ID[item.definitionId]?.functionId === 'table')) {
     const initialDining = fallback.placedFurniture.filter((item) => ['table', 'chair'].includes(FURNITURE_BY_ID[item.definitionId]?.functionId ?? ''));
     const occupied = new Set(placedFurniture.map((item) => `${item.gridX},${item.gridY}`));
@@ -113,13 +128,20 @@ function sanitizeConstruction(
   for (const defaultStart of fallback.staffStartPositions) {
     if (!staffStartPositions.some((position) => position.staffId === defaultStart.staffId)) staffStartPositions.push({ ...defaultStart });
   }
+  for (const start of staffStartPositions.filter((position) => !position.linkedFurnitureId)) {
+    const definition = STAFF_BY_ID[start.staffId] ?? STAFF_CATALOG.find((candidate) => candidate.actorId === start.staffId);
+    const furniture = definition ? availableStaffFurniture(definition.role, placedFurniture, staffStartPositions) : undefined;
+    if (definition && furniture) Object.assign(start, linkedStaffStart(start.staffId, definition.role, furniture));
+  }
+  syncLinkedStaffStarts(staffStartPositions, placedFurniture);
   return {
     ...fallback, ...input, placedFurniture, storedFurniture, serviceCounters,
     builtAreas: builtAreas.length ? builtAreas : fallback.builtAreas,
     staffStartPositions,
     migrationLog: [
-      ...(Array.isArray(input.migrationLog) ? input.migrationLog.slice(-99) : []),
+      ...previousMigrationLog,
       ...(qaResidueRemoved ? ['Cenário interno de QA removido; progresso e compras preservados.'] : []),
+      ...(migrateFixedDecorations ? [MOVABLE_DECORATION_MIGRATION] : []),
       ...spatialMigrationLog,
     ],
   };

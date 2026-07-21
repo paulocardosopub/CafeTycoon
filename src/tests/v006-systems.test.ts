@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { BALANCE } from '../config/balance';
 import { INGREDIENTS } from '../content/ingredients/ingredients';
 import { RECIPE_BY_ID } from '../content/recipes/recipes';
-import type { GameState, ServiceCounterModule } from '../core/types';
+import type { GameState, PlacedFurniture, ServiceCounterModule } from '../core/types';
 import { createProductionPlan, cancelProductionPlan, completeProductionTask, pauseProductionPlan, prepareNextProductionTask, refreshMaintainTargetPlans } from '../game/cooking/ProductionPlanningService';
 import { createInitialProductionState } from '../game/cooking/ProductionPlanningService';
-import { createPurchaseRequest, cancelPurchaseRequest, completePurchaseRequest, evaluateAutoPurchases } from '../game/inventory/ProcurementService';
+import { createPurchaseRequest, cancelPurchaseRequest, completePurchaseRequest, evaluateAutoPurchases, failPurchaseRequest } from '../game/inventory/ProcurementService';
 import { planStorageAllocation, reconcileStorage, storageCapacity, storageTargetPoint } from '../game/inventory/StorageService';
 import { availableIngredient, consumeReservation, reserveRecipe } from '../game/inventory/InventoryService';
 import { calculateOfflineProgress } from '../game/offline/OfflineService';
@@ -33,8 +33,11 @@ function emptyIngredient(state: GameState, id: keyof GameState['inventory']): vo
 describe('v0.0.6 · funcionários, turnos e treinamento', () => {
   it('1. contrata com saldo suficiente', () => {
     const state = createDefaultState(0); state.coins = 1_000;
+    const extraStove: PlacedFurniture = { id: 'stove:extra', definitionId: 'cooking.a1.stove', gridX: 12, gridY: 14, orientation: 'sw', skinId: 'steel-standard', level: 1, state: {} };
+    state.construction.placedFurniture.push(extraStove);
     const result = hireStaff(state, 'cook-1', { x: 14, y: 14 }, 10);
     expect(result.ok).toBe(true); expect(state.coins).toBe(550); expect(state.staff.instances).toContainEqual(expect.objectContaining({ definitionId: 'cook-1' }));
+    expect(state.construction.staffStartPositions.find((start) => start.staffId === 'cook-1')).toEqual(expect.objectContaining({ linkedFurnitureId: 'stove:extra', gridX: 12, gridY: 15 }));
   });
 
   it('2. bloqueia contratação sem saldo', () => {
@@ -96,8 +99,8 @@ describe('v0.0.6 · armazenamento e reposição', () => {
   });
 
   it('12. deriva capacidade dos móveis físicos', () => {
-    const state = createDefaultState(0); expect(storageCapacity(state)).toBe(110);
-    state.construction.placedFurniture = state.construction.placedFurniture.filter((item) => item.id !== 'furniture:c5'); reconcileStorage(state, 1); expect(storageCapacity(state)).toBe(50);
+    const state = createDefaultState(0); expect(storageCapacity(state)).toBe(500);
+    state.construction.placedFurniture = state.construction.placedFurniture.filter((item) => item.id !== 'furniture:c5'); reconcileStorage(state, 1); expect(storageCapacity(state)).toBe(260);
   });
 
   it('13. suporta tipos dry, refrigerated e frozen', () => {
@@ -137,6 +140,17 @@ describe('v0.0.6 · armazenamento e reposição', () => {
     expect(evaluateAutoPurchases(state, true, 10).some((request) => request.origin === 'automatic')).toBe(true);
   });
 
+  it('18b. estoquista busca, compra e guarda o reabastecimento automático', () => {
+    const state = createDefaultState(0); state.coins = 1_000; emptyIngredient(state, 'beef');
+    state.tutorial006.automationUnlocked = true; state.procurement.globalSettings.enabled = true;
+    state.procurement.policies.find((item) => item.ingredientId === 'beef')!.enabled = true;
+    state.procurement.spentThisPeriod = state.procurement.globalSettings.maximumSpendPerPeriod;
+    expect(evaluateAutoPurchases(state, true, 10)).toHaveLength(1);
+    const simulation = new RestaurantSimulation(state); simulation.debugSetAutoSpawn(false); simulation.debugRunFor(40);
+    expect(state.inventory.beef).toBeGreaterThan(0);
+    expect(state.procurement.history.at(-1)).toEqual(expect.objectContaining({ origin: 'automatic', responsibleStaffId: 'employee-stocker-001', result: 'completed' }));
+  });
+
   it('19. respeita saldo protegido', () => {
     const state = createDefaultState(0); emptyIngredient(state, 'beef'); state.coins = BALANCE.procurement.protectedCashBalance;
     expect(createPurchaseRequest(state, [{ ingredientId: 'beef', quantity: 1 }], 'automatic', 'auto').reason).toContain('protegido'); expect(state.coins).toBe(BALANCE.procurement.protectedCashBalance);
@@ -148,9 +162,9 @@ describe('v0.0.6 · armazenamento e reposição', () => {
     expect(state.procurement.requests.some((request) => request.blockedReason?.includes('ciclo'))).toBe(true);
   });
 
-  it('21. respeita limite por período', () => {
+  it('21. não paralisa a automação por limite acumulado do período', () => {
     const state = createDefaultState(0); state.coins = 1_000; emptyIngredient(state, 'beef'); state.procurement.spentThisPeriod = state.procurement.globalSettings.maximumSpendPerPeriod;
-    expect(createPurchaseRequest(state, [{ ingredientId: 'beef', quantity: 1 }], 'automatic', 'auto').reason).toContain('período');
+    expect(createPurchaseRequest(state, [{ ingredientId: 'beef', quantity: 1 }], 'automatic', 'auto').ok).toBe(true);
   });
 
   it('22. bloqueia compra sem espaço físico', () => {
@@ -172,6 +186,15 @@ describe('v0.0.6 · armazenamento e reposição', () => {
   it('25. registra histórico limitado da compra', () => {
     const state = createDefaultState(0); state.coins = 1_000; emptyIngredient(state, 'beef'); const request = createPurchaseRequest(state, [{ ingredientId: 'beef', quantity: 1 }], 'manual', 'x').request!;
     completePurchaseRequest(state, request.id, 'employee-stocker-001', 20); expect(state.procurement.history.at(-1)).toEqual(expect.objectContaining({ requestId: request.id, result: 'completed' }));
+  });
+
+  it('25b. libera reserva bloqueada e permite nova tentativa automática', () => {
+    const state = createDefaultState(0); state.coins = 1_000; emptyIngredient(state, 'beef');
+    const first = createPurchaseRequest(state, [{ ingredientId: 'beef', quantity: 2 }], 'automatic', 'auto').request!;
+    expect(state.storage.inventories.reduce((sum, item) => sum + item.reservedCapacity, 0)).toBeGreaterThan(0);
+    expect(failPurchaseRequest(state, first.id, 'rota interrompida').ok).toBe(true);
+    expect(state.storage.inventories.reduce((sum, item) => sum + item.reservedCapacity, 0)).toBe(0);
+    expect(createPurchaseRequest(state, [{ ingredientId: 'beef', quantity: 2 }], 'automatic', 'auto').ok).toBe(true);
   });
 });
 

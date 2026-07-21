@@ -215,8 +215,8 @@ function appendBatches(state: Pick<GameState, 'production'>, plan: ProductionPla
 function reserveOutputCapacity(counters: ServiceCounterModule[], recipeId: RecipeId, quantity: number, preferredIds: string[]): { moduleId: string; quantity: number }[] | undefined {
   let compatible = counters.filter((module) => module.assignedRecipeId === recipeId && (!preferredIds.length || preferredIds.includes(module.id)));
   if (!compatible.length && preferredIds.length) compatible = counters.filter((module) => module.assignedRecipeId === recipeId);
-  if (!compatible.length) {
-    const empty = counters.find((module) => !module.assignedRecipeId && module.currentQuantity === 0 && module.reservedQuantity === 0 && (module.incomingReservedQuantity ?? 0) === 0);
+  if (!compatible.some((module) => module.currentQuantity + (module.incomingReservedQuantity ?? 0) < module.maxCapacity)) {
+    const empty = counters.find((module) => module.currentQuantity === 0 && module.reservedQuantity === 0 && (module.incomingReservedQuantity ?? 0) === 0);
     if (empty) { empty.assignedRecipeId = recipeId; compatible = [empty]; }
   }
   let remaining = quantity;

@@ -32,6 +32,41 @@ function stockedSimulation(): RestaurantSimulation {
 }
 
 describe('capacidade e assentos individuais', () => {
+  it('pausa a edição no lugar e só expulsa quem teve a cadeira movida', () => {
+    const simulation = stockedSimulation();
+    const customer = simulation.debugSeatGroupAtFirstTable(1)[0];
+    const chairId = customer.chairIds[0];
+    const reputation = simulation.state.reputation;
+    expect(simulation.prepareConstructionMode()).toBe(true);
+    expect(simulation.customers).toContain(customer);
+    expect(simulation.finalizeConstructionMode([chairId])).toBe(1);
+    expect(customer.state).toBe('gave_up');
+    expect(customer.chairIds).toEqual([]);
+    expect(simulation.tables.flatMap((table) => table.chairs).find((seat) => seat.id === chairId)?.state).toBe('free');
+    expect(simulation.state.reputation).toBe(reputation - 2);
+    expect(simulation.state.operation).toBeDefined();
+  });
+
+  it('preserva clientes e funcionários ao cancelar a edição', () => {
+    const simulation = stockedSimulation();
+    const customer = simulation.debugSeatGroupAtFirstTable(1)[0];
+    const actorPositions = simulation.actors.map((actor) => ({ ...actor.position }));
+    simulation.setTimeScale(2);
+    simulation.prepareConstructionMode();
+    simulation.update(2);
+    expect(customer.state).toBe('waiting_order');
+    simulation.cancelConstructionMode();
+    expect(simulation.timeScale()).toBe(2);
+    expect(simulation.actors.map((actor) => actor.position)).toEqual(actorPositions);
+  });
+
+  it('aceita apenas receitas liberadas manualmente para novos pedidos', () => {
+    const simulation = stockedSimulation();
+    simulation.state.enabledRecipeIds = ['omelette'];
+    simulation.debugSeatGroupAtFirstTable(1);
+    expect(simulation.debugSimulateOrder()).toBe(true);
+    expect(simulation.orders.at(-1)?.recipeId).toBe('omelette');
+  });
   it('calcula seis vagas pelas duas cadeiras opostas de cada mesa', () => {
     const simulation = stockedSimulation();
     expect(simulation.tables).toHaveLength(3);

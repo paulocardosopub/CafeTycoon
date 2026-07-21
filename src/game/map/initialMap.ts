@@ -22,17 +22,9 @@ export const CUSTOMER_QUEUE: GridPoint[] = [
 export const PICKUP_KITCHEN_POINT: GridPoint = { x: 7, y: 6 };
 export const PICKUP_SERVICE_POINT: GridPoint = { x: 7, y: 8 };
 
-const decoration = (id: string, asset: PersistedWorldObject['asset'], position: GridPoint, visualHeight: number, blocksMovement = true): PersistedWorldObject => ({
-  id, asset, position, footprint: { width: 1, depth: 1 }, orientation: 'sw', occupiedCells: blocksMovement ? [{ ...position }] : [],
-  front: 'sw', interactionPoints: [], requiredFreeCells: [], rotatable: false, anchor: { x: .5, y: asset === 'door' || asset === 'shelf' ? 1 : .85 }, visualHeight, blocksMovement,
-  visualSkinId: 'decor-bloom', visualBounds: { widthCells: 1, depthCells: 1, heightBlocks: visualHeight / 48, overhangCells: .2 }, depthOffset: 0,
-});
-
-export const DECORATIONS: PersistedWorldObject[] = [
-  decoration('decor:plant-a', 'plant', { x: 1, y: 9 }, 62),
-  decoration('decor:plant-b', 'plant', { x: 1, y: 14 }, 62),
-  decoration('decor:bin', 'bin', { x: 16, y: 7 }, 39),
-];
+// Decorative furniture now lives entirely in ConstructionSaveState so every
+// visible plant and bin can be selected, moved, rotated, stored or sold.
+export const DECORATIONS: PersistedWorldObject[] = [];
 
 export const seatFacingTowardTable = (chair: GridPoint, table: GridPoint): Direction => {
   return facingBetweenTargets(chair, table, 'se');
@@ -113,7 +105,11 @@ export function createStations(construction: ConstructionSaveState = createIniti
     const primary = kitchenSlot?.point ?? workSlots[0]?.point ?? { x: item.gridX, y: item.gridY + size.depth };
     const serviceInteraction = waiterSlot?.point;
     const asset = worldAssetForStation(baseId);
-    const renderedAssetId = definition.spriteSet[item.orientation];
+    const counterVariant = construction.serviceCounters.find((module) => module.id === item.id)?.connectionVariant;
+    const renderDefinition = baseId === 'pickup' && counterVariant
+      ? FURNITURE_BY_ID[{ isolated: 'service.c1.isolated', left: 'service.c2.left', middle: 'service.c3.middle', right: 'service.c4.right', corner: 'service.c1.isolated' }[counterVariant]]
+      : definition;
+    const renderedAssetId = renderDefinition.spriteSet[item.orientation];
     const interactionPoints = [...new Map(slots.map((slot) => [`${slot.point.x},${slot.point.y}`, slot.point])).values()];
     return {
       id, name: definition.name, icon: definition.code, position: { x: item.gridX, y: item.gridY }, size: { x: size.width, y: size.depth }, interaction: primary,
@@ -152,6 +148,10 @@ export function createInitialGrid(tables = createTables(), stations = createStat
     grid.set(item.position, { kind: 'blocked', walkable: false, furniturePart: item.id });
     item.chairs.forEach((chair) => grid.set(chair.position, { kind: 'blocked', walkable: false, furniturePart: chair.id }));
     grid.set(item.waiterApproach, { reservedFor: `table:${item.id}:waiter` });
+  });
+  construction.placedFurniture.filter((item) => FURNITURE_BY_ID[item.definitionId]?.functionId === 'decoration').forEach((item) => {
+    const footprint = orientedFootprint(FURNITURE_BY_ID[item.definitionId], item.orientation);
+    grid.setRect({ x: item.gridX, y: item.gridY }, { x: footprint.width, y: footprint.depth }, { kind: 'blocked', walkable: false, furniturePart: item.id });
   });
   DECORATIONS.filter((item) => item.blocksMovement).forEach((item) => grid.set(item.position, { kind: 'blocked', walkable: false, furniturePart: item.id }));
   for (let y = 0; y < grid.height; y += 1) for (let x = 0; x < grid.width; x += 1) {

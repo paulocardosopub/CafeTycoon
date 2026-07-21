@@ -40,7 +40,7 @@ export const BALANCE = {
     maxLevel: 5,
   },
   storage: {
-    capacities: { dry: 60, refrigerated: 50, frozen: 50, general: 36 },
+    capacities: { dry: 240, refrigerated: 260, frozen: 200, general: 180 },
     levelCapacityMultiplier: 0.25,
   },
   procurement: {

@@ -86,7 +86,7 @@ export function createPurchaseRequest(
   const normalized = combineItems(items);
   if (!normalized.length) return { ok: false, reason: 'A lista de compras está vazia.' };
   const dedupeKey = `${origin}:${normalized.map((item) => `${item.ingredientId}:${item.quantity}`).join('|')}`;
-  const duplicate = state.procurement.requests.find((request) => request.dedupeKey === dedupeKey && !['completed', 'cancelled', 'failed'].includes(request.status));
+  const duplicate = state.procurement.requests.find((request) => request.dedupeKey === dedupeKey && ['pending', 'approved', 'purchasing', 'delivering', 'storing'].includes(request.status));
   if (duplicate) return { ok: false, request: duplicate, reason: 'Uma solicitação idêntica já está em andamento.' };
 
   const lines: PurchaseRequestLine[] = [];
@@ -113,7 +113,6 @@ export function createPurchaseRequest(
   }
   if (origin === 'automatic') {
     if (totalCost > state.procurement.globalSettings.maximumSpendPerCycle) { rollbackStorageReservations(state, lines); return { ok: false, reason: 'Limite global por ciclo excedido.' }; }
-    if (state.procurement.spentThisPeriod + totalCost > state.procurement.globalSettings.maximumSpendPerPeriod) { rollbackStorageReservations(state, lines); return { ok: false, reason: 'Limite de compras do período excedido.' }; }
   }
   const request: PurchaseRequest = {
     id: stableRuntimeId('purchase'), lines, totalCost, origin, reason, priority,
@@ -145,7 +144,7 @@ export function completePurchaseRequest(state: GameState, requestId: string, sta
   const protectedBalance = request.origin === 'automatic' ? effectiveProtectedBalance(state, request.lines.map((line) => line.ingredientId)) : 0;
   const validation = validateCompletion(state, request, protectedBalance);
   if (!validation.ok) {
-    request.status = 'blocked'; request.blockedReason = validation.reason; request.updatedAt = now;
+    failPurchaseRequest(state, request.id, validation.reason ?? 'Compra bloqueada na conclusão.', now);
     return { ok: false, request, reason: validation.reason };
   }
   state.coins -= request.totalCost;
@@ -168,8 +167,20 @@ export function cancelPurchaseRequest(state: GameState, requestId: string, now =
   return { ok: true, request };
 }
 
+export function failPurchaseRequest(state: GameState, requestId: string, reason: string, now = Date.now()): ProcurementResult {
+  const request = state.procurement.requests.find((item) => item.id === requestId);
+  if (!request || ['completed', 'cancelled', 'failed'].includes(request.status)) return { ok: false, reason: 'A solicitação não pode mais ser encerrada.' };
+  rollbackStorageReservations(state, request.lines);
+  request.status = 'failed'; request.updatedAt = now; request.blockedReason = reason;
+  appendHistory(state, request, 'failed', now);
+  return { ok: true, request };
+}
+
 export function evaluateAutoPurchases(state: GameState, restaurantOpen = true, now = Date.now()): PurchaseRequest[] {
   const procurement = state.procurement;
+  for (const request of procurement.requests.filter((item) => item.origin === 'automatic' && item.status === 'blocked' && item.lines.some((line) => line.storageAllocations.length > 0))) {
+    failPurchaseRequest(state, request.id, request.blockedReason ?? 'Solicitação automática antiga liberada para nova tentativa.', now);
+  }
   if (now - procurement.periodStartedAt >= procurement.globalSettings.periodSeconds * 1000) {
     procurement.periodStartedAt = now; procurement.spentThisPeriod = 0;
   }
@@ -206,7 +217,6 @@ export function pendingQuantity(state: Pick<GameState, 'procurement'>, ingredien
 
 function validateCompletion(state: GameState, request: PurchaseRequest, protectedBalance: number): { ok: boolean; reason?: string } {
   if (state.coins - request.totalCost < protectedBalance) return { ok: false, reason: request.origin === 'automatic' ? 'Saldo protegido impediria a compra.' : 'Moedas insuficientes.' };
-  if (request.origin === 'automatic' && state.procurement.spentThisPeriod + request.totalCost > state.procurement.globalSettings.maximumSpendPerPeriod) return { ok: false, reason: 'Limite do período atingido.' };
   for (const line of request.lines) {
     const ingredient = INGREDIENT_BY_ID[line.ingredientId];
     if (state.inventory[line.ingredientId] + line.quantity > ingredient.maxStock) return { ok: false, reason: `${ingredient.name}: estoque máximo mudou.` };

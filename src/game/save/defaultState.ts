@@ -25,6 +25,7 @@ export function createDefaultState(now = Date.now()): GameState {
     inventory,
     inventoryReserved: Object.fromEntries(INGREDIENTS.map((item) => [item.id, 0])) as Record<IngredientId, number>,
     readyDishes: Object.fromEntries(RECIPES.map((recipe) => [recipe.id, recipe.id === 'coffee' ? 2 : 0])) as Record<RecipeId, number>,
+    enabledRecipeIds: RECIPES.map((recipe) => recipe.id),
     productionQueue: [],
     upgrades: { inventory: 0, dishStorage: 0, stationSpeed: 0 },
     lastActiveAt: now,

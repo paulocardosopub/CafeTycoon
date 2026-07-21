@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 // Sufixo estável e próprio evita colisão de cache entre prévias locais que usam
 // o mesmo caminho virtual `/src/styles.css` no navegador integrado.
-import './styles.css?bistro-structural-v006';
+import './styles.css?v=bistro-bloom-006-ui';
 import { showCharacterCreator } from './ui/characterCreator';
 import { GameUI } from './ui/GameUI';
 import { IndexedDbSaveRepository, SAVE_RESET_SESSION_KEY } from './game/save/SaveRepository';

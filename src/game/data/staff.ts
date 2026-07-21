@@ -53,6 +53,7 @@ export const STAFF_CATALOG: readonly StaffDefinition[] = [
   staff({ id: 'stocker-0', actorId: 'employee-stocker-001', role: 'stocker', name: 'Davi', assetId: 'stocker-0', includedByDefault: true, hiringCost: 0, salary: 18, suggestedStart: { x: 3, y: 4 }, facing: 'ne', carryingCapacity: 16, traits: ['Carga segura'] }),
   staff({ id: 'cook-1', actorId: 'employee-cook-002', role: 'cook', name: 'Lúcia', assetId: 'cook-1', includedByDefault: false, hiringCost: 450, salary: 27, suggestedStart: { x: 6, y: 4 }, facing: 'ne', taskSpeed: 1.12, quality: 1.14, traits: ['Forno preciso'] }),
   staff({ id: 'waiter-1', actorId: 'employee-waiter-002', role: 'waiter', name: 'Bento', assetId: 'waiter-1', includedByDefault: false, hiringCost: 380, salary: 22, suggestedStart: { x: 10, y: 9 }, facing: 'ne', movementSpeed: 1.14, carryingCapacity: 6, traits: ['Bandeja firme'] }),
+  staff({ id: 'stocker-1', actorId: 'employee-stocker-002', role: 'stocker', name: 'Ravi', assetId: 'stocker-0', includedByDefault: false, hiringCost: 360, salary: 21, suggestedStart: { x: 3, y: 5 }, facing: 'ne', carryingCapacity: 20, traits: ['Reposição contínua'] }),
 ] as const;
 
 export type StaffCatalogEntry = StaffDefinition;

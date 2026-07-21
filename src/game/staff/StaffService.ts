@@ -4,7 +4,7 @@ import type {
 } from '../../core/types';
 import { stableRuntimeId } from '../../core/id';
 import { STAFF_BY_ID, STAFF_CANDIDATES, STAFF_CATALOG } from '../data/staff';
-import { validateStaffStartPosition } from '../systems/construction/StaffStartSystem';
+import { availableStaffFurniture, linkedStaffStart, staffFurnitureRequirement, validateStaffStartPosition } from '../systems/construction/StaffStartSystem';
 
 export const DEFAULT_STAFF_SCHEDULE: StaffSchedule = {
   id: 'standard-day',
@@ -87,13 +87,18 @@ export function sanitizeStaffState(input: StaffSystemState | undefined, state: P
 
 export interface StaffActionResult { ok: boolean; reason?: string; instance?: StaffInstance }
 
-export function hireStaff(state: GameState, definitionId: string, startPosition: GridPoint, now = Date.now()): StaffActionResult {
+export function hireStaff(state: GameState, definitionId: string, _startPosition?: GridPoint, now = Date.now()): StaffActionResult {
   const definition = STAFF_BY_ID[definitionId];
   if (!definition || definition.includedByDefault) return { ok: false, reason: 'Candidato indisponível.' };
   if (state.staff.instances.some((instance) => instance.definitionId === definitionId)) return { ok: false, reason: 'Este candidato já foi contratado.' };
   if (state.staff.instances.length >= state.staff.maxStaff) return { ok: false, reason: 'Limite de funcionários atingido.' };
   if (state.coins < definition.hiringCost) return { ok: false, reason: 'Saldo insuficiente para o custo de contratação.' };
-  const start = { staffId: definition.actorId, gridX: Math.floor(startPosition.x), gridY: Math.floor(startPosition.y), facing: definition.facing, returnWhenIdle: true };
+  const requiredFurniture = staffFurnitureRequirement(definition.role);
+  const furniture = availableStaffFurniture(definition.role, state.construction.placedFurniture, state.construction.staffStartPositions);
+  if (requiredFurniture && !furniture) return { ok: false, reason: `Instale um ${requiredFurniture} livre para contratar este funcionário.` };
+  const start = furniture
+    ? linkedStaffStart(definition.id, definition.role, furniture)
+    : { staffId: definition.id, gridX: Math.floor(definition.suggestedStart.x), gridY: Math.floor(definition.suggestedStart.y), facing: definition.facing, returnWhenIdle: true };
   if (state.construction.staffStartPositions.some((position) => position.gridX === start.gridX && position.gridY === start.gridY)) return { ok: false, reason: 'Outro personagem já começa nessa posição.' };
   const validation = validateStaffStartPosition(start, state.construction.placedFurniture, state.construction.builtAreas);
   if (!validation.valid) return { ok: false, reason: validation.reason };

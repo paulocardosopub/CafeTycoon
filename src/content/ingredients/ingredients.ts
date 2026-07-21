@@ -1,15 +1,15 @@
 import type { IngredientDefinition, IngredientId, StorageType } from '../../core/types';
 
 export const INGREDIENTS: IngredientDefinition[] = [
-  ingredient('bread', 'Pão artesanal', 'pantry', 8, 20, 12, 5, 5, 14, 'un.', 'PÃO'),
-  ingredient('beef', 'Carne', 'fresh', 7, 18, 22, 4, 4, 12, 'porções', 'CAR'),
-  ingredient('cheese', 'Queijo', 'fresh', 8, 18, 15, 5, 4, 13, 'fatias', 'QUE'),
-  ingredient('egg', 'Ovos', 'fresh', 12, 24, 13, 6, 6, 18, 'un.', 'OVO'),
-  ingredient('tomato', 'Tomate', 'fresh', 10, 22, 10, 6, 5, 16, 'un.', 'TOM'),
-  ingredient('coffee', 'Café', 'drink', 10, 20, 14, 5, 5, 15, 'doses', 'CAF'),
-  ingredient('water', 'Água', 'drink', 18, 30, 6, 8, 7, 24, 'copos', 'ÁGU'),
-  ingredient('vegetables', 'Legumes', 'fresh', 10, 22, 16, 5, 5, 16, 'porções', 'LEG'),
-  ingredient('seasoning', 'Temperos', 'pantry', 14, 24, 9, 6, 6, 19, 'doses', 'TEM'),
+  ingredient('bread', 'Pão artesanal', 'pantry', 16, 40, 12, 5, 10, 28, 'un.', 'PÃO'),
+  ingredient('beef', 'Carne', 'fresh', 14, 36, 22, 4, 8, 24, 'porções', 'CAR'),
+  ingredient('cheese', 'Queijo', 'fresh', 16, 36, 15, 5, 8, 26, 'fatias', 'QUE'),
+  ingredient('egg', 'Ovos', 'fresh', 24, 48, 13, 6, 12, 36, 'un.', 'OVO'),
+  ingredient('tomato', 'Tomate', 'fresh', 20, 44, 10, 6, 10, 32, 'un.', 'TOM'),
+  ingredient('coffee', 'Café', 'drink', 20, 40, 14, 5, 10, 30, 'doses', 'CAF'),
+  ingredient('water', 'Água', 'drink', 30, 60, 6, 8, 14, 48, 'copos', 'ÁGU'),
+  ingredient('vegetables', 'Legumes', 'fresh', 20, 44, 16, 5, 10, 32, 'porções', 'LEG'),
+  ingredient('seasoning', 'Temperos', 'pantry', 28, 48, 9, 6, 12, 38, 'doses', 'TEM'),
 ];
 
 function ingredient(

@@ -9,7 +9,7 @@ import { orientedFootprint, resolvedWorkSlots, validateFurniturePlacement, valid
 import { getApproachSlotCells, getSpriteAnchor, getVisualScale, snapToGrid } from '../../grid/SpatialLayoutService';
 import { seatFacingTowardTable } from '../../map/initialMap';
 import { modulesFromFurniture } from '../service-counter/ServiceCounterSystem';
-import { nearestSafeStaffStart, validateStaffStartPosition } from './StaffStartSystem';
+import { availableStaffFurniture, linkedStaffStart, nearestSafeStaffStart, staffFurnitureRequirement, syncLinkedStaffStarts, validateStaffStartPosition } from './StaffStartSystem';
 import { storageHasContents } from '../../inventory/StorageService';
 import { createStaffInstance } from '../../staff/StaffService';
 
@@ -27,6 +27,7 @@ export class ConstructionEditor {
   private redoStack: ConstructionDraft[] = [];
   private active = true;
   private furnitureEdit?: { session: FurnitureEditSession; before: ConstructionDraft };
+  private expansionEdit?: { definition: ExpansionDefinition; side: ExpansionDefinition['allowedSides'][number]; before: ConstructionDraft };
 
   constructor(private readonly state: GameState) {
     this.original = clone({ construction: state.construction, coins: state.coins });
@@ -37,6 +38,9 @@ export class ConstructionEditor {
   get canUndo(): boolean { return this.undoStack.length > 0; }
   get canRedo(): boolean { return this.redoStack.length > 0; }
   get editSession(): Readonly<FurnitureEditSession> | undefined { return this.furnitureEdit?.session; }
+  get pendingExpansion(): Readonly<{ definition: ExpansionDefinition; side: ExpansionDefinition['allowedSides'][number] }> | undefined {
+    return this.expansionEdit ? { definition: this.expansionEdit.definition, side: this.expansionEdit.side } : undefined;
+  }
 
   beginFurnitureEdit(id: string): EditorResult {
     if (this.furnitureEdit?.session.furnitureId === id) return { ok: true };
@@ -134,6 +138,7 @@ export class ConstructionEditor {
   store(id: string, confirmFood = false): EditorResult {
     const item = this.current.construction.placedFurniture.find((entry) => entry.id === id);
     if (!item) return { ok: false, reason: 'Móvel não encontrado.' };
+    if (this.current.construction.staffStartPositions.some((start) => start.linkedFurnitureId === id)) return { ok: false, reason: 'Este móvel está vinculado a um funcionário. Demita-o ou vincule-o a outro móvel antes de guardar.' };
     const module = this.current.construction.serviceCounters.find((entry) => entry.id === id);
     if (module && (module.currentQuantity || module.reservedQuantity) && !confirmFood) return { ok: false, reason: 'Confirme o armazenamento do balcão com comida.' };
     if (storageHasContents(this.state, id) && !confirmFood) return { ok: false, reason: 'Confirme o armazenamento deste móvel com ingredientes. Os itens serão preservados.' };
@@ -146,6 +151,7 @@ export class ConstructionEditor {
     const item = this.current.construction.placedFurniture.find((entry) => entry.id === id);
     const definition = item ? FURNITURE_BY_ID[item.definitionId] : undefined;
     if (!item || !definition) return { ok: false, reason: 'Móvel não encontrado.' };
+    if (this.current.construction.staffStartPositions.some((start) => start.linkedFurnitureId === id)) return { ok: false, reason: 'Este móvel está vinculado a um funcionário e não pode ser vendido.' };
     const module = this.current.construction.serviceCounters.find((entry) => entry.id === id);
     if (module && (module.currentQuantity || module.reservedQuantity) && !confirmFood) return { ok: false, reason: 'Confirme a venda do balcão e a devolução do estoque.' };
     if (storageHasContents(this.state, id) && !confirmFood) return { ok: false, reason: 'Este armazenamento contém ingredientes. Confirme para redistribuir sem apagar itens.' };
@@ -180,6 +186,12 @@ export class ConstructionEditor {
   }
 
   buyExpansion(definitionId: string, side: ExpansionDefinition['allowedSides'][number]): EditorResult {
+    const preview = this.previewExpansion(definitionId, side);
+    return preview.ok ? this.confirmExpansion() : preview;
+  }
+
+  previewExpansion(definitionId: string, side: ExpansionDefinition['allowedSides'][number]): EditorResult {
+    if (this.expansionEdit) { this.current = clone(this.expansionEdit.before); this.expansionEdit = undefined; }
     const definition = EXPANSION_BY_ID[definitionId];
     if (!definition) return { ok: false, reason: 'Expansão desconhecida.' };
     if (!definition.allowedSides.includes(side)) return { ok: false, reason: 'Lado não permitido.' };
@@ -188,10 +200,30 @@ export class ConstructionEditor {
     if (definition.prerequisites.some((id) => !this.current.construction.builtAreas.some((area) => area.expansionDefinitionId === id))) return { ok: false, reason: 'Pré-requisito de expansão ausente.' };
     if (this.current.coins < definition.coinCost) return { ok: false, reason: 'Moedas insuficientes.' };
     const area = expansionArea(definition, side, this.current.construction.builtAreas);
-    this.record(); this.current.coins -= definition.coinCost; this.current.construction.builtAreas.push(area); return { ok: true };
+    const before = clone(this.current);
+    this.current.construction.builtAreas.push(area);
+    this.expansionEdit = { definition, side, before };
+    return { ok: true };
+  }
+
+  confirmExpansion(): EditorResult {
+    if (!this.expansionEdit) return { ok: false, reason: 'Nenhuma ampliação selecionada.' };
+    this.undoStack.push(clone(this.expansionEdit.before)); this.redoStack = [];
+    this.current.coins -= this.expansionEdit.definition.coinCost;
+    this.expansionEdit = undefined;
+    return { ok: true };
+  }
+
+  cancelExpansion(): EditorResult {
+    if (!this.expansionEdit) return { ok: false, reason: 'Nenhuma ampliação selecionada.' };
+    this.current = clone(this.expansionEdit.before);
+    this.expansionEdit = undefined;
+    return { ok: true };
   }
 
   setStaffStart(position: StaffStartPosition): EditorResult {
+    const existing = this.current.construction.staffStartPositions.find((item) => item.staffId === position.staffId);
+    if (existing?.linkedFurnitureId) return { ok: false, reason: 'A posição deste funcionário acompanha automaticamente o móvel vinculado.' };
     if (this.current.construction.staffStartPositions.some((item) => item.staffId !== position.staffId && item.gridX === position.gridX && item.gridY === position.gridY)) {
       return { ok: false, reason: 'Outro funcionário já começa nesse quadrado.' };
     }
@@ -208,7 +240,11 @@ export class ConstructionEditor {
     if (!definition || definition.includedByDefault) return { ok: false, reason: 'Funcionário indisponível para contratação.' };
     if (this.current.construction.staffStartPositions.some((item) => item.staffId === staffId)) return { ok: false, reason: 'Este funcionário já faz parte da equipe.' };
     if (this.current.coins < definition.hireCost) return { ok: false, reason: 'Moedas insuficientes para esta contratação.' };
-    const start = nearestSafeStaffStart(staffId, definition.suggestedStart, definition.facing, this.current.construction.placedFurniture, this.current.construction.builtAreas);
+    const requiredFurniture = staffFurnitureRequirement(definition.role);
+    const furniture = availableStaffFurniture(definition.role, this.current.construction.placedFurniture, this.current.construction.staffStartPositions);
+    if (requiredFurniture && !furniture) return { ok: false, reason: `Instale um ${requiredFurniture} livre antes desta contratação.` };
+    const start = furniture ? linkedStaffStart(staffId, definition.role, furniture)
+      : nearestSafeStaffStart(staffId, definition.suggestedStart, definition.facing, this.current.construction.placedFurniture, this.current.construction.builtAreas);
     const validation = validateStaffStartPosition(start, this.current.construction.placedFurniture, this.current.construction.builtAreas);
     if (!validation.valid) return { ok: false, reason: validation.reason };
     this.record();
@@ -230,6 +266,7 @@ export class ConstructionEditor {
   confirm(): EditorResult {
     if (!this.active) return { ok: false, reason: 'Editor encerrado.' };
     if (this.furnitureEdit) return { ok: false, reason: 'Confirme no ✓ ou cancele no × a alteração do móvel selecionado.' };
+    if (this.expansionEdit) return { ok: false, reason: 'Confirme no ✓ ou cancele no × a ampliação selecionada.' };
     this.refreshFurnitureRelationships();
     const definitions = this.current.construction.placedFurniture.map((item) => FURNITURE_BY_ID[item.definitionId]).filter(Boolean);
     const missingEssential = Object.values(FURNITURE_BY_ID).find((definition) => definition.essential && !definitions.some((candidate) => candidate.id === definition.id));
@@ -240,6 +277,8 @@ export class ConstructionEditor {
     if (orphanChair) return { ok: false, reason: 'Toda cadeira instalada precisa pertencer a uma mesa com espaço em lado oposto.' };
     if (!tables.length || !linkedChairs.length) return { ok: false, reason: 'Coloque ao menos uma mesa com uma cadeira ao lado para reabrir.' };
     for (const start of this.current.construction.staffStartPositions) {
+      const definition = STAFF_BY_ID[start.staffId];
+      if (definition && !definition.includedByDefault && staffFurnitureRequirement(definition.role) && !start.linkedFurnitureId) return { ok: false, reason: `${definition.name} precisa permanecer vinculado a um ${staffFurnitureRequirement(definition.role)}.` };
       const staffValidation = validateStaffStartPosition(start, this.current.construction.placedFurniture, this.current.construction.builtAreas);
       if (!staffValidation.valid) return { ok: false, reason: `Ponto inicial de ${start.staffId}: ${staffValidation.reason}` };
     }
@@ -267,6 +306,7 @@ export class ConstructionEditor {
     const tables = this.current.construction.placedFurniture.filter((item) => FURNITURE_BY_ID[item.definitionId]?.functionId === 'table');
     const chairs = this.current.construction.placedFurniture.filter((item) => FURNITURE_BY_ID[item.definitionId]?.functionId === 'chair');
     for (const chair of chairs) { chair.state = { ...chair.state }; delete chair.state.linkedTableId; delete chair.state.seatFacing; }
+    syncLinkedStaffStarts(this.current.construction.staffStartPositions, this.current.construction.placedFurniture);
     const assigned = new Set<string>();
     for (const table of tables) {
       const adjacent = chairs.filter((chair) => !assigned.has(chair.id) && Math.abs(table.gridX - chair.gridX) + Math.abs(table.gridY - chair.gridY) === 1)

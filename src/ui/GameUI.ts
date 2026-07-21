@@ -17,6 +17,8 @@ import { planStorageAllocation, storageCapacityByType, storageUsed } from '../ga
 import { approvePurchaseRequest, cancelPurchaseRequest, createPurchaseRequest, evaluateAutoPurchases } from '../game/inventory/ProcurementService';
 import { cancelProductionPlan, createProductionPlan, pauseProductionPlan, preparedQuantity } from '../game/cooking/ProductionPlanningService';
 import { FURNITURE_BY_ID } from '../game/data/furniture/catalog';
+import { availableStaffFurniture, staffFurnitureRequirement } from '../game/systems/construction/StaffStartSystem';
+import { recipeRequirements } from '../game/recipes/RecipeAvailability';
 
 type PanelId = 'staff' | 'stock' | 'recipes' | 'production' | 'orders' | 'upgrades' | 'player' | 'roles' | 'professions' | 'offline' | 'settings' | 'tasks';
 
@@ -131,6 +133,7 @@ export class GameUI {
       else if (action === 'toggle-auto-purchase') this.toggleAutoPurchase();
       else if (action === 'save-purchase-policy') this.savePurchasePolicy(target.dataset.id as IngredientId);
       else if (action === 'run-auto-purchase') { evaluateAutoPurchases(this.state, true, Date.now()); this.renderPanel(); }
+      else if (action === 'toggle-recipe-serving') this.toggleRecipeServing(target.dataset.id as RecipeId);
       else if (action === 'approve-request') { approvePurchaseRequest(this.state, target.dataset.id!); this.renderPanel(); }
       else if (action === 'cancel-request') { cancelPurchaseRequest(this.state, target.dataset.id!); this.renderPanel(); }
       else if (action === 'enqueue') this.enqueue(target.dataset.id as RecipeId);
@@ -257,7 +260,9 @@ export class GameUI {
       ? `<div class="tutorial-card"><small>NOVIDADE 0.0.6</small><strong>Automatize sem perder o controle</strong><p>Gerencie a equipe, defina estoques mínimos e crie um plano de produção. Compras automáticas começam desligadas.</p></div>` : '';
     const hireConfirmation = this.pendingHireId ? (() => {
       const candidate = STAFF_BY_ID[this.pendingHireId!];
-      return `<div class="management-confirm"><strong>Confirmar contratação de ${candidate.name}</strong><p>${candidate.hiringCost} moedas agora · ${candidate.salary} por período. Escolha uma posição inicial livre.</p><div class="coordinate-fields"><label>X<input id="hire-x" type="number" min="0" max="17" value="${candidate.suggestedStart.x}" /></label><label>Y<input id="hire-y" type="number" min="0" max="17" value="${candidate.suggestedStart.y}" /></label></div><div><button data-action="cancel-hire">Cancelar</button><button data-action="confirm-hire">Confirmar</button></div></div>`;
+      const furniture = availableStaffFurniture(candidate.role, this.state.construction.placedFurniture, this.state.construction.staffStartPositions);
+      const requirement = staffFurnitureRequirement(candidate.role);
+      return `<div class="management-confirm"><strong>Confirmar contratação de ${candidate.name}</strong><p>${candidate.hiringCost} moedas agora · ${candidate.salary} por período. ${furniture ? `Será vinculado a ${escapeHtml(FURNITURE_BY_ID[furniture.definitionId].name)} e ficará diante desse móvel.` : `É necessário instalar um ${requirement ?? 'móvel compatível'} livre.`}</p><div><button data-action="cancel-hire">Cancelar</button><button data-action="confirm-hire" ${requirement && !furniture ? 'disabled' : ''}>Confirmar</button></div></div>`;
     })() : '';
     const trainingConfirmation = this.pendingTrainingStaffId ? (() => {
       const member = this.state.staff.instances.find((item) => item.id === this.pendingTrainingStaffId);
@@ -273,13 +278,15 @@ export class GameUI {
       const schedule = this.state.staff.schedules.find((item) => item.id === member.scheduleId);
       const training = this.state.staff.training.find((item) => item.staffId === member.id && item.status === 'active');
       const trainingProgress = training ? Math.round(training.elapsedSeconds / training.durationSeconds * 100) : 0;
-      return `<article class="staff-card ${member.enabled ? '' : 'paused'}"><img src="/assets/pixel/rendered/thumbnails/${definition.assetId}.png" alt="${definition.name}"/><div class="staff-main"><div><strong>${escapeHtml(member.customName)}</strong><span>${staffRoleLabel(member.role)} · Nível ${member.level}</span></div><small>${staffStateLabel(member.currentState)} · ${actor?.activity ?? 'Aguardando sincronização'}</small><div class="staff-meter"><i style="width:${Math.min(100, member.experience / Math.max(1, BALANCE.staff.levelThresholds[Math.min(member.level, BALANCE.staff.levelThresholds.length - 1)] ?? 1) * 100)}%"></i></div><p>Velocidade ${Math.round(definition.taskSpeed * 100)} · Qualidade ${Math.round(definition.quality * 100)} · Carga ${definition.carryingCapacity}<br/>${schedule?.name ?? 'Turno padrão'} ${schedule?.startTime ?? 8}h–${schedule?.endTime ?? 22}h · ${member.salary} moedas</p>${training ? `<em>Treinamento ${trainingProgress}% <button data-action="stop-training" data-id="${member.id}">Cancelar</button></em>` : ''}</div><div class="staff-actions"><button data-action="locate-staff" data-id="${member.id}" aria-label="Localizar ${member.customName}">⌖</button><button data-action="toggle-staff" data-id="${member.id}">${member.enabled ? 'Pausar' : 'Ativar'}</button><button data-action="request-training" data-id="${member.id}" ${training || member.currentState !== 'idle' ? 'disabled' : ''}>Treinar</button><button data-action="request-dismiss" data-id="${member.id}">Demitir</button></div></article>`;
+      const start = this.state.construction.staffStartPositions.find((item) => item.staffId === member.definitionId || item.staffId === member.id);
+      const linked = start?.linkedFurnitureId ? this.state.construction.placedFurniture.find((item) => item.id === start.linkedFurnitureId) : undefined;
+      return `<article class="staff-card ${member.enabled ? '' : 'paused'}"><img src="/assets/pixel/rendered/thumbnails/${definition.assetId}.png" alt="${definition.name}"/><div class="staff-main"><div><strong>${escapeHtml(member.customName)}</strong><span>${staffRoleLabel(member.role)} · Nível ${member.level}</span></div><small>${staffStateLabel(member.currentState)} · ${actor?.activity ?? 'Aguardando sincronização'}</small><div class="staff-meter"><i style="width:${Math.min(100, member.experience / Math.max(1, BALANCE.staff.levelThresholds[Math.min(member.level, BALANCE.staff.levelThresholds.length - 1)] ?? 1) * 100)}%"></i></div><p>${linked ? `Vinculado: ${escapeHtml(FURNITURE_BY_ID[linked.definitionId].name)}<br/>` : ''}Velocidade ${Math.round(definition.taskSpeed * 100)} · Qualidade ${Math.round(definition.quality * 100)} · Carga ${definition.carryingCapacity}<br/>${schedule?.name ?? 'Turno padrão'} ${schedule?.startTime ?? 8}h–${schedule?.endTime ?? 22}h · ${member.salary} moedas</p>${training ? `<em>Treinamento ${trainingProgress}% <button data-action="stop-training" data-id="${member.id}">Cancelar</button></em>` : ''}</div><div class="staff-actions"><button data-action="locate-staff" data-id="${member.id}" aria-label="Localizar ${member.customName}">⌖</button><button data-action="toggle-staff" data-id="${member.id}">${member.enabled ? 'Pausar' : 'Ativar'}</button><button data-action="request-training" data-id="${member.id}" ${training || member.currentState !== 'idle' ? 'disabled' : ''}>Treinar</button><button data-action="request-dismiss" data-id="${member.id}">Demitir</button></div></article>`;
     }).join('');
     const averages = this.state.staff.instances.length ? {
       speed: this.state.staff.instances.reduce((sum, item) => sum + STAFF_BY_ID[item.definitionId].taskSpeed, 0) / this.state.staff.instances.length,
       quality: this.state.staff.instances.reduce((sum, item) => sum + STAFF_BY_ID[item.definitionId].quality, 0) / this.state.staff.instances.length,
     } : { speed: 1, quality: 1 };
-    const candidates = STAFF_CANDIDATES.filter((candidate) => this.state.staff.candidateDefinitionIds.includes(candidate.id)).map((candidate) => `<article class="candidate-card"><img src="/assets/pixel/rendered/thumbnails/${candidate.assetId}.png" alt="${candidate.name}"/><div><strong>${candidate.name} <span>${staffRoleLabel(candidate.role)}</span></strong><small>Nível ${candidate.level} · ${candidate.traits.join(' · ')}</small><p>Velocidade ${Math.round(candidate.taskSpeed * 100)} ${candidate.taskSpeed >= averages.speed ? '↑' : '↓'} · Qualidade ${Math.round(candidate.quality * 100)} ${candidate.quality >= averages.quality ? '↑' : '↓'} · Carga ${candidate.carryingCapacity}</p><b>${candidate.hiringCost} agora · ${candidate.salary}/período</b></div><button data-action="select-hire" data-id="${candidate.id}" ${this.state.coins < candidate.hiringCost || this.state.staff.instances.length >= this.state.staff.maxStaff ? 'disabled' : ''}>Comparar e contratar</button></article>`).join('');
+    const candidates = STAFF_CANDIDATES.filter((candidate) => this.state.staff.candidateDefinitionIds.includes(candidate.id)).map((candidate) => { const requirement = staffFurnitureRequirement(candidate.role); const furniture = availableStaffFurniture(candidate.role, this.state.construction.placedFurniture, this.state.construction.staffStartPositions); return `<article class="candidate-card"><img src="/assets/pixel/rendered/thumbnails/${candidate.assetId}.png" alt="${candidate.name}"/><div><strong>${candidate.name} <span>${staffRoleLabel(candidate.role)}</span></strong><small>Nível ${candidate.level} · ${candidate.traits.join(' · ')}</small><p>Velocidade ${Math.round(candidate.taskSpeed * 100)} ${candidate.taskSpeed >= averages.speed ? '↑' : '↓'} · Qualidade ${Math.round(candidate.quality * 100)} ${candidate.quality >= averages.quality ? '↑' : '↓'} · Carga ${candidate.carryingCapacity}</p><b>${candidate.hiringCost} agora · ${candidate.salary}/período · ${requirement ? furniture ? `${requirement} livre` : `requer ${requirement} livre` : ''}</b></div><button data-action="select-hire" data-id="${candidate.id}" ${this.state.coins < candidate.hiringCost || this.state.staff.instances.length >= this.state.staff.maxStaff || (requirement && !furniture) ? 'disabled' : ''}>Comparar e contratar</button></article>`; }).join('');
     return `${tutorial}${hireConfirmation}${trainingConfirmation}${dismissConfirmation}<div class="staff-summary"><span><small>Equipe</small><b>${this.state.staff.instances.length}/${this.state.staff.maxStaff}</b></span><span><small>Folha por período</small><b>${payroll} moedas</b></span><span><small>Próxima cobrança</small><b>${Math.max(0, Math.ceil((this.state.staff.nextPayrollAt - Date.now()) / 60000))} min</b></span></div>${this.state.staff.payrollWarnings.length ? `<div class="stop-reasons">${this.state.staff.payrollWarnings.slice(-2).map((warning) => `<span>• ${warning}</span>`).join('')}</div>` : ''}<h3>Funcionários contratados</h3><div class="staff-list">${staffCards}</div><h3>Candidatos disponíveis</h3><div class="candidate-list">${candidates || emptyState('✓', 'Equipe completa', 'Novos candidatos aparecerão em futuras renovações.')}</div>`;
   }
 
@@ -301,13 +308,16 @@ export class GameUI {
         const amount = this.state.inventory[item.id]; const needed = missing.get(item.id)?.needed ?? 0; const status = stockStatus(amount, item.reorderPoint, needed, item.maxStock);
         const full = amount >= item.maxStock || inventoryUsed(this.state) >= inventoryCapacity(this.state);
         return `<article class="stock-row ${status.css}"><span class="item-icon">${item.icon}</span><div><strong>${item.name} <i>${status.icon} ${status.label}</i></strong><small>${amount} / ${item.maxStock} ${item.unit} · ${storageTypeLabel(item.storageType)} · pedidos: ${needed}</small><label class="chosen-target">Completar até <input id="chosen-stock-${item.id}" type="number" inputmode="numeric" min="${Math.min(item.maxStock, amount + 1)}" max="${item.maxStock}" value="${Math.max(amount, item.targetStock)}" aria-label="Estoque desejado de ${item.name}"/><button data-action="prepare-chosen-purchase" data-id="${item.id}" ${full ? 'disabled' : ''}>Adicionar</button></label></div><div class="quick-buttons"><button data-action="prepare-purchase" data-mode="pack" data-id="${item.id}" ${full || this.state.coins < item.purchasePrice ? 'disabled' : ''}>1 pacote<em>${item.purchasePrice} ●</em></button><button data-action="prepare-purchase" data-mode="target" data-id="${item.id}" ${full ? 'disabled' : ''}>Repor meta</button></div></article>`;
-      }).join('')}</div><h3>Compra automática</h3><div class="automation-header"><div><strong>${this.state.procurement.globalSettings.enabled ? 'Automação ativa' : 'Automação desligada'}</strong><small>Saldo protegido: ${this.state.procurement.globalSettings.protectedCashBalance} · limite/ciclo: ${this.state.procurement.globalSettings.maximumSpendPerCycle} · período: ${this.state.procurement.spentThisPeriod}/${this.state.procurement.globalSettings.maximumSpendPerPeriod}</small></div><button data-action="toggle-auto-purchase">${this.state.procurement.globalSettings.enabled ? 'Desligar' : 'Ativar com limites'}</button><button data-action="run-auto-purchase">Verificar agora</button></div><div class="policy-list">${policies}</div><h3>Lista de compras</h3><div class="request-list">${requests || emptyState('▦', 'Nada solicitado', 'Compras manuais e automáticas aparecerão aqui.')}</div><h3>Histórico</h3><div class="purchase-history">${history || '<span>Nenhuma compra concluída nesta versão.</span>'}</div>`;
+      }).join('')}</div><h3>Compra automática</h3><div class="automation-header"><div><strong>${this.state.procurement.globalSettings.enabled ? 'Automação contínua ativa' : 'Automação desligada'}</strong><small>Saldo protegido: ${this.state.procurement.globalSettings.protectedCashBalance} · limite por verificação: ${this.state.procurement.globalSettings.maximumSpendPerCycle} · novas tentativas automáticas</small></div><button data-action="toggle-auto-purchase">${this.state.procurement.globalSettings.enabled ? 'Desligar' : 'Ativar continuamente'}</button><button data-action="run-auto-purchase">Verificar agora</button></div><div class="policy-list">${policies}</div><h3>Lista de compras</h3><div class="request-list">${requests || emptyState('▦', 'Nada solicitado', 'Compras manuais e automáticas aparecerão aqui.')}</div><h3>Histórico</h3><div class="purchase-history">${history || '<span>Nenhuma compra concluída nesta versão.</span>'}</div>`;
   }
 
   private recipesPanel(): string {
     return `<div class="recipe-grid">${RECIPES.map((recipe) => {
       const locked = recipe.requiredLevel > this.state.restaurantLevel;
-      return `<article class="recipe-card ${locked ? 'locked' : ''}"><div class="recipe-icon">${recipe.icon}</div><div><strong>${recipe.name}</strong><small>${recipe.description}</small></div><span>${recipe.salePrice} ● · ${recipe.experience} XP</span><ul>${recipe.steps.map((step) => `<li>${step.label} <em>${step.duration}s</em></li>`).join('')}</ul>${locked ? `<b class="lock-note">Nível ${recipe.requiredLevel}</b>` : `<p>${recipe.ingredients.map((part) => `${INGREDIENT_BY_ID[part.ingredientId].icon} ${part.amount}`).join('  ')}</p>`}</article>`;
+      const serving = this.state.enabledRecipeIds.includes(recipe.id);
+      const requirements = recipeRequirements(this.state, recipe);
+      const operational = requirements.every((item) => item.satisfied);
+      return `<article class="recipe-card ${locked ? 'locked' : ''} ${serving ? 'serving' : 'manually-blocked'}"><div class="recipe-icon">${recipe.icon}</div><div><strong>${recipe.name}</strong><small>${recipe.description}</small></div><span>${recipe.salePrice} ● · ${recipe.experience} XP</span><div class="recipe-requirements"><small>PRÉ-REQUISITOS</small>${requirements.map((item) => `<i class="${item.satisfied ? 'ready' : 'missing'}">${item.satisfied ? '✓' : '✕'} ${escapeHtml(item.label)}</i>`).join('')}</div><ul>${recipe.steps.map((step) => `<li>${step.label} <em>${step.duration}s</em></li>`).join('')}</ul>${locked ? `<b class="lock-note">Nível ${recipe.requiredLevel}</b>` : `<p>${recipe.ingredients.map((part) => `${INGREDIENT_BY_ID[part.ingredientId].icon} ${part.amount}`).join('  ')}</p><button class="recipe-serving-toggle" data-action="toggle-recipe-serving" data-id="${recipe.id}" ${!operational ? 'disabled' : ''}>${!operational ? 'Instale os móveis necessários' : serving ? '✓ Servindo no restaurante' : 'Bloqueada para pedidos'}</button>`}</article>`;
     }).join('')}</div>`;
   }
 
@@ -413,9 +423,7 @@ export class GameUI {
 
   private confirmHire(): void {
     if (!this.pendingHireId) return;
-    const x = Number(this.root.querySelector<HTMLInputElement>('#hire-x')?.value);
-    const y = Number(this.root.querySelector<HTMLInputElement>('#hire-y')?.value);
-    const result = hireStaff(this.state, this.pendingHireId, { x, y }, Date.now());
+    const result = hireStaff(this.state, this.pendingHireId, undefined, Date.now());
     if (!result.ok) { this.toast(result.reason ?? 'Não foi possível contratar.', 'warning'); return; }
     this.pendingHireId = undefined; this.simulation.syncStaffRoster();
     this.toast(`${result.instance!.customName} entrou para a equipe.`, 'success'); this.renderPanel();
@@ -490,8 +498,19 @@ export class GameUI {
     this.state.procurement.globalSettings.enabled = next;
     if (next) {
       this.state.tutorial006.automationUnlocked = true;
-      this.toast('Automação ativada com saldo protegido e limites de gasto.', 'success');
+      // The global switch must activate the stocker's ingredient policies too.
+      for (const policy of this.state.procurement.policies) policy.enabled = true;
+      evaluateAutoPurchases(this.state, true, Date.now());
+      this.toast('Automação contínua ativada. O estoquista tentará novamente sempre que necessário.', 'success');
     } else this.toast('Automação de compras pausada.', 'info');
+    this.renderPanel();
+  }
+
+  private toggleRecipeServing(id: RecipeId): void {
+    const enabled = new Set(this.state.enabledRecipeIds);
+    if (enabled.has(id)) enabled.delete(id); else enabled.add(id);
+    this.state.enabledRecipeIds = RECIPES.filter((recipe) => enabled.has(recipe.id)).map((recipe) => recipe.id);
+    this.toast(`${RECIPE_BY_ID[id].name}: ${enabled.has(id) ? 'liberada para novos pedidos' : 'bloqueada para novos pedidos'}.`, 'info');
     this.renderPanel();
   }
 
