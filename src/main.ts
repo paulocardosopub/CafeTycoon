@@ -11,6 +11,11 @@ import { AudioService } from './game/audio/AudioService';
 import { validateRestaurantMap } from './game/map/validateMap';
 import { createInitialConstructionState } from './game/map/initialConstruction';
 import type { GameState, PlacedFurniture } from './core/types';
+import { GAME_VERSION } from './config/balance';
+import { modulesFromFurniture } from './game/systems/service-counter/ServiceCounterSystem';
+import { reconcileStorage } from './game/inventory/StorageService';
+import { createPurchaseRequest } from './game/inventory/ProcurementService';
+import { createProductionPlan } from './game/cooking/ProductionPlanningService';
 
 export const CONSTRUCTION_RELOAD_SESSION_KEY = 'bistro-bloom-construction-reload';
 
@@ -20,10 +25,12 @@ async function boot(): Promise<void> {
   const root = document.querySelector<HTMLElement>('#app')!;
   root.innerHTML = '<div class="boot-screen"><span>✿</span><strong>Abrindo o Bistrô Bloom…</strong></div>';
   const repository = new IndexedDbSaveRepository();
-  const state = migrateAndSanitizeSave(await repository.load());
+  const rawState = await repository.load();
+  if (rawState && rawState.gameVersion !== GAME_VERSION) await repository.backupLegacy(rawState);
+  const state = migrateAndSanitizeSave(rawState);
   const query = new URLSearchParams(window.location.search);
   let localQa = ['localhost', '127.0.0.1'].includes(window.location.hostname) ? query.get('qa') : null;
-  if (localQa && !['creator', 'four-seat-v005'].includes(localQa)) {
+  if (localQa && !['creator', 'four-seat-v005', 'v006'].includes(localQa)) {
     query.delete('qa');
     query.delete('assets');
     const suffix = query.toString();
@@ -34,6 +41,7 @@ async function boot(): Promise<void> {
     && localQa === 'creator';
   if (localCreatorPreview) state.profile = undefined;
   if (localQa === 'four-seat-v005') applyFourSeatQaState(state);
+  if (localQa === 'v006') applyV006QaState(state);
 
   if (!state.profile) {
     state.profile = await showCharacterCreator(root);
@@ -119,6 +127,53 @@ function applyFourSeatQaState(state: GameState): void {
   construction.placedFurniture.push(table, ...chairs);
   state.construction = construction;
   state.operation = undefined;
+}
+
+function applyV006QaState(state: GameState): void {
+  const construction = createInitialConstructionState();
+  construction.placedFurniture.push(
+    { id: 'counter:qa-left', definitionId: 'service.c2.left', gridX: 7, gridY: 6, orientation: 'sw', skinId: 'counter-forest', level: 1, state: {} },
+    { id: 'counter:qa-right', definitionId: 'service.c4.right', gridX: 9, gridY: 6, orientation: 'sw', skinId: 'counter-forest', level: 1, state: {} },
+  );
+  construction.serviceCounters = modulesFromFurniture(construction.placedFurniture).map((counter, index) => ({
+    ...counter,
+    assignedRecipeId: 'omelette',
+    currentQuantity: [4, 7, 10][index] ?? 0,
+  }));
+  const stockerStart = construction.staffStartPositions.find((position) => position.staffId === 'stocker-0');
+  if (stockerStart) Object.assign(stockerStart, { gridX: 14, gridY: 14, facing: 'nw' });
+  state.construction = construction;
+  state.operation = undefined;
+  state.profile = {
+    id: state.playerId,
+    name: 'Jô',
+    appearance: { presentation: 'feminina', skin: 'honey', hairStyle: 'bun', hairColor: 'espresso', face: 'soft', outfit: 'apron', outfitColor: 'teal' },
+    level: 2,
+    xp: 180,
+    helpRole: 'kitchen',
+    professions: {
+      cook: { xp: 90, level: 2, tasksCompleted: 12 }, waiter: { xp: 55, level: 1, tasksCompleted: 9 },
+      cleaner: { xp: 30, level: 1, tasksCompleted: 5 }, stocker: { xp: 45, level: 1, tasksCompleted: 7 },
+    },
+    taskHistory: { take_order: 9, cook_step: 12, deliver: 8, payment: 7, clean: 5, stock_support: 7, restock_purchase: 3, production_batch: 4 },
+  };
+  state.coins = 2_000;
+  const stocker = state.staff.instances.find((member) => member.definitionId === 'stocker-0');
+  if (stocker) {
+    stocker.startPosition = { x: 14, y: 14 };
+    stocker.currentPosition = { x: 14, y: 14 };
+    stocker.currentFacing = 'nw';
+  }
+  state.inventory.beef = 0;
+  state.inventory.tomato = 0;
+  reconcileStorage(state);
+  state.tutorial006 = { currentStep: 5, completed: true, automationUnlocked: true, dismissed: false };
+  state.procurement.globalSettings.enabled = true;
+  const tomatoPolicy = state.procurement.policies.find((policy) => policy.ingredientId === 'tomato');
+  if (tomatoPolicy) Object.assign(tomatoPolicy, { enabled: true, minimumStock: 5, targetStock: 10, pauseWhenRestaurantClosed: false });
+  createPurchaseRequest(state, [{ ingredientId: 'beef', quantity: 4 }], 'manual', 'Lista de compras para validação visual.', 82);
+  createProductionPlan(state, { recipeId: 'omelette', targetQuantity: 500, batchSize: 20, priority: 75 });
+  state.lastActiveAt = Date.now() - 9 * 60 * 60 * 1_000;
 }
 
 void boot();

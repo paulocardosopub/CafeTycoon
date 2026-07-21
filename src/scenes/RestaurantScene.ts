@@ -51,6 +51,7 @@ export class RestaurantScene extends Phaser.Scene {
   private tableVisuals = new Map<string, TableVisual>();
   private technicalOverlay?: Phaser.GameObjects.Graphics;
   private technicalMode = false;
+  private technicalFilters = new Set(['customers', 'kitchen', 'service', 'stock', 'production', 'pathfinding', 'reservations']);
   private dragging = false;
   private zoomIndex: number = VISUAL_METRICS.defaultZoomIndex;
   private visualSkinSet: 'bloom' | 'sage' = activeVisualSkinSet();
@@ -83,7 +84,13 @@ export class RestaurantScene extends Phaser.Scene {
     this.input.keyboard?.on('keydown-PLUS', () => this.setZoomIndex(this.zoomIndex + 1));
     this.input.keyboard?.on('keydown-MINUS', () => this.setZoomIndex(this.zoomIndex - 1));
     gameEvents.on('technical:toggle', () => { if (isDevelopmentHost()) this.toggleTechnicalMode(); });
+    gameEvents.on<string[]>('technical:filters', (filters) => { this.technicalFilters = new Set(filters); });
     gameEvents.on<number>('camera:zoom-step', (step) => this.setZoomIndex(this.zoomIndex + Math.sign(step)));
+    gameEvents.on<string>('camera:focus-actor', (actorId) => {
+      const actor = this.simulation.actors.find((item) => item.id === actorId);
+      if (!actor) return;
+      const point = gridToWorld(actor.visual); this.cameras.main.pan(point.x, point.y, 420, 'Sine.easeInOut');
+    });
     gameEvents.on<{ construction: ConstructionSaveState; selectedItemId?: string; selectedStaffId?: string; interactionMode?: 'select' | 'place' | 'move' | 'staff' }>('construction:preview', (payload) => this.renderConstructionPreview(payload));
     gameEvents.on('construction:preview-end', () => this.endConstructionPreview());
     gameEvents.emit('camera:zoom', this.cameras.main.zoom);
@@ -91,7 +98,12 @@ export class RestaurantScene extends Phaser.Scene {
 
   update(_time: number, deltaMs: number): void {
     this.simulation.update(deltaMs / 1000);
-    this.simulation.actors.forEach((actor) => this.syncActor(actor));
+    this.simulation.actors.forEach((actor) => { if (!this.actorVisuals.has(actor.id)) this.createActor(actor); this.syncActor(actor); });
+    const activeActorIds = new Set(this.simulation.actors.map((actor) => actor.id));
+    for (const [actorId, visual] of this.actorVisuals) {
+      if (activeActorIds.has(actorId)) continue;
+      visual.sprite.destroy(); visual.bubble.destroy(); this.actorVisuals.delete(actorId);
+    }
     this.simulation.customers.forEach((customer) => this.syncCustomer(customer));
     const activeCustomerIds = new Set(this.simulation.customers.map((customer) => customer.id));
     for (const [customerId, visual] of this.customerVisuals) {
@@ -403,8 +415,13 @@ export class RestaurantScene extends Phaser.Scene {
     visual.sprite.setPosition(Math.round(point.x), Math.round(point.y)).setDepth(isoDepth(actor.visual, VISUAL_METRICS.depth.standingCharacter));
     const detail = this.technicalMode || Boolean(visual.sprite.getData('status-detail'));
     const active = actor.activity !== 'Sem tarefa';
+    const staff = this.simulation.state.staff.instances.find((item) => item.id === actor.id);
+    const reservations = task?.reservations.map((item) => `${item.type}:${item.id}`).join(' · ') ?? 'sem reservas';
+    const diagnostic = this.technicalMode
+      ? `${actor.name} · ${actor.kind}${staff ? ` · ${staff.currentState}` : ''}\n${task ? `${task.kind} P${task.priority} · ${task.status}` : actor.activity}\n${reservations}\nrota ${actor.pathStatus} · sem progresso ${actor.blockedSeconds.toFixed(1)}s · tentativas ${actor.retryCount}`
+      : (active ? `${actor.name} · ${actor.activity}` : actor.name);
     visual.bubble.setPosition(Math.round(point.x), Math.round(point.y - characterUiOffset(variant))).setDepth(isoDepth(actor.visual, VISUAL_METRICS.depth.status))
-      .setText(detail ? (active ? `${actor.name} · ${actor.activity}` : actor.name) : active ? '●' : '')
+      .setText(detail ? diagnostic : active ? '●' : '')
       .setVisible(detail || active);
   }
 
@@ -512,6 +529,7 @@ export class RestaurantScene extends Phaser.Scene {
     graphics.clear();
     for (let y = 0; y < this.simulation.grid.height; y += 1) {
       for (let x = 0; x < this.simulation.grid.width; x += 1) {
+        if (!this.technicalFilters.has('reservations') && !this.technicalFilters.has('pathfinding')) continue;
         const cell = this.simulation.grid.get({ x, y })!;
         const point = gridToWorld({ x, y });
         const color = cell.reservedBy ? 0xf1c45b : cell.reservedFor ? 0xe98255 : cell.occupiedBy || cell.furniturePart || cell.stationPart ? 0x4f8293 : cell.walkable ? 0x63b66f : 0xc94b3c;
@@ -520,10 +538,19 @@ export class RestaurantScene extends Phaser.Scene {
         this.drawDebugDiamond(graphics, point);
       }
     }
-    for (const mover of [...this.simulation.actors, ...this.simulation.customers]) {
+    const visibleActors = this.simulation.actors.filter((actor) => {
+      const task = actor.taskId ? this.simulation.tasks.get(actor.taskId) : undefined;
+      if (task?.kind === 'production_batch') return this.technicalFilters.has('production');
+      if (actor.kind === 'cook') return this.technicalFilters.has('kitchen');
+      if (actor.kind === 'waiter' || actor.kind === 'cleaner') return this.technicalFilters.has('service');
+      if (actor.kind === 'stocker') return this.technicalFilters.has('stock');
+      return true;
+    });
+    const movers = [...visibleActors, ...(this.technicalFilters.has('customers') ? this.simulation.customers : [])];
+    for (const mover of movers) {
       let from = gridToWorld(mover.visual);
       graphics.lineStyle(2, 0x70d7e0, .9);
-      for (const step of mover.path) {
+      for (const step of this.technicalFilters.has('pathfinding') ? mover.path : []) {
         const to = gridToWorld(step);
         graphics.lineBetween(Math.round(from.x), Math.round(from.y), Math.round(to.x), Math.round(to.y));
         from = to;

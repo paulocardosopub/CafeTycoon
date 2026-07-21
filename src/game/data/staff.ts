@@ -1,27 +1,64 @@
-import type { ActorKind, Direction, GridPoint } from '../../core/types';
+import type { Direction, GridPoint, StaffDefinition, StaffRole, TaskKind } from '../../core/types';
 
-export interface StaffCatalogEntry {
+const TASKS: Record<StaffRole, TaskKind[]> = {
+  cook: ['cook_step', 'production_batch'],
+  waiter: ['take_order', 'deliver', 'payment'],
+  cleaner: ['clean'],
+  stocker: ['stock_support', 'restock_purchase'],
+};
+
+interface StaffInput {
   id: string;
   actorId: string;
-  role: Exclude<ActorKind, 'player'>;
+  role: StaffRole;
   name: string;
-  label: string;
   assetId: string;
   includedByDefault: boolean;
-  hireCost: number;
+  hiringCost: number;
+  salary: number;
   suggestedStart: GridPoint;
   facing: Direction;
+  movementSpeed?: number;
+  taskSpeed?: number;
+  quality?: number;
+  carryingCapacity?: number;
+  traits?: string[];
 }
 
-export const STAFF_CATALOG: readonly StaffCatalogEntry[] = [
-  { id: 'cook-0', actorId: 'employee-cook-001', role: 'cook', name: 'Nina', label: 'Nina · Cozinha', assetId: 'cook-0', includedByDefault: true, hireCost: 0, suggestedStart: { x: 5, y: 4 }, facing: 'ne' },
-  { id: 'waiter-0', actorId: 'employee-waiter-001', role: 'waiter', name: 'Caio', label: 'Caio · Atendimento', assetId: 'waiter-0', includedByDefault: true, hireCost: 0, suggestedStart: { x: 8, y: 8 }, facing: 'ne' },
-  { id: 'cleaner-0', actorId: 'employee-cleaner-001', role: 'cleaner', name: 'Iara', label: 'Iara · Limpeza', assetId: 'cleaner-0', includedByDefault: true, hireCost: 0, suggestedStart: { x: 13, y: 11 }, facing: 'nw' },
-  { id: 'stocker-0', actorId: 'employee-stocker-001', role: 'stocker', name: 'Davi', label: 'Davi · Estoque', assetId: 'stocker-0', includedByDefault: true, hireCost: 0, suggestedStart: { x: 3, y: 4 }, facing: 'ne' },
-  { id: 'cook-1', actorId: 'employee-cook-002', role: 'cook', name: 'Lúcia', label: 'Lúcia · Cozinha', assetId: 'cook-1', includedByDefault: false, hireCost: 450, suggestedStart: { x: 6, y: 4 }, facing: 'ne' },
-  { id: 'waiter-1', actorId: 'employee-waiter-002', role: 'waiter', name: 'Bento', label: 'Bento · Atendimento', assetId: 'waiter-1', includedByDefault: false, hireCost: 380, suggestedStart: { x: 10, y: 9 }, facing: 'ne' },
-  { id: 'cleaner-1', actorId: 'employee-cleaner-002', role: 'cleaner', name: 'Rita', label: 'Rita · Limpeza', assetId: 'cleaner-0', includedByDefault: false, hireCost: 300, suggestedStart: { x: 14, y: 12 }, facing: 'nw' },
-  { id: 'stocker-1', actorId: 'employee-stocker-002', role: 'stocker', name: 'Hugo', label: 'Hugo · Estoque', assetId: 'stocker-0', includedByDefault: false, hireCost: 320, suggestedStart: { x: 4, y: 5 }, facing: 'ne' },
+function staff(input: StaffInput): StaffDefinition {
+  return {
+    ...input,
+    label: `${input.name} · ${roleLabel(input.role)}`,
+    visualModelId: input.assetId,
+    level: 1,
+    experience: 0,
+    movementSpeed: input.movementSpeed ?? 1,
+    taskSpeed: input.taskSpeed ?? 1,
+    quality: input.quality ?? 1,
+    carryingCapacity: input.carryingCapacity ?? (input.role === 'stocker' ? 12 : 4),
+    hireCost: input.hiringCost,
+    stamina: 100,
+    traits: input.traits ?? [],
+    allowedTasks: [...TASKS[input.role]],
+    scheduleId: 'standard-day',
+    startPosition: { ...input.suggestedStart },
+    returnWhenIdle: true,
+  };
+}
+
+export const STAFF_CATALOG: readonly StaffDefinition[] = [
+  staff({ id: 'cook-0', actorId: 'employee-cook-001', role: 'cook', name: 'Nina', assetId: 'cook-0', includedByDefault: true, hiringCost: 0, salary: 24, suggestedStart: { x: 5, y: 4 }, facing: 'ne', taskSpeed: 1.05, quality: 1.08, traits: ['Mise en place'] }),
+  staff({ id: 'waiter-0', actorId: 'employee-waiter-001', role: 'waiter', name: 'Caio', assetId: 'waiter-0', includedByDefault: true, hiringCost: 0, salary: 20, suggestedStart: { x: 8, y: 8 }, facing: 'ne', movementSpeed: 1.08, traits: ['Passo leve'] }),
+  staff({ id: 'cleaner-0', actorId: 'employee-cleaner-001', role: 'cleaner', name: 'Iara', assetId: 'cleaner-0', includedByDefault: true, hiringCost: 0, salary: 14, suggestedStart: { x: 13, y: 11 }, facing: 'nw', taskSpeed: 1.08, traits: ['Organizada'] }),
+  staff({ id: 'stocker-0', actorId: 'employee-stocker-001', role: 'stocker', name: 'Davi', assetId: 'stocker-0', includedByDefault: true, hiringCost: 0, salary: 18, suggestedStart: { x: 3, y: 4 }, facing: 'ne', carryingCapacity: 16, traits: ['Carga segura'] }),
+  staff({ id: 'cook-1', actorId: 'employee-cook-002', role: 'cook', name: 'Lúcia', assetId: 'cook-1', includedByDefault: false, hiringCost: 450, salary: 27, suggestedStart: { x: 6, y: 4 }, facing: 'ne', taskSpeed: 1.12, quality: 1.14, traits: ['Forno preciso'] }),
+  staff({ id: 'waiter-1', actorId: 'employee-waiter-002', role: 'waiter', name: 'Bento', assetId: 'waiter-1', includedByDefault: false, hiringCost: 380, salary: 22, suggestedStart: { x: 10, y: 9 }, facing: 'ne', movementSpeed: 1.14, carryingCapacity: 6, traits: ['Bandeja firme'] }),
 ] as const;
 
-export const STAFF_BY_ID = Object.fromEntries(STAFF_CATALOG.map((entry) => [entry.id, entry])) as Record<string, StaffCatalogEntry>;
+export type StaffCatalogEntry = StaffDefinition;
+export const STAFF_BY_ID = Object.fromEntries(STAFF_CATALOG.map((entry) => [entry.id, entry])) as Record<string, StaffDefinition>;
+export const STAFF_CANDIDATES = STAFF_CATALOG.filter((entry) => !entry.includedByDefault);
+
+function roleLabel(role: StaffRole): string {
+  return { cook: 'Cozinha', waiter: 'Atendimento', cleaner: 'Limpeza', stocker: 'Estoque' }[role];
+}

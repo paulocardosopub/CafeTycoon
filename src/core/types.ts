@@ -67,6 +67,7 @@ export interface ServiceCounterModule {
   assignedRecipeId?: RecipeId;
   currentQuantity: number;
   reservedQuantity: number;
+  incomingReservedQuantity?: number;
   maxCapacity: number;
   skinId: string;
   level: number;
@@ -133,6 +134,10 @@ export type WorldAssetId = 'floor_dining' | 'floor_kitchen' | 'floor_outside' | 
 export type Presentation = 'masculina' | 'feminina';
 export type HelpRole = 'kitchen' | 'service' | 'cleaning' | 'stock';
 export type ProfessionId = 'cook' | 'waiter' | 'cleaner' | 'stocker';
+export type StaffRole = ProfessionId;
+export type StaffState = 'idle' | 'movingToTask' | 'working' | 'carrying' | 'waitingForWorkSlot' |
+  'waitingForResource' | 'waitingForCounterSpace' | 'resting' | 'offShift' | 'blocked' | 'recovering' | 'training';
+export type StorageType = 'dry' | 'refrigerated' | 'frozen' | 'general';
 export type IngredientId = 'bread' | 'beef' | 'cheese' | 'egg' | 'tomato' | 'coffee' | 'water' | 'vegetables' | 'seasoning';
 export type RecipeId = 'coffee' | 'omelette' | 'burger' | 'soup';
 export type StationId = 'prep' | 'stove' | 'grill' | 'cauldron' | 'coffee_machine' | 'assembly' | 'pickup' | 'fridge' | 'oven' | 'sink' | 'storage' | `${string}:${string}`;
@@ -140,7 +145,7 @@ export type TableState = 'free' | 'reserved' | 'occupied' | 'waiting_order' | 'w
 export type ChairState = 'free' | 'reserved' | 'approaching' | 'occupied' | 'waiting_order' | 'waiting_food' | 'eating' | 'waiting_payment' | 'dirty' | 'cleaning' | 'blocked' | 'inaccessible';
 export type StationState = 'free' | 'reserved' | 'in_use' | 'waiting_worker' | 'complete' | 'blocked' | 'no_ingredients';
 export type CustomerState = 'arriving' | 'entering' | 'seeking_table' | 'queueing' | 'walking_to_seat' | 'sitting' | 'waiting_order' | 'waiting_food' | 'eating' | 'paying' | 'standing' | 'leaving' | 'gone' | 'gave_up';
-export type TaskKind = 'take_order' | 'cook_step' | 'deliver' | 'payment' | 'clean' | 'stock_support';
+export type TaskKind = 'take_order' | 'cook_step' | 'deliver' | 'payment' | 'clean' | 'stock_support' | 'restock_purchase' | 'production_batch';
 export type ActorKind = 'player' | 'cook' | 'waiter' | 'cleaner' | 'stocker';
 
 export interface IngredientDefinition {
@@ -158,6 +163,259 @@ export interface IngredientDefinition {
   purchasePrice: number;
   unit: string;
   icon: string;
+  storageType: StorageType;
+  compatibleStorageTypes: StorageType[];
+  storageSize: number;
+}
+
+export interface StaffDefinition {
+  id: string;
+  name: string;
+  role: StaffRole;
+  visualModelId: string;
+  level: number;
+  experience: number;
+  movementSpeed: number;
+  taskSpeed: number;
+  quality: number;
+  carryingCapacity: number;
+  salary: number;
+  hiringCost: number;
+  stamina: number;
+  traits: string[];
+  allowedTasks: TaskKind[];
+  scheduleId: string;
+  startPosition: GridPoint;
+  returnWhenIdle: boolean;
+  includedByDefault: boolean;
+  actorId: string;
+  label: string;
+  assetId: string;
+  hireCost: number;
+  suggestedStart: GridPoint;
+  facing: Direction;
+}
+
+export interface StaffSchedule {
+  id: string;
+  name: string;
+  startTime: number;
+  endTime: number;
+  workingDays: number[];
+  breakRules: { afterHours: number; durationMinutes: number }[];
+  overtimeAllowed: boolean;
+}
+
+export interface StaffInstance {
+  id: string;
+  definitionId: string;
+  customName: string;
+  role: StaffRole;
+  level: number;
+  experience: number;
+  hiredAt: number;
+  currentState: StaffState;
+  currentTaskId?: string;
+  currentPosition: GridPoint;
+  currentFacing: Direction;
+  startPosition: GridPoint;
+  salary: number;
+  scheduleId: string;
+  enabled: boolean;
+  automationSettings: { returnWhenIdle: boolean; allowedTasks: TaskKind[] };
+  stats: { tasksCompleted: number; distanceWalked: number; blockedRecoveries: number; qualityTotal: number; salaryPaid: number };
+  lastProgressAt: number;
+  recoveryAttempts: number;
+}
+
+export interface StaffTrainingSession {
+  id: string;
+  staffId: string;
+  startedAt: number;
+  durationSeconds: number;
+  elapsedSeconds: number;
+  cost: number;
+  status: 'active' | 'completed' | 'cancelled';
+}
+
+export interface StaffSystemState {
+  instances: StaffInstance[];
+  schedules: StaffSchedule[];
+  candidateDefinitionIds: string[];
+  candidateRefreshAt: number;
+  maxStaff: number;
+  nextPayrollAt: number;
+  salaryArrears: number;
+  payrollWarnings: string[];
+  training: StaffTrainingSession[];
+  eventLog: { at: number; staffId?: string; message: string }[];
+}
+
+export interface StorageDefinition {
+  furnitureDefinitionId: string;
+  storageType: StorageType;
+  baseCapacity: number;
+  allowedIngredientTags: StorageType[];
+  workSlots: string[];
+  levelCapacityMultiplier: number;
+}
+
+export interface StorageInventory {
+  placedFurnitureId: string;
+  storageType: StorageType;
+  items: Partial<Record<IngredientId, number>>;
+  reservedCapacity: number;
+  currentCapacity: number;
+  maxCapacity: number;
+}
+
+export interface StorageSystemState {
+  inventories: StorageInventory[];
+  legacyOverflow: Partial<Record<IngredientId, number>>;
+  migrationPending: boolean;
+  lastReconciledAt: number;
+}
+
+export interface AutoPurchasePolicy {
+  id: string;
+  enabled: boolean;
+  ingredientId: IngredientId;
+  minimumStock: number;
+  targetStock: number;
+  maximumPurchasePerCycle: number;
+  maximumSpendPerCycle: number;
+  protectedCashBalance: number;
+  priority: number;
+  preferredPackageId?: string;
+  requireStorageSpace: boolean;
+  pauseWhenRestaurantClosed: boolean;
+}
+
+export interface AutoPurchaseGlobalSettings {
+  enabled: boolean;
+  protectedCashBalance: number;
+  maximumSpendPerCycle: number;
+  maximumSpendPerPeriod: number;
+  authorizedIngredients: IngredientId[];
+  checkIntervalSeconds: number;
+  allowWhenRestaurantClosed: boolean;
+  confirmationThreshold: number;
+  pauseAtCriticalCash: number;
+  periodSeconds: number;
+}
+
+export interface PurchaseRequestLine {
+  ingredientId: IngredientId;
+  quantity: number;
+  cost: number;
+  storageAllocations: { placedFurnitureId: string; quantity: number }[];
+}
+
+export type PurchaseRequestStatus = 'pending' | 'approved' | 'purchasing' | 'delivering' | 'storing' |
+  'completed' | 'blocked' | 'cancelled' | 'failed';
+
+export interface PurchaseRequest {
+  id: string;
+  lines: PurchaseRequestLine[];
+  totalCost: number;
+  origin: 'manual' | 'automatic' | 'recipe' | 'tutorial';
+  reason: string;
+  priority: number;
+  status: PurchaseRequestStatus;
+  createdAt: number;
+  updatedAt: number;
+  responsibleStaffId?: string;
+  blockedReason?: string;
+  dedupeKey: string;
+}
+
+export interface PurchaseHistoryEntry {
+  id: string;
+  requestId: string;
+  at: number;
+  lines: { ingredientId: IngredientId; quantity: number }[];
+  totalValue: number;
+  origin: PurchaseRequest['origin'];
+  responsibleStaffId?: string;
+  reason: string;
+  result: 'completed' | 'cancelled' | 'failed';
+}
+
+export interface ProcurementState {
+  globalSettings: AutoPurchaseGlobalSettings;
+  policies: AutoPurchasePolicy[];
+  requests: PurchaseRequest[];
+  history: PurchaseHistoryEntry[];
+  spentThisPeriod: number;
+  periodStartedAt: number;
+  nextCheckAt: number;
+}
+
+export type ProductionPlanMode = 'singleBatch' | 'fixedQuantity' | 'maintainTarget' | 'repeatWhileResources';
+export interface ProductionPlan {
+  id: string;
+  recipeId: RecipeId;
+  mode: ProductionPlanMode;
+  targetQuantity: number;
+  batchSize: number;
+  priority: number;
+  preferredEquipmentIds: string[];
+  preferredCounterIds: string[];
+  enabled: boolean;
+  repeat: boolean;
+  currentProgress: number;
+  createdAt: number;
+}
+
+export type ProductionTaskState = 'queued' | 'waitingForIngredients' | 'waitingForStorage' | 'waitingForStaff' |
+  'waitingForWorkstation' | 'reserved' | 'inPreparation' | 'cooking' | 'waitingForCounterSpace' |
+  'delivering' | 'completed' | 'cancelled' | 'failed';
+export interface ProductionTask {
+  id: string;
+  productionPlanId: string;
+  recipeId: RecipeId;
+  batchQuantity: number;
+  state: ProductionTaskState;
+  requiredIngredients: Partial<Record<IngredientId, number>>;
+  reservedIngredients: Partial<Record<IngredientId, number>>;
+  workstationId?: string;
+  workSlotId?: string;
+  assignedStaffId?: string;
+  outputCounterId?: string;
+  outputReservations: { moduleId: string; quantity: number }[];
+  createdAt: number;
+  startedAt?: number;
+  completedAt?: number;
+  blockedReason?: string;
+}
+
+export interface RecipeStockTarget {
+  recipeId: RecipeId;
+  enabled: boolean;
+  minimumPrepared: number;
+  targetPrepared: number;
+  maximumPrepared: number;
+  priority: number;
+  allowedCounterIds: string[];
+}
+
+export interface ProductionSystemState {
+  plans: ProductionPlan[];
+  tasks: ProductionTask[];
+  stockTargets: RecipeStockTarget[];
+}
+
+export interface Tutorial006State {
+  currentStep: number;
+  completed: boolean;
+  automationUnlocked: boolean;
+  dismissed: boolean;
+}
+
+export interface Migration006Report {
+  sourceVersion: string;
+  migratedAt: number;
+  adjustments: string[];
 }
 
 export interface RecipeIngredient { ingredientId: IngredientId; amount: number }
@@ -341,11 +599,17 @@ export interface GameState {
   stats: { customersServed: number; customersLost: number; dishesProduced: number; coinsEarned: number };
   graphics: GraphicsSaveState;
   construction: ConstructionSaveState;
+  staff: StaffSystemState;
+  storage: StorageSystemState;
+  procurement: ProcurementState;
+  production: ProductionSystemState;
+  tutorial006: Tutorial006State;
+  migration006?: Migration006Report;
   operation?: OperationSaveState;
 }
 
 export interface OperationSaveState {
-  dataVersion: 1 | 2;
+  dataVersion: 1 | 2 | 3;
   savedAt: number;
   simulationTime: number;
   customerSequence: number;
@@ -376,6 +640,13 @@ export interface OfflineReport {
   bonusPercent: number;
   idleSeconds: number;
   stoppedReasons: string[];
+  ingredientsPurchased: Partial<Record<IngredientId, number>>;
+  salariesCharged: number;
+  purchaseCosts: number;
+  grossRevenue: number;
+  costs: number;
+  netProfit: number;
+  blockedTasks: { kind: string; reason: string }[];
 }
 
 export interface RestaurantSnapshot {

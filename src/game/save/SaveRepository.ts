@@ -10,7 +10,7 @@ export interface SaveRepository {
 const DB_NAME = 'bistro-bloom';
 const STORE = 'saves';
 const KEY = 'main';
-const BACKUP_KEY = 'backup-v0.0.4';
+const BACKUP_KEY = 'backup-v0.0.5';
 export const SAVE_RESET_SESSION_KEY = 'bistro-bloom-reset-in-progress';
 
 export class IndexedDbSaveRepository implements SaveRepository {

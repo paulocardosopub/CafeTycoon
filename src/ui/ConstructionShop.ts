@@ -9,7 +9,7 @@ import type { SaveRepository } from '../game/save/SaveRepository';
 import type { RestaurantSimulation } from '../game/simulation/RestaurantSimulation';
 
 const CONSTRUCTION_RELOAD_SESSION_KEY = 'bistro-bloom-construction-reload';
-const ASSET_VERSION = '0.0.4-blender-7';
+const ASSET_VERSION = '0.0.6-blender-7';
 
 type CatalogGroup = 'all' | 'dining' | 'kitchen' | 'service' | 'storage' | 'decoration';
 

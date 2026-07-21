@@ -1,6 +1,6 @@
-# Bistrô Bloom — v0.0.2
+# Bistrô Bloom — v0.0.6
 
-Jogo web original de gerenciamento de restaurante. A versão 0.0.2 traz mundo isométrico em pixel art, grade 64×32, personagens animados em quatro direções, móveis com footprints exatos, balcão com dois lados de trabalho e circulação visível de clientes pela rua. Economia, estoque, receitas, progressão, save e cálculo offline continuam compatíveis com a 0.0.1.
+Jogo web de gerenciamento de restaurante em pixel art isométrica. A v0.0.6 transforma a operação em um sistema administrável: equipe contratável, turnos e salários, armazenamento físico, reposição manual/automática, produção programada em lotes e progresso offline limitado a oito horas.
 
 ## Executar
 
@@ -11,22 +11,36 @@ npm install
 npm run dev
 ```
 
-Abra o endereço local exibido pelo Vite (normalmente `http://localhost:5173`).
+Abra o endereço local exibido pelo Vite, normalmente `http://localhost:5173`.
 
 ## Validar
 
 ```bash
-npm run test
+npm test
 npm run build
 ```
 
-Controles: arraste o restaurante com o mouse ou toque; use a roda para alternar entre zoom 0,5×, 1× e 2×. Pressione **D** para mostrar a grade técnica, reservas, ocupação e rotas. O personagem trabalha por tarefas: escolha **Onde ajudar?** e, se quiser, priorize uma ação pelo painel **Tarefas** ou clicando em uma mesa/estação.
+O projeto não possui uma etapa separada de lint: `npm run build` executa a checagem estrita do TypeScript antes de gerar a versão de produção.
+
+## Jogar
+
+- Arraste o restaurante para mover a câmera; use a roda ou os botões móveis para zoom.
+- Use **Equipe** para contratar, localizar, pausar, treinar ou demitir funcionários.
+- Use **Estoque** para preparar compras, configurar mínimos/alvos e acompanhar o estoquista.
+- Use **Produção** para programar até 999 unidades, escolher lotes e manter estoque-alvo.
+- Use **Onde ajudar?** para colocar o personagem do jogador na mesma fila de tarefas da equipe.
+- Em desenvolvimento, pressione **D** para inspecionar rotas, WorkSlots, prioridades e reservas.
+
+## Documentação
+
+- [Arquitetura](docs/ARCHITECTURE.md)
+- [Sistemas e balanceamento da v0.0.6](docs/V0.0.6_SYSTEMS.md)
+- [Validação e evidências da v0.0.6](docs/QA_0.0.6.md)
+- [Changelog](docs/CHANGELOG.md)
 
 ## Limitações conhecidas
 
-- O atlas raster é montado no carregamento a partir de arte pixelada original; ainda não existe editor de layout ou importação de sprites externos.
-- Cada grupo de clientes usa um representante visual e reserva o número correto de cadeiras.
-- A rua é uma faixa de circulação do mapa inicial, sem tráfego de veículos ou mudança de bairro.
-- Não há conteúdo da 0.0.3 implementado.
-
-Os documentos de arquitetura, conteúdo e padrão visual ficam em [`docs/`](docs/PROJECT_OVERVIEW.md), incluindo o [`PIXEL_ART_GUIDE.md`](docs/PIXEL_ART_GUIDE.md).
+- O catálogo inicial oferece dois candidatos por renovação; os dados já suportam novos candidatos.
+- Turnos usam uma agenda diária padrão, sem férias, doenças ou escalas complexas.
+- Compras representam o fluxo local do bistrô; não há mapa externo de fornecedores.
+- A fila mostra até 60 lotes simultaneamente na interface, embora o save preserve o plano completo.

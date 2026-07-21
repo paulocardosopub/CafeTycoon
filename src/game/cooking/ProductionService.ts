@@ -14,7 +14,7 @@ export function readyDishUsed(state: GameState): number {
 
 export function enqueueProduction(state: GameState, recipeId: RecipeId, quantity: number): ProductionQueueItem {
   const item: ProductionQueueItem = {
-    id: stableRuntimeId('production'), recipeId, quantity: Math.max(1, Math.min(20, Math.floor(quantity))),
+    id: stableRuntimeId('production'), recipeId, quantity: Math.max(1, Math.min(BALANCE.production.maximumQuantity, Math.floor(quantity))),
     completed: 0, progressSeconds: 0, status: 'queued', ingredientsCommitted: false,
   };
   state.productionQueue.push(item);

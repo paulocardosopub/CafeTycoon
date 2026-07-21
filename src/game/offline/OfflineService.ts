@@ -4,6 +4,12 @@ import type { GameState, HelpRole, IngredientId, OfflineReport, ProfessionId, Re
 import { consumeRecipe } from '../inventory/InventoryService';
 import { productionDuration, readyDishCapacity, readyDishUsed } from '../cooking/ProductionService';
 import { updateRestaurantLevel } from '../progression/progression';
+import { chargePayroll, tickTraining } from '../staff/StaffService';
+import { completePurchaseRequest, evaluateAutoPurchases } from '../inventory/ProcurementService';
+import { createStations } from '../map/initialMap';
+import {
+  completeProductionTask, deferProductionTask, markProductionTaskStarted, prepareNextProductionTask, preparedQuantity, refreshMaintainTargetPlans,
+} from '../cooking/ProductionPlanningService';
 
 const PROFESSION_BY_ROLE: Record<HelpRole, ProfessionId> = {
   kitchen: 'cook', service: 'waiter', cleaning: 'cleaner', stock: 'stocker',
@@ -27,7 +33,8 @@ function zeroReport(absentSeconds: number, calculatedSeconds: number, role: Help
     absentSeconds, calculatedSeconds, capped: absentSeconds > BALANCE.offline.maxSeconds,
     produced: {}, sold: {}, ingredientsConsumed: {}, coins: 0, experience: 0,
     characterRole: role, characterTasks: 0, characterGeneralXp: 0, characterProfessionXp: 0,
-    bonusPercent: 0, idleSeconds: calculatedSeconds, stoppedReasons: [],
+    bonusPercent: 0, idleSeconds: calculatedSeconds, stoppedReasons: [], ingredientsPurchased: {}, salariesCharged: 0,
+    purchaseCosts: 0, grossRevenue: 0, costs: 0, netProfit: 0, blockedTasks: [],
   };
 }
 
@@ -47,6 +54,32 @@ export function calculateOfflineProgress(state: GameState, now = Date.now()): Of
 
   const professionLevel = state.profile?.professions[PROFESSION_BY_ROLE[role]].level ?? 1;
   report.bonusPercent = Math.round((professionLevel - 1) * BALANCE.professionSpeedPerLevel * 100);
+  tickTraining(state, calculatedSeconds, now);
+  const activeStocker = state.staff.instances.find((instance) => instance.enabled && instance.role === 'stocker');
+  if (activeStocker && state.procurement.globalSettings.enabled && state.tutorial006.automationUnlocked) {
+    const requests = evaluateAutoPurchases(state, true, now);
+    for (const request of requests.filter((item) => item.status === 'approved')) {
+      const completed = completePurchaseRequest(state, request.id, activeStocker.id, now);
+      if (!completed.ok) { report.blockedTasks.push({ kind: 'purchase', reason: completed.reason ?? 'Compra bloqueada.' }); continue; }
+      report.purchaseCosts += request.totalCost;
+      for (const line of request.lines) report.ingredientsPurchased[line.ingredientId] = (report.ingredientsPurchased[line.ingredientId] ?? 0) + line.quantity;
+    }
+  }
+  refreshMaintainTargetPlans(state, state.construction.serviceCounters, now);
+  const offlineStations = createStations(state.construction);
+  const offlineCooks = state.staff.instances.filter((instance) => instance.enabled && instance.role === 'cook');
+  const activeCooks = offlineCooks.length;
+  let plannedProductionTime = calculatedSeconds * activeCooks;
+  while (plannedProductionTime > 0) {
+    const prepared = prepareNextProductionTask(state, offlineStations, state.construction.serviceCounters, now);
+    if (!prepared) break;
+    if (prepared.duration > plannedProductionTime) { deferProductionTask(state, prepared.task.id, state.construction.serviceCounters, 'Tempo offline insuficiente para concluir o próximo lote.'); break; }
+    markProductionTaskStarted(state, prepared.task.id, offlineCooks[0]?.id ?? 'offline-cook', now);
+    if (!completeProductionTask(state, prepared.task.id, state.construction.serviceCounters, now)) { deferProductionTask(state, prepared.task.id, state.construction.serviceCounters); break; }
+    plannedProductionTime -= prepared.duration;
+    report.produced[prepared.task.recipeId] = (report.produced[prepared.task.recipeId] ?? 0) + prepared.task.batchQuantity;
+    for (const [id, amount] of Object.entries(prepared.task.requiredIngredients)) report.ingredientsConsumed[id as IngredientId] = (report.ingredientsConsumed[id as IngredientId] ?? 0) + (amount ?? 0);
+  }
   const serviceModifier = role === 'service' ? 1 - (professionLevel - 1) * BALANCE.professionSpeedPerLevel : role === 'cleaning' ? 0.92 : 1;
   const saleInterval = BALANCE.offline.saleIntervalSeconds * Math.max(0.65, serviceModifier);
   let saleBudget = Math.floor(calculatedSeconds / saleInterval);
@@ -103,14 +136,21 @@ export function calculateOfflineProgress(state: GameState, now = Date.now()): Of
 
   for (const recipe of [...RECIPES].sort((a, b) => b.salePrice - a.salePrice)) {
     if (saleBudget <= 0) break;
-    const available = state.readyDishes[recipe.id];
+    const available = state.readyDishes[recipe.id] + preparedQuantity(state.construction.serviceCounters, recipe.id);
     const sold = Math.min(available, saleBudget);
     if (!sold) continue;
-    state.readyDishes[recipe.id] -= sold;
+    const fromLegacy = Math.min(sold, state.readyDishes[recipe.id]);
+    state.readyDishes[recipe.id] -= fromLegacy;
+    let fromCounters = sold - fromLegacy;
+    for (const module of state.construction.serviceCounters.filter((item) => item.assignedRecipeId === recipe.id)) {
+      const removed = Math.min(fromCounters, Math.max(0, module.currentQuantity - module.reservedQuantity));
+      module.currentQuantity -= removed; fromCounters -= removed; if (!fromCounters) break;
+    }
     saleBudget -= sold;
     report.sold[recipe.id] = sold;
     const revenue = sold * recipe.salePrice;
     report.coins += revenue;
+    report.grossRevenue += revenue;
     report.experience += sold * 2;
     state.coins += revenue;
     state.restaurantXp += sold * 2;
@@ -120,6 +160,12 @@ export function calculateOfflineProgress(state: GameState, now = Date.now()): Of
 
   const producedCount = Object.values(report.produced).reduce((sum, value) => sum + (value ?? 0), 0);
   const soldCount = Object.values(report.sold).reduce((sum, value) => sum + (value ?? 0), 0);
+  const blockedProduction = state.production.tasks.filter((task) =>
+    !['completed', 'cancelled', 'failed'].includes(task.state) && Boolean(task.blockedReason),
+  );
+  for (const task of blockedProduction) {
+    report.blockedTasks.push({ kind: 'production', reason: `${RECIPE_BY_ID[task.recipeId].name}: ${task.blockedReason}` });
+  }
   report.characterTasks = role === 'kitchen' ? producedCount : role === 'service' ? soldCount * 2 : role === 'cleaning' ? soldCount : Math.floor(Object.values(report.ingredientsConsumed).reduce((sum, value) => sum + (value ?? 0), 0) / 3);
 
   if (state.profile && report.characterTasks > 0) {
@@ -134,7 +180,14 @@ export function calculateOfflineProgress(state: GameState, now = Date.now()): Of
     report.characterProfessionXp = professionalXp;
     report.characterGeneralXp = generalXp;
   }
-  if (!producedCount && state.productionQueue.length === 0) report.stoppedReasons.push('Não havia produção programada.');
+  const payrollPeriods = Math.floor(calculatedSeconds / BALANCE.staff.payrollIntervalSeconds);
+  if (payrollPeriods > 0) report.salariesCharged = chargePayroll(state, payrollPeriods, now).charged;
+  report.costs = report.purchaseCosts + report.salariesCharged;
+  report.netProfit = report.grossRevenue - report.costs;
+  if (!producedCount && state.productionQueue.length === 0 && !state.production.tasks.some((task) => !['completed', 'cancelled', 'failed'].includes(task.state))) {
+    report.stoppedReasons.push('Não havia produção programada.');
+  }
+  if (!producedCount && blockedProduction.length) report.stoppedReasons.push(...blockedProduction.map((task) => task.blockedReason!));
   if (!soldCount) report.stoppedReasons.push('Não havia pratos prontos para vender.');
   if (absentSeconds > BALANCE.offline.maxSeconds) report.stoppedReasons.push('O limite de 8 horas foi aplicado.');
   report.stoppedReasons = [...new Set(report.stoppedReasons)];

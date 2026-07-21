@@ -8,6 +8,8 @@ import { STAFF_BY_ID } from '../../data/staff';
 import { validateFurniturePlacement, validateLayout } from '../furniture/FurniturePlacement';
 import { modulesFromFurniture } from '../service-counter/ServiceCounterSystem';
 import { nearestSafeStaffStart, validateStaffStartPosition } from './StaffStartSystem';
+import { storageHasContents } from '../../inventory/StorageService';
+import { createStaffInstance } from '../../staff/StaffService';
 
 export interface ConstructionDraft {
   construction: ConstructionSaveState;
@@ -79,6 +81,7 @@ export class ConstructionEditor {
     if (!item) return { ok: false, reason: 'Móvel não encontrado.' };
     const module = this.current.construction.serviceCounters.find((entry) => entry.id === id);
     if (module && (module.currentQuantity || module.reservedQuantity) && !confirmFood) return { ok: false, reason: 'Confirme o armazenamento do balcão com comida.' };
+    if (storageHasContents(this.state, id) && !confirmFood) return { ok: false, reason: 'Confirme o armazenamento deste móvel com ingredientes. Os itens serão preservados.' };
     this.record();
     this.current.construction.placedFurniture = this.current.construction.placedFurniture.filter((entry) => entry.id !== id);
     this.current.construction.storedFurniture.push(item); this.refreshFurnitureRelationships(); return { ok: true };
@@ -90,6 +93,7 @@ export class ConstructionEditor {
     if (!item || !definition) return { ok: false, reason: 'Móvel não encontrado.' };
     const module = this.current.construction.serviceCounters.find((entry) => entry.id === id);
     if (module && (module.currentQuantity || module.reservedQuantity) && !confirmFood) return { ok: false, reason: 'Confirme a venda do balcão e a devolução do estoque.' };
+    if (storageHasContents(this.state, id) && !confirmFood) return { ok: false, reason: 'Este armazenamento contém ingredientes. Confirme para redistribuir sem apagar itens.' };
     this.record(); this.current.construction.placedFurniture = this.current.construction.placedFurniture.filter((entry) => entry.id !== id);
     this.current.coins += definition.resaleValue; this.refreshFurnitureRelationships(); return { ok: true };
   }
@@ -183,6 +187,12 @@ export class ConstructionEditor {
     }
     const validation = validateLayout(this.current.construction.placedFurniture, this.current.construction.builtAreas);
     if (!validation.valid) return { ok: false, reason: validation.errors[0], warnings: validation.warnings };
+    for (const start of this.current.construction.staffStartPositions) {
+      const existing = this.state.staff.instances.find((instance) => instance.id === start.staffId || instance.definitionId === start.staffId);
+      if (existing) { existing.startPosition = { x: start.gridX, y: start.gridY }; existing.currentFacing = start.facing; continue; }
+      const definition = STAFF_BY_ID[start.staffId];
+      if (definition) this.state.staff.instances.push(createStaffInstance(definition, Date.now(), { x: start.gridX, y: start.gridY }));
+    }
     this.state.construction = clone(this.current.construction); this.state.coins = this.current.coins; this.active = false;
     return { ok: true, warnings: validation.warnings };
   }

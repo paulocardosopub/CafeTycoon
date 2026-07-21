@@ -1,5 +1,5 @@
-export const GAME_VERSION = '0.0.4';
-export const SAVE_SCHEMA_VERSION = 3;
+export const GAME_VERSION = '0.0.6';
+export const SAVE_SCHEMA_VERSION = 4;
 
 export const BALANCE = {
   startingCoins: 260,
@@ -21,6 +21,44 @@ export const BALANCE = {
     retrySeconds: 0.8,
     maxTaskRetries: 4,
     maxExitRetries: 20,
+    noProgressSeconds: 12,
+    reservationTimeoutSeconds: 20,
+  },
+  staff: {
+    initialLimit: 6,
+    candidateRefreshSeconds: 24 * 60 * 60,
+    payrollIntervalSeconds: 60 * 60,
+    payrollWarningSeconds: 10 * 60,
+    overdueEfficiencyMultiplier: 0.85,
+    trainingCost: 90,
+    trainingDurationSeconds: 20 * 60,
+    experiencePerTask: 4,
+    levelThresholds: [0, 40, 110, 220, 380],
+    movementSpeedPerLevel: 0.025,
+    taskSpeedPerLevel: 0.04,
+    qualityPerLevel: 0.025,
+    maxLevel: 5,
+  },
+  storage: {
+    capacities: { dry: 60, refrigerated: 50, frozen: 50, general: 36 },
+    levelCapacityMultiplier: 0.25,
+  },
+  procurement: {
+    protectedCashBalance: 80,
+    maximumSpendPerCycle: 90,
+    maximumSpendPerPeriod: 260,
+    checkIntervalSeconds: 20,
+    confirmationThreshold: 120,
+    pauseAtCriticalCash: 110,
+    periodSeconds: 15 * 60,
+    historyLimit: 100,
+  },
+  production: {
+    maximumQuantity: 999,
+    defaultBatchSize: 10,
+    maximumBatchSize: 50,
+    queueHistoryLimit: 240,
+    schedulerIntervalSeconds: 0.5,
   },
   offline: {
     maxSeconds: 8 * 60 * 60,

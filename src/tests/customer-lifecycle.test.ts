@@ -22,6 +22,6 @@ describe('ciclo de clientes 0.0.4', () => {
   it('usa uma zona de saída com múltiplas células e mantém a versão 0.0.4', () => {
     expect(STREET_EXIT_ZONE.length).toBeGreaterThan(1);
     expect(BALANCE.customerBasePatienceSeconds).toBe(120);
-    expect(GAME_VERSION).toBe('0.0.4');
+    expect(GAME_VERSION).toBe('0.0.6');
   });
 });

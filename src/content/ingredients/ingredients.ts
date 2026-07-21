@@ -1,4 +1,4 @@
-import type { IngredientDefinition, IngredientId } from '../../core/types';
+import type { IngredientDefinition, IngredientId, StorageType } from '../../core/types';
 
 export const INGREDIENTS: IngredientDefinition[] = [
   ingredient('bread', 'Pão artesanal', 'pantry', 8, 20, 12, 5, 5, 14, 'un.', 'PÃO'),
@@ -16,9 +16,14 @@ function ingredient(
   id: IngredientId, name: string, category: IngredientDefinition['category'], startingAmount: number, maxAmount: number,
   purchaseCost: number, purchaseAmount: number, reorderPoint: number, targetStock: number, unit: string, icon: string,
 ): IngredientDefinition {
+  const storageType: StorageType = id === 'coffee' || category === 'pantry' ? 'dry' : category === 'fresh' ? 'refrigerated' : 'general';
+  const compatibleStorageTypes: StorageType[] = storageType === 'refrigerated'
+    ? (id === 'beef' ? ['refrigerated', 'frozen'] : ['refrigerated'])
+    : storageType === 'dry' ? ['dry', 'general'] : ['general', 'dry'];
   return {
     id, name, category, startingAmount, maxAmount, purchaseCost, purchaseAmount, unit, icon,
     reorderPoint, targetStock, quickBuyPackSize: purchaseAmount, maxStock: maxAmount, purchasePrice: purchaseCost,
+    storageType, compatibleStorageTypes, storageSize: 1,
   };
 }
 

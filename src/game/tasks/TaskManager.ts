@@ -4,7 +4,7 @@ import { stableRuntimeId } from '../../core/id';
 export type TaskStatus = 'pending' | 'reserved' | 'moving' | 'executing' | 'completed' | 'cancelled' | 'blocked';
 
 export interface TaskReservation {
-  type: 'seat' | 'station' | 'counter' | 'ingredient' | 'movement';
+  type: 'seat' | 'station' | 'counter' | 'ingredient' | 'movement' | 'workSlot' | 'equipment' | 'storage';
   id: string;
 }
 
@@ -54,7 +54,7 @@ export class TaskManager {
   }
 
   tick(delta: number): void {
-    for (const task of this.tasks.values()) if (task.status === 'pending' || task.status === 'blocked') task.waitSeconds += Math.max(0, delta);
+    for (const task of this.tasks.values()) if (['pending', 'blocked', 'reserved', 'moving'].includes(task.status)) task.waitSeconds += Math.max(0, delta);
   }
 
   claim(actorId: string, roles: HelpRole[], preferredId?: string, predicate: (task: RestaurantTask) => boolean = () => true): RestaurantTask | undefined {
@@ -99,6 +99,22 @@ export class TaskManager {
 
   retryBlocked(): void {
     for (const task of this.tasks.values()) if (task.status === 'blocked') { task.status = 'pending'; task.blockedReason = undefined; }
+  }
+
+  releaseStaleReservations(maxWaitSeconds: number): RestaurantTask[] {
+    const released: RestaurantTask[] = [];
+    for (const task of this.tasks.values()) {
+      if (task.status !== 'blocked' || task.waitSeconds < maxWaitSeconds) continue;
+      task.status = 'pending'; task.assignedActorId = undefined; task.blockedReason = 'Reserva antiga liberada para reavaliação.';
+      task.retryCount += 1; task.waitSeconds = 0; released.push(task);
+    }
+    return released;
+  }
+
+  reprioritize(taskId: string, priority: number): boolean {
+    const task = this.tasks.get(taskId);
+    if (!task || ['completed', 'cancelled'].includes(task.status)) return false;
+    task.priority = Math.max(0, Math.min(200, Number(priority) || 0)); return true;
   }
 
   cancel(taskId: string, reason = 'Cancelada com segurança.'): RestaurantTask | undefined {

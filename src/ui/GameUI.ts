@@ -5,18 +5,24 @@ import { EQUIPMENT_ASSETS } from '../content/equipment/equipment';
 import { gameEvents } from '../core/events';
 import type { GameState, HelpRole, IngredientId, OfflineReport, ProfessionId, RecipeId } from '../core/types';
 import { enqueueProduction, readyDishCapacity, readyDishUsed } from '../game/cooking/ProductionService';
-import { canConsumeRecipe, executePurchase, inventoryCapacity, inventoryUsed, quotePurchase, type PurchaseMode, type PurchaseQuote } from '../game/inventory/InventoryService';
+import { canConsumeRecipe, inventoryCapacity, inventoryUsed, quotePurchase, type PurchaseMode, type PurchaseQuote } from '../game/inventory/InventoryService';
 import { calculateOfflineProgress } from '../game/offline/OfflineService';
 import { SAVE_RESET_SESSION_KEY, type SaveRepository } from '../game/save/SaveRepository';
 import type { RestaurantSimulation } from '../game/simulation/RestaurantSimulation';
 import type { AudioService } from '../game/audio/AudioService';
 import { ConstructionShop } from './ConstructionShop';
+import { STAFF_BY_ID, STAFF_CANDIDATES } from '../game/data/staff';
+import { cancelTraining, dismissStaff, estimatedPayrollCost, hireStaff, setStaffEnabled, startTraining } from '../game/staff/StaffService';
+import { planStorageAllocation, storageCapacityByType, storageUsed } from '../game/inventory/StorageService';
+import { approvePurchaseRequest, cancelPurchaseRequest, createPurchaseRequest, evaluateAutoPurchases } from '../game/inventory/ProcurementService';
+import { cancelProductionPlan, createProductionPlan, pauseProductionPlan, preparedQuantity } from '../game/cooking/ProductionPlanningService';
+import { FURNITURE_BY_ID } from '../game/data/furniture/catalog';
 
-type PanelId = 'stock' | 'recipes' | 'production' | 'orders' | 'upgrades' | 'player' | 'roles' | 'professions' | 'offline' | 'settings' | 'tasks';
+type PanelId = 'staff' | 'stock' | 'recipes' | 'production' | 'orders' | 'upgrades' | 'player' | 'roles' | 'professions' | 'offline' | 'settings' | 'tasks';
 
 function playerSpriteThumb(hairStyle: string): string {
   const index = Math.max(0, ['wave', 'crop', 'bun', 'curls'].indexOf(hairStyle)) % 2;
-  return `/assets/pixel/rendered/thumbnails/player-style-${index}.png?v=0.0.4-blender-7`;
+  return `/assets/pixel/rendered/thumbnails/player-style-${index}.png?v=0.0.6-blender-7`;
 }
 
 const ROLE_INFO: Record<HelpRole, { name: string; icon: string; profession: ProfessionId; text: string }> = {
@@ -32,7 +38,11 @@ export class GameUI {
   private latestOffline?: OfflineReport;
   private renderQueued = false;
   private technicalMode = false;
+  private readonly technicalFilters = new Set(['customers', 'kitchen', 'service', 'stock', 'production', 'pathfinding', 'reservations']);
   private pendingPurchases: PurchaseQuote[] = [];
+  private pendingHireId?: string;
+  private pendingTrainingStaffId?: string;
+  private pendingDismissStaffId?: string;
   private resetArmed = false;
   private readonly constructionShop: ConstructionShop;
 
@@ -83,7 +93,7 @@ export class GameUI {
           <aside class="panel-host" id="panel-host" aria-live="polite"></aside>
         </main>
         <nav class="management-bar" aria-label="Gestão do restaurante">
-          ${navButton('stock', '▦', 'Estoque')}${navButton('recipes', '▤', 'Receitas')}${navButton('production', '▶', 'Produção')}
+          ${navButton('staff', '♟', 'Equipe')}${navButton('stock', '▦', 'Estoque')}${navButton('recipes', '▤', 'Receitas')}${navButton('production', '▶', 'Produção')}
           ${navButton('orders', '✎', 'Pedidos')}${navButton('upgrades', '↑', 'Melhorias')}<button data-action="open-construction"><span>▧</span><small>Organizar</small></button>${navButton('tasks', '✓', 'Tarefas')}
         </nav>
         <div class="toast-stack" id="toast-stack"></div>
@@ -100,12 +110,36 @@ export class GameUI {
       const action = target.dataset.action;
       if (action === 'close-panel') this.close();
       else if (action === 'prepare-purchase') this.preparePurchase(target.dataset.id as IngredientId, target.dataset.mode as PurchaseMode);
+      else if (action === 'prepare-chosen-purchase') this.prepareChosenPurchase(target.dataset.id as IngredientId);
       else if (action === 'prepare-critical') this.prepareBatchPurchase('critical');
       else if (action === 'prepare-pending') this.prepareBatchPurchase('pending');
       else if (action === 'confirm-purchase') this.confirmPurchase();
+      else if (action === 'remove-purchase-item') { this.pendingPurchases = this.pendingPurchases.filter((quote) => quote.ingredientId !== target.dataset.id); this.renderPanel(); }
       else if (action === 'cancel-purchase') { this.pendingPurchases = []; this.renderPanel(); }
+      else if (action === 'select-hire') { this.pendingHireId = target.dataset.id; this.renderPanel(); }
+      else if (action === 'cancel-hire') { this.pendingHireId = undefined; this.renderPanel(); }
+      else if (action === 'confirm-hire') this.confirmHire();
+      else if (action === 'toggle-staff') this.toggleStaff(target.dataset.id!);
+      else if (action === 'request-training') { this.pendingTrainingStaffId = target.dataset.id; this.renderPanel(); }
+      else if (action === 'confirm-training') this.confirmTraining();
+      else if (action === 'cancel-training') { this.pendingTrainingStaffId = undefined; this.renderPanel(); }
+      else if (action === 'stop-training') this.stopTraining(target.dataset.id!);
+      else if (action === 'request-dismiss') { this.pendingDismissStaffId = target.dataset.id; this.renderPanel(); }
+      else if (action === 'confirm-dismiss') this.confirmDismiss();
+      else if (action === 'cancel-dismiss') { this.pendingDismissStaffId = undefined; this.renderPanel(); }
+      else if (action === 'locate-staff') gameEvents.emit('camera:focus-actor', target.dataset.id!);
+      else if (action === 'toggle-auto-purchase') this.toggleAutoPurchase();
+      else if (action === 'save-purchase-policy') this.savePurchasePolicy(target.dataset.id as IngredientId);
+      else if (action === 'run-auto-purchase') { evaluateAutoPurchases(this.state, true, Date.now()); this.renderPanel(); }
+      else if (action === 'approve-request') { approvePurchaseRequest(this.state, target.dataset.id!); this.renderPanel(); }
+      else if (action === 'cancel-request') { cancelPurchaseRequest(this.state, target.dataset.id!); this.renderPanel(); }
       else if (action === 'enqueue') this.enqueue(target.dataset.id as RecipeId);
       else if (action === 'cancel-production') this.cancelProduction(target.dataset.id!);
+      else if (action === 'adjust-production') this.adjustProductionQuantity(target.dataset.id as RecipeId, Number(target.dataset.amount));
+      else if (action === 'create-production-plan') this.createPlan(target.dataset.id as RecipeId);
+      else if (action === 'toggle-production-plan') { pauseProductionPlan(this.state, target.dataset.id!, target.dataset.enabled === 'true'); this.renderPanel(); }
+      else if (action === 'cancel-production-plan') { cancelProductionPlan(this.state, target.dataset.id!, this.simulation.counterModules); this.renderPanel(); }
+      else if (action === 'save-stock-target') this.saveStockTarget(target.dataset.id as RecipeId);
       else if (action === 'choose-role') this.chooseRole(target.dataset.id as HelpRole);
       else if (action === 'prioritize-task') this.prioritizeTask(target.dataset.id!);
       else if (action === 'cancel-player-task') this.cancelPlayerTask();
@@ -113,6 +147,7 @@ export class GameUI {
       else if (action === 'simulate-offline') this.simulateOffline(Number(target.dataset.seconds));
       else if (action === 'toggle-mute') { this.audio.update({ muted: !this.audio.settings.muted }); this.open('settings'); }
       else if (action === 'toggle-technical') gameEvents.emit('technical:toggle', undefined);
+      else if (action === 'toggle-technical-filter') this.toggleTechnicalFilter(target.dataset.id!);
       else if (action === 'open-construction') { this.close(); this.constructionShop.open(); }
       else if (action === 'set-speed') { this.simulation.setTimeScale(Number(target.dataset.speed)); this.renderDynamic(); }
       else if (action === 'camera-zoom-out') gameEvents.emit('camera:zoom-step', -1);
@@ -202,6 +237,7 @@ export class GameUI {
   }
 
   private panelContent(panel: PanelId): { title: string; body: string } {
+    if (panel === 'staff') return { title: 'Equipe & contratação', body: this.staffPanel() };
     if (panel === 'stock') return { title: 'Estoque & compras', body: this.stockPanel() };
     if (panel === 'recipes') return { title: 'Caderno de receitas', body: this.recipesPanel() };
     if (panel === 'production') return { title: 'Produção programada', body: this.productionPanel() };
@@ -215,17 +251,57 @@ export class GameUI {
     return { title: 'Fila de tarefas', body: this.tasksPanel() };
   }
 
+  private staffPanel(): string {
+    const payroll = estimatedPayrollCost(this.state);
+    const tutorial = !this.state.tutorial006.completed && !this.state.tutorial006.dismissed
+      ? `<div class="tutorial-card"><small>NOVIDADE 0.0.6</small><strong>Automatize sem perder o controle</strong><p>Gerencie a equipe, defina estoques mínimos e crie um plano de produção. Compras automáticas começam desligadas.</p></div>` : '';
+    const hireConfirmation = this.pendingHireId ? (() => {
+      const candidate = STAFF_BY_ID[this.pendingHireId!];
+      return `<div class="management-confirm"><strong>Confirmar contratação de ${candidate.name}</strong><p>${candidate.hiringCost} moedas agora · ${candidate.salary} por período. Escolha uma posição inicial livre.</p><div class="coordinate-fields"><label>X<input id="hire-x" type="number" min="0" max="17" value="${candidate.suggestedStart.x}" /></label><label>Y<input id="hire-y" type="number" min="0" max="17" value="${candidate.suggestedStart.y}" /></label></div><div><button data-action="cancel-hire">Cancelar</button><button data-action="confirm-hire">Confirmar</button></div></div>`;
+    })() : '';
+    const trainingConfirmation = this.pendingTrainingStaffId ? (() => {
+      const member = this.state.staff.instances.find((item) => item.id === this.pendingTrainingStaffId);
+      return member ? `<div class="management-confirm"><strong>Treinar ${member.customName}?</strong><p>${BALANCE.staff.trainingCost} moedas · ${formatDuration(BALANCE.staff.trainingDurationSeconds)}. Durante esse tempo, a pessoa não trabalha.</p><div><button data-action="cancel-training">Cancelar</button><button data-action="confirm-training">Iniciar</button></div></div>` : '';
+    })() : '';
+    const dismissConfirmation = this.pendingDismissStaffId ? (() => {
+      const member = this.state.staff.instances.find((item) => item.id === this.pendingDismissStaffId);
+      return member ? `<div class="management-confirm danger"><strong>Demitir ${member.customName}?</strong><p>A pessoa só pode sair quando não estiver em uma tarefa crítica.</p><div><button data-action="cancel-dismiss">Cancelar</button><button data-action="confirm-dismiss">Demitir</button></div></div>` : '';
+    })() : '';
+    const staffCards = this.state.staff.instances.map((member) => {
+      const definition = STAFF_BY_ID[member.definitionId];
+      const actor = this.simulation.actors.find((item) => item.id === member.id);
+      const schedule = this.state.staff.schedules.find((item) => item.id === member.scheduleId);
+      const training = this.state.staff.training.find((item) => item.staffId === member.id && item.status === 'active');
+      const trainingProgress = training ? Math.round(training.elapsedSeconds / training.durationSeconds * 100) : 0;
+      return `<article class="staff-card ${member.enabled ? '' : 'paused'}"><img src="/assets/pixel/rendered/thumbnails/${definition.assetId}.png" alt="${definition.name}"/><div class="staff-main"><div><strong>${escapeHtml(member.customName)}</strong><span>${staffRoleLabel(member.role)} · Nível ${member.level}</span></div><small>${staffStateLabel(member.currentState)} · ${actor?.activity ?? 'Aguardando sincronização'}</small><div class="staff-meter"><i style="width:${Math.min(100, member.experience / Math.max(1, BALANCE.staff.levelThresholds[Math.min(member.level, BALANCE.staff.levelThresholds.length - 1)] ?? 1) * 100)}%"></i></div><p>Velocidade ${Math.round(definition.taskSpeed * 100)} · Qualidade ${Math.round(definition.quality * 100)} · Carga ${definition.carryingCapacity}<br/>${schedule?.name ?? 'Turno padrão'} ${schedule?.startTime ?? 8}h–${schedule?.endTime ?? 22}h · ${member.salary} moedas</p>${training ? `<em>Treinamento ${trainingProgress}% <button data-action="stop-training" data-id="${member.id}">Cancelar</button></em>` : ''}</div><div class="staff-actions"><button data-action="locate-staff" data-id="${member.id}" aria-label="Localizar ${member.customName}">⌖</button><button data-action="toggle-staff" data-id="${member.id}">${member.enabled ? 'Pausar' : 'Ativar'}</button><button data-action="request-training" data-id="${member.id}" ${training || member.currentState !== 'idle' ? 'disabled' : ''}>Treinar</button><button data-action="request-dismiss" data-id="${member.id}">Demitir</button></div></article>`;
+    }).join('');
+    const averages = this.state.staff.instances.length ? {
+      speed: this.state.staff.instances.reduce((sum, item) => sum + STAFF_BY_ID[item.definitionId].taskSpeed, 0) / this.state.staff.instances.length,
+      quality: this.state.staff.instances.reduce((sum, item) => sum + STAFF_BY_ID[item.definitionId].quality, 0) / this.state.staff.instances.length,
+    } : { speed: 1, quality: 1 };
+    const candidates = STAFF_CANDIDATES.filter((candidate) => this.state.staff.candidateDefinitionIds.includes(candidate.id)).map((candidate) => `<article class="candidate-card"><img src="/assets/pixel/rendered/thumbnails/${candidate.assetId}.png" alt="${candidate.name}"/><div><strong>${candidate.name} <span>${staffRoleLabel(candidate.role)}</span></strong><small>Nível ${candidate.level} · ${candidate.traits.join(' · ')}</small><p>Velocidade ${Math.round(candidate.taskSpeed * 100)} ${candidate.taskSpeed >= averages.speed ? '↑' : '↓'} · Qualidade ${Math.round(candidate.quality * 100)} ${candidate.quality >= averages.quality ? '↑' : '↓'} · Carga ${candidate.carryingCapacity}</p><b>${candidate.hiringCost} agora · ${candidate.salary}/período</b></div><button data-action="select-hire" data-id="${candidate.id}" ${this.state.coins < candidate.hiringCost || this.state.staff.instances.length >= this.state.staff.maxStaff ? 'disabled' : ''}>Comparar e contratar</button></article>`).join('');
+    return `${tutorial}${hireConfirmation}${trainingConfirmation}${dismissConfirmation}<div class="staff-summary"><span><small>Equipe</small><b>${this.state.staff.instances.length}/${this.state.staff.maxStaff}</b></span><span><small>Folha por período</small><b>${payroll} moedas</b></span><span><small>Próxima cobrança</small><b>${Math.max(0, Math.ceil((this.state.staff.nextPayrollAt - Date.now()) / 60000))} min</b></span></div>${this.state.staff.payrollWarnings.length ? `<div class="stop-reasons">${this.state.staff.payrollWarnings.slice(-2).map((warning) => `<span>• ${warning}</span>`).join('')}</div>` : ''}<h3>Funcionários contratados</h3><div class="staff-list">${staffCards}</div><h3>Candidatos disponíveis</h3><div class="candidate-list">${candidates || emptyState('✓', 'Equipe completa', 'Novos candidatos aparecerão em futuras renovações.')}</div>`;
+  }
+
   private stockPanel(): string {
     const missing = new Map(this.simulation.missingIngredients().map((item) => [item.id, item]));
     const sorted = [...INGREDIENTS].sort((a, b) => stockUrgency(this.state.inventory[b.id], b.reorderPoint, missing.get(b.id)?.needed ?? 0) - stockUrgency(this.state.inventory[a.id], a.reorderPoint, missing.get(a.id)?.needed ?? 0));
-    const confirmation = this.pendingPurchases.length ? `<div class="purchase-confirm"><strong>CONFIRMAR REPOSIÇÃO</strong><span>${this.pendingPurchases.reduce((sum, quote) => sum + quote.amount, 0)} unidades · ${this.pendingPurchases.reduce((sum, quote) => sum + quote.cost, 0)} moedas · ${this.pendingPurchases.reduce((sum, quote) => sum + quote.spaceNeeded, 0)} espaços</span>${this.pendingPurchases.map((quote) => `<small>${INGREDIENT_BY_ID[quote.ingredientId].name}: +${quote.amount} → ${quote.finalAmount}/${INGREDIENT_BY_ID[quote.ingredientId].maxStock}</small>`).join('')}<div><button data-action="cancel-purchase">Cancelar</button><button data-action="confirm-purchase">Comprar</button></div></div>` : '';
-    return `${confirmation}<div class="capacity-card"><span>Capacidade total</span><strong>${inventoryUsed(this.state)} / ${inventoryCapacity(this.state)}</strong><div><i style="width:${inventoryUsed(this.state) / inventoryCapacity(this.state) * 100}%"></i></div></div>
+    const confirmation = this.pendingPurchases.length ? `<div class="purchase-confirm"><strong>CONFIRMAR REPOSIÇÃO</strong><span>${this.pendingPurchases.reduce((sum, quote) => sum + quote.amount, 0)} unidades · ${this.pendingPurchases.reduce((sum, quote) => sum + quote.cost, 0)} moedas · ${this.pendingPurchases.reduce((sum, quote) => sum + quote.spaceNeeded, 0)} espaços</span>${this.pendingPurchases.map((quote) => `<small class="purchase-line"><span>${INGREDIENT_BY_ID[quote.ingredientId].name}: +${quote.amount} → ${quote.finalAmount}/${INGREDIENT_BY_ID[quote.ingredientId].maxStock}<br/>Destino: ${purchaseStorageSummary(this.state, quote)}</span><button data-action="remove-purchase-item" data-id="${quote.ingredientId}">Remover</button></small>`).join('')}<div><button data-action="cancel-purchase">Cancelar</button><button data-action="confirm-purchase">Comprar</button></div></div>` : '';
+    const types = storageCapacityByType(this.state);
+    const physical = `<div class="storage-grid">${(Object.entries(types) as [keyof typeof types, typeof types[keyof typeof types]][]).filter(([, value]) => value.max > 0).map(([type, value]) => `<span><small>${storageTypeLabel(type)}</small><b>${value.used}+${value.reserved}/${value.max}</b></span>`).join('')}</div>${this.state.storage.migrationPending ? '<div class="stop-reasons"><span>• Itens legados preservados. Adicione armazenamento compatível para liberar novas compras.</span></div>' : ''}`;
+    const policies = this.state.procurement.policies.map((policy) => {
+      const ingredient = INGREDIENT_BY_ID[policy.ingredientId];
+      return `<article class="policy-row ${policy.enabled ? 'active' : ''}"><span>${ingredient.icon}</span><div><strong>${ingredient.name}</strong><small>${ingredient.storageType} · atual ${this.state.inventory[ingredient.id]}</small><div class="policy-inputs"><label>Mín.<input id="policy-min-${ingredient.id}" type="number" min="0" max="${ingredient.maxStock}" value="${policy.minimumStock}"/></label><label>Alvo<input id="policy-target-${ingredient.id}" type="number" min="0" max="${ingredient.maxStock}" value="${policy.targetStock}"/></label></div></div><button data-action="save-purchase-policy" data-id="${ingredient.id}">${policy.enabled ? 'Ativa' : 'Pausada'}</button></article>`;
+    }).join('');
+    const requests = this.state.procurement.requests.slice(-12).reverse().map((request) => `<article class="request-row ${request.status}"><div><strong>${request.lines.map((line) => `${INGREDIENT_BY_ID[line.ingredientId].icon} ${line.quantity}`).join(' · ')}</strong><small>${purchaseStatusLabel(request.status)} · ${request.totalCost} moedas · ${request.origin === 'automatic' ? 'automática' : 'manual'}</small>${request.blockedReason ? `<em>${request.blockedReason}</em>` : ''}</div><span>${request.responsibleStaffId ? this.state.staff.instances.find((item) => item.id === request.responsibleStaffId)?.customName ?? 'Equipe' : 'Aguardando'}</span>${request.status === 'pending' ? `<button data-action="approve-request" data-id="${request.id}">Aprovar</button>` : ''}${!['completed', 'cancelled', 'failed'].includes(request.status) ? `<button data-action="cancel-request" data-id="${request.id}">×</button>` : ''}</article>`).join('');
+    const history = this.state.procurement.history.slice(-10).reverse().map((entry) => `<span><b>${new Date(entry.at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</b>${entry.lines.map((line) => `${INGREDIENT_BY_ID[line.ingredientId].name} +${line.quantity}`).join(', ')} · ${entry.totalValue} moedas · ${entry.result}</span>`).join('');
+    return `${confirmation}<div class="capacity-card"><span>Capacidade física total</span><strong>${storageUsed(this.state)} / ${inventoryCapacity(this.state)}</strong><div><i style="width:${Math.min(100, storageUsed(this.state) / Math.max(1, inventoryCapacity(this.state)) * 100)}%"></i></div></div>${physical}
       <div class="stock-actions"><button data-action="prepare-critical">Comprar críticos</button><button data-action="prepare-pending">Comprar para pedidos</button></div>
       <div class="item-list">${sorted.map((item) => {
         const amount = this.state.inventory[item.id]; const needed = missing.get(item.id)?.needed ?? 0; const status = stockStatus(amount, item.reorderPoint, needed, item.maxStock);
         const full = amount >= item.maxStock || inventoryUsed(this.state) >= inventoryCapacity(this.state);
-        return `<article class="stock-row ${status.css}"><span class="item-icon">${item.icon}</span><div><strong>${item.name} <i>${status.icon} ${status.label}</i></strong><small>${amount} / ${item.maxStock} ${item.unit} · pedidos: ${needed}</small></div><div class="quick-buttons"><button data-action="prepare-purchase" data-mode="pack" data-id="${item.id}" ${full || this.state.coins < item.purchasePrice ? 'disabled' : ''}>1 pacote<em>${item.purchasePrice} ●</em></button><button data-action="prepare-purchase" data-mode="target" data-id="${item.id}" ${full ? 'disabled' : ''}>Repor meta</button></div></article>`;
-      }).join('')}</div>`;
+        return `<article class="stock-row ${status.css}"><span class="item-icon">${item.icon}</span><div><strong>${item.name} <i>${status.icon} ${status.label}</i></strong><small>${amount} / ${item.maxStock} ${item.unit} · ${storageTypeLabel(item.storageType)} · pedidos: ${needed}</small><label class="chosen-target">Completar até <input id="chosen-stock-${item.id}" type="number" inputmode="numeric" min="${Math.min(item.maxStock, amount + 1)}" max="${item.maxStock}" value="${Math.max(amount, item.targetStock)}" aria-label="Estoque desejado de ${item.name}"/><button data-action="prepare-chosen-purchase" data-id="${item.id}" ${full ? 'disabled' : ''}>Adicionar</button></label></div><div class="quick-buttons"><button data-action="prepare-purchase" data-mode="pack" data-id="${item.id}" ${full || this.state.coins < item.purchasePrice ? 'disabled' : ''}>1 pacote<em>${item.purchasePrice} ●</em></button><button data-action="prepare-purchase" data-mode="target" data-id="${item.id}" ${full ? 'disabled' : ''}>Repor meta</button></div></article>`;
+      }).join('')}</div><h3>Compra automática</h3><div class="automation-header"><div><strong>${this.state.procurement.globalSettings.enabled ? 'Automação ativa' : 'Automação desligada'}</strong><small>Saldo protegido: ${this.state.procurement.globalSettings.protectedCashBalance} · limite/ciclo: ${this.state.procurement.globalSettings.maximumSpendPerCycle} · período: ${this.state.procurement.spentThisPeriod}/${this.state.procurement.globalSettings.maximumSpendPerPeriod}</small></div><button data-action="toggle-auto-purchase">${this.state.procurement.globalSettings.enabled ? 'Desligar' : 'Ativar com limites'}</button><button data-action="run-auto-purchase">Verificar agora</button></div><div class="policy-list">${policies}</div><h3>Lista de compras</h3><div class="request-list">${requests || emptyState('▦', 'Nada solicitado', 'Compras manuais e automáticas aparecerão aqui.')}</div><h3>Histórico</h3><div class="purchase-history">${history || '<span>Nenhuma compra concluída nesta versão.</span>'}</div>`;
   }
 
   private recipesPanel(): string {
@@ -236,34 +312,24 @@ export class GameUI {
   }
 
   private productionPanel(): string {
-    const queue = this.state.productionQueue;
-    return `<p class="panel-intro">Prepare pratos antes do movimento. Clientes consomem primeiro o que já estiver pronto.</p>
-      <div class="ready-strip">${RECIPES.map((recipe) => `<span data-ready-id="${recipe.id}">${recipe.icon}<b>${this.state.readyDishes[recipe.id]}</b></span>`).join('')}<small>${readyDishUsed(this.state)}/${readyDishCapacity(this.state)}</small></div>
-      <h3>Adicionar à fila</h3><div class="production-recipes">${RECIPES.filter((recipe) => recipe.requiredLevel <= this.state.restaurantLevel).map((recipe) => `<article><span>${recipe.icon}</span><div><strong>${recipe.name}</strong><small>${recipe.steps.reduce((sum, step) => sum + step.duration, 0)}s por prato</small></div><input id="qty-${recipe.id}" type="number" min="1" max="20" value="1" aria-label="Quantidade de ${recipe.name}"/><button data-action="enqueue" data-id="${recipe.id}">Programar</button></article>`).join('')}</div>
-      <h3>Fila atual</h3>${queue.length ? `<div class="queue-list">${queue.map((item, index) => { const recipe = RECIPE_BY_ID[item.recipeId]; const duration = recipe.steps.reduce((sum, step) => sum + step.duration, 0); const progress = Math.min(100, item.progressSeconds / duration * 100); return `<article data-queue-id="${item.id}"><span>${index + 1}</span><div><strong>${recipe.icon} ${recipe.name} · ${item.completed}/${item.quantity}</strong><small>${statusLabel(item.status)}</small><i><em style="width:${progress}%"></em></i></div><button data-action="cancel-production" data-id="${item.id}" ${item.ingredientsCommitted ? 'disabled title="Produção em andamento"' : ''}>×</button></article>`; }).join('')}</div>` : emptyState('☕', 'A fila está vazia', 'Escolha uma receita para preparar antecipadamente.')}`;
+    const plans = this.state.production.plans.slice().reverse();
+    const tasks = this.state.production.tasks.filter((task) => !['completed', 'cancelled', 'failed'].includes(task.state));
+    return `<p class="panel-intro">Crie planos de até 999 unidades. Pedidos de clientes continuam na frente da produção preventiva.</p>
+      <div class="ready-strip">${RECIPES.map((recipe) => `<span data-ready-id="${recipe.id}">${recipe.icon}<b>${preparedQuantity(this.simulation.counterModules, recipe.id) + this.state.readyDishes[recipe.id]}</b></span>`).join('')}<small>${this.simulation.counterModules.reduce((sum, module) => sum + module.currentQuantity, 0)} pratos nos balcões</small></div>
+      <h3>Novo plano</h3><div class="production-planner">${RECIPES.filter((recipe) => recipe.requiredLevel <= this.state.restaurantLevel).map((recipe) => `<article><header><span>${recipe.icon}</span><div><strong>${recipe.name}</strong><small>${recipe.ingredients.map((part) => `${INGREDIENT_BY_ID[part.ingredientId].icon}${part.amount}`).join(' ')} · ${recipe.steps.reduce((sum, step) => sum + step.duration, 0)}s/un.</small></div></header><div class="quantity-control"><input id="qty-${recipe.id}" type="number" inputmode="numeric" min="1" max="999" value="10" aria-label="Quantidade de ${recipe.name}"/><button data-action="adjust-production" data-id="${recipe.id}" data-amount="1">+1</button><button data-action="adjust-production" data-id="${recipe.id}" data-amount="10">+10</button><button data-action="adjust-production" data-id="${recipe.id}" data-amount="50">+50</button><button data-action="adjust-production" data-id="${recipe.id}" data-amount="999">Máx.</button></div><div class="plan-options"><label>Lote<input id="batch-${recipe.id}" type="number" inputmode="numeric" min="1" max="50" value="10"/></label><label>Modo<select id="mode-${recipe.id}"><option value="fixedQuantity">Quantidade fixa</option><option value="singleBatch">Lote único</option><option value="repeatWhileResources">Repetir com recursos</option></select></label><label>Prioridade<input id="priority-${recipe.id}" type="number" min="1" max="90" value="50"/></label></div><button class="primary-button" data-action="create-production-plan" data-id="${recipe.id}">Programar produção</button></article>`).join('')}</div>
+      <h3>Estoque-alvo por receita</h3><div class="target-list">${this.state.production.stockTargets.map((target) => `<article><span>${RECIPE_BY_ID[target.recipeId].icon}</span><div><strong>${RECIPE_BY_ID[target.recipeId].name}</strong><small>Físico ${preparedQuantity(this.simulation.counterModules, target.recipeId)} · em produção ${this.state.production.tasks.filter((task) => task.recipeId === target.recipeId && !['completed', 'cancelled', 'failed'].includes(task.state)).reduce((sum, task) => sum + task.batchQuantity, 0)}</small><div><label>Mín.<input id="target-min-${target.recipeId}" type="number" min="0" max="999" value="${target.minimumPrepared}"/></label><label>Alvo<input id="target-goal-${target.recipeId}" type="number" min="0" max="999" value="${target.targetPrepared}"/></label></div></div><button data-action="save-stock-target" data-id="${target.recipeId}">${target.enabled ? 'Ativo' : 'Pausado'}</button></article>`).join('')}</div>
+      <h3>Planos ativos</h3><div class="plan-list">${plans.length ? plans.map((plan) => { const planTasks = this.state.production.tasks.filter((task) => task.productionPlanId === plan.id); const complete = planTasks.filter((task) => task.state === 'completed').reduce((sum, task) => sum + task.batchQuantity, 0); return `<article><span>${RECIPE_BY_ID[plan.recipeId].icon}</span><div><strong>${RECIPE_BY_ID[plan.recipeId].name} · ${plan.mode === 'maintainTarget' ? 'estoque-alvo' : `${plan.currentProgress}/${plan.targetQuantity}`}</strong><small>Lotes de ${plan.batchSize} · prioridade ${plan.priority} · ${planTasks.length} lotes</small><i><em style="width:${plan.mode === 'maintainTarget' ? Math.min(100, preparedQuantity(this.simulation.counterModules, plan.recipeId) / Math.max(1, plan.targetQuantity) * 100) : Math.min(100, complete / Math.max(1, plan.targetQuantity) * 100)}%"></em></i></div><button data-action="toggle-production-plan" data-id="${plan.id}" data-enabled="${!plan.enabled}">${plan.enabled ? 'Pausar' : 'Retomar'}</button><button data-action="cancel-production-plan" data-id="${plan.id}">×</button></article>`; }).join('') : emptyState('☕', 'Nenhum plano', 'Defina quantidade, lote e prioridade para começar.')}</div>
+      <h3>Fila dividida em lotes</h3><div class="production-task-list">${tasks.length ? tasks.slice(0, 60).map((task, index) => `<article><b>${index + 1}</b><div><strong>${RECIPE_BY_ID[task.recipeId].icon} ${task.batchQuantity} unidades</strong><small>${productionTaskStatusLabel(task.state)}${task.blockedReason ? ` · ${task.blockedReason}` : ''}</small></div><span>${task.workSlotId ?? 'Aguardando WorkSlot'}</span></article>`).join('') : emptyState('✓', 'Fila livre', 'Todos os lotes foram concluídos ou ainda não há planos.')}</div>`;
   }
 
   private refreshProductionPanel(): void {
     if (this.activePanel !== 'production') return;
     for (const recipe of RECIPES) {
       const cell = this.root.querySelector<HTMLElement>(`[data-ready-id="${recipe.id}"] b`);
-      if (cell) cell.textContent = String(this.state.readyDishes[recipe.id]);
+      if (cell) cell.textContent = String(preparedQuantity(this.simulation.counterModules, recipe.id) + this.state.readyDishes[recipe.id]);
     }
     const capacity = this.root.querySelector<HTMLElement>('.ready-strip > small');
-    if (capacity) capacity.textContent = `${readyDishUsed(this.state)}/${readyDishCapacity(this.state)}`;
-    const rows = [...this.root.querySelectorAll<HTMLElement>('[data-queue-id]')];
-    if (rows.length !== this.state.productionQueue.length) { this.renderPanel(); return; }
-    for (const row of rows) {
-      const item = this.state.productionQueue.find((candidate) => candidate.id === row.dataset.queueId);
-      if (!item) { this.renderPanel(); return; }
-      const recipe = RECIPE_BY_ID[item.recipeId];
-      const duration = recipe.steps.reduce((sum, step) => sum + step.duration, 0);
-      const title = row.querySelector('strong'); const status = row.querySelector('small'); const bar = row.querySelector<HTMLElement>('i em'); const cancel = row.querySelector<HTMLButtonElement>('button');
-      if (title) title.textContent = `${recipe.icon} ${recipe.name} · ${item.completed}/${item.quantity}`;
-      if (status) status.textContent = statusLabel(item.status);
-      if (bar) bar.style.width = `${Math.min(100, item.progressSeconds / duration * 100)}%`;
-      if (cancel) cancel.disabled = item.ingredientsCommitted;
-    }
+    if (capacity) capacity.textContent = `${this.simulation.counterModules.reduce((sum, module) => sum + module.currentQuantity, 0)} pratos nos balcões`;
   }
 
   private ordersPanel(): string {
@@ -314,7 +380,7 @@ export class GameUI {
     const produced = Object.entries(report.produced).map(([id, amount]) => `${RECIPE_BY_ID[id as RecipeId].icon} ${amount}`).join('  ') || 'Nenhum';
     const sold = Object.entries(report.sold).map(([id, amount]) => `${RECIPE_BY_ID[id as RecipeId].icon} ${amount}`).join('  ') || 'Nenhum';
     return `<div class="offline-hero"><span>☀</span><div><small>TEMPO AUSENTE</small><strong>${formatDuration(report.absentSeconds)}</strong><p>${formatDuration(report.calculatedSeconds)} calculadas ${report.capped ? '· limite aplicado' : ''}</p></div></div>
-      <div class="report-grid"><span><small>Produzidos</small><b>${produced}</b></span><span><small>Vendidos</small><b>${sold}</b></span><span><small>Moedas</small><b>+${report.coins} ●</b></span><span><small>Experiência</small><b>+${report.experience} XP</b></span></div>
+      <div class="report-grid"><span><small>Produzidos</small><b>${produced}</b></span><span><small>Vendidos</small><b>${sold}</b></span><span><small>Receita bruta</small><b>${report.grossRevenue} ●</b></span><span><small>Compras</small><b>−${report.purchaseCosts} ●</b></span><span><small>Salários</small><b>−${report.salariesCharged} ●</b></span><span><small>Lucro líquido</small><b>${report.netProfit >= 0 ? '+' : ''}${report.netProfit} ●</b></span><span><small>Experiência</small><b>+${report.experience} XP</b></span><span><small>Bloqueios</small><b>${report.blockedTasks.length}</b></span></div>
       <article class="character-report"><span>${ROLE_INFO[report.characterRole].icon}</span><div><strong>${this.state.profile!.name} ajudou em ${ROLE_INFO[report.characterRole].name}</strong><small>${report.characterTasks} tarefas estimadas · +${report.characterGeneralXp} XP geral · +${report.characterProfessionXp} XP profissional</small><p>Bônus aplicado: ${report.bonusPercent}% · sem tarefas/bloqueado: ${formatDuration(report.idleSeconds)}</p></div></article>
       ${report.stoppedReasons.length ? `<div class="stop-reasons"><strong>Observações</strong>${report.stoppedReasons.map((reason) => `<span>• ${reason}</span>`).join('')}</div>` : ''}
       ${developmentMode() ? `<h3>Ferramentas de desenvolvimento</h3>${this.devTimeButtons()}` : ''}`;
@@ -328,7 +394,7 @@ export class GameUI {
   private settingsPanel(): string {
     return `<div class="settings-list"><label><span>Volume geral <b data-audio-value="master">${Math.round(this.audio.settings.master * 100)}%</b></span><input data-audio="master" type="range" min="0" max="1" step="0.05" value="${this.audio.settings.master}" /></label><label><span>Efeitos <b data-audio-value="effects">${Math.round(this.audio.settings.effects * 100)}%</b></span><input data-audio="effects" type="range" min="0" max="1" step="0.05" value="${this.audio.settings.effects}" /></label><button class="secondary-button" data-action="toggle-mute">${this.audio.settings.muted ? 'Ativar áudio' : 'Silenciar tudo'}</button>${developmentMode() ? `<button class="secondary-button" data-action="toggle-technical">${this.technicalMode ? 'Desativar' : 'Ativar'} modo técnico</button>` : ''}</div>
       <div class="settings-section"><h3>Progresso offline</h3><p>O cálculo usa no máximo 8 horas e respeita ingredientes, fila e capacidade.</p>${developmentMode() ? '<button class="secondary-button" data-open="offline">Abrir simulador</button>' : ''}</div>
-      ${developmentMode() ? `<div class="settings-section"><h3>Painel de desenvolvimento</h3><div class="dev-times"><button data-action="dev-add-customer">+ cliente</button><button data-action="dev-add-group">+ grupo 4</button><button data-action="dev-simulate-order">Simular pedido</button><button data-action="dev-low-patience">Paciência baixa</button><button data-action="dev-dirty-seat">Sujar lugar</button><button data-action="dev-add-stock">+ ingredientes</button><button data-action="dev-empty-stock">Esvaziar estoque</button><button data-action="dev-fill-stock">Preencher estoque</button><button data-action="dev-swap-skins">Trocar conjunto visual</button></div><p>Modo técnico: grade, rotas, reservas e troca de skins sem alterar footprints.</p></div>` : ''}
+      ${developmentMode() ? `<div class="settings-section"><h3>Filtros do modo técnico</h3><div class="dev-times">${[['customers','Clientes'],['kitchen','Cozinha'],['service','Serviço'],['stock','Estoque'],['production','Produção'],['pathfinding','Pathfinding'],['reservations','Reservas']].map(([id,label]) => `<button data-action="toggle-technical-filter" data-id="${id}" class="${this.technicalFilters.has(id) ? 'active' : ''}">${label}</button>`).join('')}</div><h3>Painel de desenvolvimento</h3><div class="dev-times"><button data-action="dev-add-customer">+ cliente</button><button data-action="dev-add-group">+ grupo 4</button><button data-action="dev-simulate-order">Simular pedido</button><button data-action="dev-low-patience">Paciência baixa</button><button data-action="dev-dirty-seat">Sujar lugar</button><button data-action="dev-add-stock">+ ingredientes</button><button data-action="dev-empty-stock">Esvaziar estoque</button><button data-action="dev-fill-stock">Preencher estoque</button><button data-action="dev-swap-skins">Trocar conjunto visual</button></div><p>Modo técnico: grade, rotas, reservas e troca de skins sem alterar footprints.</p></div>` : ''}
       <div class="danger-zone"><h3>Recomeçar</h3><p>Apaga o restaurante, personagem e todo o progresso deste dispositivo.</p>${this.resetArmed
         ? '<strong>Esta ação não pode ser desfeita.</strong><div class="button-stack"><button data-action="confirm-reset">Confirmar e recomeçar</button><button class="secondary-button" data-action="cancel-reset">Cancelar</button></div>'
         : '<button data-action="reset-save">Apagar save…</button>'}</div>`;
@@ -340,28 +406,102 @@ export class GameUI {
     if (effects) effects.textContent = `${Math.round(this.audio.settings.effects * 100)}%`;
   }
 
+  private toggleTechnicalFilter(id: string): void {
+    if (this.technicalFilters.has(id)) this.technicalFilters.delete(id); else this.technicalFilters.add(id);
+    gameEvents.emit('technical:filters', [...this.technicalFilters]); this.renderPanel();
+  }
+
+  private confirmHire(): void {
+    if (!this.pendingHireId) return;
+    const x = Number(this.root.querySelector<HTMLInputElement>('#hire-x')?.value);
+    const y = Number(this.root.querySelector<HTMLInputElement>('#hire-y')?.value);
+    const result = hireStaff(this.state, this.pendingHireId, { x, y }, Date.now());
+    if (!result.ok) { this.toast(result.reason ?? 'Não foi possível contratar.', 'warning'); return; }
+    this.pendingHireId = undefined; this.simulation.syncStaffRoster();
+    this.toast(`${result.instance!.customName} entrou para a equipe.`, 'success'); this.renderPanel();
+  }
+
+  private toggleStaff(staffId: string): void {
+    const member = this.state.staff.instances.find((item) => item.id === staffId); if (!member) return;
+    const result = setStaffEnabled(this.state, staffId, !member.enabled, Date.now());
+    this.toast(result.ok ? `${member.customName}: ${member.enabled ? 'ativo' : 'pausado'}.` : result.reason ?? 'Ação indisponível.', result.ok ? 'info' : 'warning'); this.renderPanel();
+  }
+
+  private confirmTraining(): void {
+    if (!this.pendingTrainingStaffId) return;
+    const result = startTraining(this.state, this.pendingTrainingStaffId, Date.now());
+    if (result.ok) this.pendingTrainingStaffId = undefined;
+    this.toast(result.ok ? 'Treinamento iniciado.' : result.reason ?? 'Treinamento indisponível.', result.ok ? 'success' : 'warning'); this.renderPanel();
+  }
+
+  private stopTraining(staffId: string): void {
+    const result = cancelTraining(this.state, staffId, Date.now());
+    this.toast(result.ok ? 'Treinamento cancelado.' : result.reason ?? 'Ação indisponível.', result.ok ? 'info' : 'warning'); this.renderPanel();
+  }
+
+  private confirmDismiss(): void {
+    if (!this.pendingDismissStaffId) return;
+    const result = dismissStaff(this.state, this.pendingDismissStaffId, Date.now());
+    if (result.ok) { this.pendingDismissStaffId = undefined; this.simulation.syncStaffRoster(); }
+    this.toast(result.ok ? 'Funcionário removido da equipe.' : result.reason ?? 'Demissão indisponível.', result.ok ? 'info' : 'warning'); this.renderPanel();
+  }
+
   private preparePurchase(id: IngredientId, mode: PurchaseMode): void {
     const quote = quotePurchase(this.state, id, mode);
     if (!quote.ok) { this.toast(quote.reason ?? 'Não foi possível preparar a compra.', 'warning'); return; }
     this.pendingPurchases = [quote]; this.renderPanel();
   }
 
+  private prepareChosenPurchase(id: IngredientId): void {
+    const ingredient = INGREDIENT_BY_ID[id];
+    const desired = Math.max(this.state.inventory[id] + 1, Math.min(ingredient.maxStock, Math.floor(Number(this.root.querySelector<HTMLInputElement>(`#chosen-stock-${id}`)?.value) || 0)));
+    const amount = desired - this.state.inventory[id];
+    const storage = planStorageAllocation(this.state, id, amount);
+    const packs = Math.ceil(amount / ingredient.quickBuyPackSize);
+    const cost = packs * ingredient.purchasePrice;
+    if (!storage.ok || cost > this.state.coins) { this.toast(storage.reason ?? 'Moedas insuficientes.', 'warning'); return; }
+    this.pendingPurchases = [{ ok: true, ingredientId: id, amount, packs, cost, finalAmount: desired, spaceNeeded: amount * ingredient.storageSize }];
+    this.renderPanel();
+  }
+
   private prepareBatchPurchase(kind: 'critical' | 'pending'): void {
     const missingIds = new Set(this.simulation.missingIngredients().map((item) => item.id));
     const ids = INGREDIENTS.filter((item) => kind === 'pending' ? missingIds.has(item.id) : missingIds.has(item.id) || this.state.inventory[item.id] <= item.reorderPoint).map((item) => item.id);
-    const shadow = { ...this.state, coins: this.state.coins, inventory: { ...this.state.inventory }, inventoryReserved: { ...this.state.inventoryReserved } };
     const quotes: PurchaseQuote[] = [];
-    for (const id of ids) { const quote = quotePurchase(shadow, id, kind === 'pending' ? 'minimum' : 'target'); if (quote.ok && executePurchase(shadow, quote).ok) quotes.push(quote); }
+    let quotedCost = 0;
+    for (const id of ids) {
+      const quote = quotePurchase(this.state, id, kind === 'pending' ? 'minimum' : 'target');
+      if (quote.ok && quotedCost + quote.cost <= this.state.coins) { quotes.push(quote); quotedCost += quote.cost; }
+    }
     if (!quotes.length) { this.toast('Nenhuma compra necessária ou possível.', 'info'); return; }
     this.pendingPurchases = quotes; this.renderPanel();
   }
 
   private confirmPurchase(): void {
     if (!this.pendingPurchases.length) return;
-    let bought = 0;
-    for (const quote of this.pendingPurchases) if (executePurchase(this.state, quote).ok) bought += quote.amount;
-    this.pendingPurchases = []; this.simulation.retryBlockedOrders(); this.toast(bought ? `${bought} ingredientes comprados.` : 'A compra não pôde ser concluída.', bought ? 'success' : 'warning');
+    const result = createPurchaseRequest(this.state, this.pendingPurchases.map((quote) => ({ ingredientId: quote.ingredientId, quantity: quote.amount })), 'manual', 'Reposição manual confirmada pelo jogador.', 90, Date.now());
+    if (result.ok) this.pendingPurchases = [];
+    this.toast(result.ok ? 'Compra aprovada. O estoquista levará os ingredientes ao armazenamento.' : result.reason ?? 'A compra não pôde ser concluída.', result.ok ? 'success' : 'warning');
     this.renderDynamic(); this.renderPanel();
+  }
+
+  private toggleAutoPurchase(): void {
+    const next = !this.state.procurement.globalSettings.enabled;
+    this.state.procurement.globalSettings.enabled = next;
+    if (next) {
+      this.state.tutorial006.automationUnlocked = true;
+      this.toast('Automação ativada com saldo protegido e limites de gasto.', 'success');
+    } else this.toast('Automação de compras pausada.', 'info');
+    this.renderPanel();
+  }
+
+  private savePurchasePolicy(id: IngredientId): void {
+    const policy = this.state.procurement.policies.find((item) => item.ingredientId === id); if (!policy) return;
+    const ingredient = INGREDIENT_BY_ID[id];
+    const minimum = Math.max(0, Math.min(ingredient.maxStock, Math.floor(Number(this.root.querySelector<HTMLInputElement>(`#policy-min-${id}`)?.value) || 0)));
+    const target = Math.max(minimum, Math.min(ingredient.maxStock, Math.floor(Number(this.root.querySelector<HTMLInputElement>(`#policy-target-${id}`)?.value) || 0)));
+    policy.minimumStock = minimum; policy.targetStock = target; policy.enabled = !policy.enabled;
+    this.toast(`${ingredient.name}: política ${policy.enabled ? 'ativada' : 'pausada'} (${minimum} → ${target}).`, 'info'); this.renderPanel();
   }
 
   private enqueue(id: RecipeId): void {
@@ -369,6 +509,32 @@ export class GameUI {
     if (readyDishUsed(this.state) >= readyDishCapacity(this.state)) { this.toast('O armazenamento de pratos está cheio.', 'warning'); return; }
     if (!canConsumeRecipe(this.state, recipe, quantity)) { this.toast('Não há ingredientes para toda essa produção.', 'warning'); return; }
     enqueueProduction(this.state, id, quantity); this.toast(`${quantity}× ${recipe.name} adicionado à fila.`, 'success'); this.renderPanel();
+  }
+
+  private adjustProductionQuantity(id: RecipeId, amount: number): void {
+    const input = this.root.querySelector<HTMLInputElement>(`#qty-${id}`); if (!input) return;
+    input.value = String(amount >= 999 ? 999 : Math.max(1, Math.min(999, Math.floor(Number(input.value) || 1) + amount)));
+  }
+
+  private createPlan(id: RecipeId): void {
+    const quantity = Math.floor(Number(this.root.querySelector<HTMLInputElement>(`#qty-${id}`)?.value) || 0);
+    const batchSize = Math.floor(Number(this.root.querySelector<HTMLInputElement>(`#batch-${id}`)?.value) || 0);
+    const priority = Math.floor(Number(this.root.querySelector<HTMLInputElement>(`#priority-${id}`)?.value) || 50);
+    const mode = this.root.querySelector<HTMLSelectElement>(`#mode-${id}`)?.value as 'singleBatch' | 'fixedQuantity' | 'repeatWhileResources';
+    const result = createProductionPlan(this.state, { recipeId: id, targetQuantity: quantity, batchSize, priority, mode, repeat: mode === 'repeatWhileResources' }, Date.now());
+    if (result.ok) {
+      this.state.tutorial006.currentStep = Math.max(this.state.tutorial006.currentStep, 8);
+      this.toast(`${quantity} unidades divididas em lotes de ${result.plan!.batchSize}.`, 'success');
+    } else this.toast(result.reason ?? 'Plano inválido.', 'warning');
+    this.renderPanel();
+  }
+
+  private saveStockTarget(id: RecipeId): void {
+    const target = this.state.production.stockTargets.find((item) => item.recipeId === id); if (!target) return;
+    const minimum = Math.max(0, Math.min(999, Math.floor(Number(this.root.querySelector<HTMLInputElement>(`#target-min-${id}`)?.value) || 0)));
+    const goal = Math.max(minimum, Math.min(999, Math.floor(Number(this.root.querySelector<HTMLInputElement>(`#target-goal-${id}`)?.value) || 0)));
+    target.minimumPrepared = minimum; target.targetPrepared = goal; target.maximumPrepared = Math.max(goal, target.maximumPrepared); target.enabled = !target.enabled;
+    this.toast(`${RECIPE_BY_ID[id].name}: estoque-alvo ${target.enabled ? 'ativado' : 'pausado'} em ${goal}.`, 'info'); this.renderPanel();
   }
 
   private cancelProduction(id: string): void {
@@ -412,8 +578,22 @@ function escapeHtml(value: string): string { const element = document.createElem
 function statusLabel(status: string): string { return ({ queued: 'Na fila', producing: 'Em preparo', blocked_ingredients: 'Sem ingredientes', blocked_storage: 'Armazenamento cheio' } as Record<string, string>)[status] ?? status; }
 function orderState(state: string): string { return ({ requested: 'Solicitado', awaiting_ingredients: 'Sem ingredientes', awaiting_station: 'Aguardando estação', preparing: 'Em preparo', awaiting_pickup: 'No balcão', transporting: 'Em transporte', delivered: 'Entregue', consumed: 'Consumido', cancelled: 'Cancelado' } as Record<string, string>)[state] ?? state; }
 function taskStatusLabel(state: string): string { return ({ pending: 'Pendente', reserved: 'Reservada', moving: 'Em deslocamento', executing: 'Em execução', blocked: 'Bloqueada', completed: 'Concluída', cancelled: 'Cancelada' } as Record<string, string>)[state] ?? state; }
-function taskIcon(kind: string): string { return ({ take_order: '✎', cook_step: '🍳', deliver: '🔔', payment: '●', clean: '✨', stock_support: '▦' } as Record<string, string>)[kind] ?? '•'; }
-function taskLabel(kind: string): string { return ({ take_order: 'Anotar pedido', cook_step: 'Preparar receita', deliver: 'Entregar prato', payment: 'Receber pagamento', clean: 'Limpar mesa', stock_support: 'Apoiar estoque' } as Record<string, string>)[kind] ?? kind; }
+function taskIcon(kind: string): string { return ({ take_order: '✎', cook_step: '🍳', deliver: '🔔', payment: '●', clean: '✨', stock_support: '▦', restock_purchase: '📦', production_batch: '▶' } as Record<string, string>)[kind] ?? '•'; }
+function taskLabel(kind: string): string { return ({ take_order: 'Anotar pedido', cook_step: 'Preparar receita', deliver: 'Entregar prato', payment: 'Receber pagamento', clean: 'Limpar mesa', stock_support: 'Apoiar estoque', restock_purchase: 'Armazenar compra', production_batch: 'Produzir lote' } as Record<string, string>)[kind] ?? kind; }
+function staffRoleLabel(role: string): string { return ({ cook: 'Cozinha', waiter: 'Atendimento', cleaner: 'Limpeza', stocker: 'Estoque' } as Record<string, string>)[role] ?? role; }
+function staffStateLabel(state: string): string { return ({ idle: 'Disponível', movingToTask: 'Indo à tarefa', working: 'Trabalhando', carrying: 'Transportando', waitingForWorkSlot: 'Aguardando WorkSlot', waitingForResource: 'Aguardando recurso', waitingForCounterSpace: 'Aguardando balcão', resting: 'Em pausa', offShift: 'Fora do turno', blocked: 'Bloqueado', recovering: 'Recalculando rota', training: 'Em treinamento' } as Record<string, string>)[state] ?? state; }
+function storageTypeLabel(type: string): string { return ({ dry: 'Seco', refrigerated: 'Refrigerado', frozen: 'Congelado', general: 'Geral' } as Record<string, string>)[type] ?? type; }
+function purchaseStatusLabel(status: string): string { return ({ pending: 'Aguardando aprovação', approved: 'Aprovada', purchasing: 'Comprando', delivering: 'Em transporte', storing: 'Armazenando', completed: 'Concluída', blocked: 'Bloqueada', cancelled: 'Cancelada', failed: 'Falhou' } as Record<string, string>)[status] ?? status; }
+function purchaseStorageSummary(state: GameState, quote: PurchaseQuote): string {
+  const allocation = planStorageAllocation(state, quote.ingredientId, quote.amount);
+  if (!allocation.allocations.length) return allocation.reason ?? 'sem destino compatível';
+  return allocation.allocations.map((part) => {
+    const placed = state.construction.placedFurniture.find((item) => item.id === part.placedFurnitureId);
+    const furniture = placed ? FURNITURE_BY_ID[placed.definitionId] : undefined;
+    return `${furniture?.code ?? part.placedFurnitureId} ×${part.quantity}`;
+  }).join(' + ');
+}
+function productionTaskStatusLabel(status: string): string { return ({ queued: 'Na fila', waitingForIngredients: 'Sem ingredientes', waitingForStorage: 'Sem armazenamento', waitingForStaff: 'Aguardando cozinheiro', waitingForWorkstation: 'Aguardando equipamento', reserved: 'Reservas confirmadas', inPreparation: 'Em preparação', cooking: 'Cozinhando', waitingForCounterSpace: 'Aguardando balcão', delivering: 'Entregando', completed: 'Concluído', cancelled: 'Cancelado', failed: 'Falhou' } as Record<string, string>)[status] ?? status; }
 function formatDuration(seconds: number): string { const hours = Math.floor(seconds / 3600); const minutes = Math.floor((seconds % 3600) / 60); return hours ? `${hours}h ${minutes}min` : `${minutes} min`; }
 function professionProgress(xp: number, level: number): number { const start = BALANCE.professionLevels[level - 1] ?? 0; const end = BALANCE.professionLevels[level] ?? BALANCE.professionLevels.at(-1)!; return level >= 3 ? 100 : Math.max(0, Math.min(100, (xp - start) / (end - start) * 100)); }
 function skinColor(id: string): string { return ({ porcelain: '#f6d4bd', honey: '#d99a68', cocoa: '#8b5a3c', ebony: '#553521' } as Record<string, string>)[id] ?? '#d99a68'; }
