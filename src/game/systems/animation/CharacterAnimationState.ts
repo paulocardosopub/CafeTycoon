@@ -10,3 +10,12 @@ export function characterMotionState(source: CharacterMotionSource): CharacterMo
   if (source.pathStatus !== 'moving') return 'idle';
   return source.motionState ?? 'walk';
 }
+
+export function oneShotAnimationFrame(elapsedMs: number, frames: number, fps: number): number {
+  if (frames <= 1 || fps <= 0) return 0;
+  return Math.min(frames - 1, Math.max(0, Math.floor(Math.max(0, elapsedMs) / (1000 / fps))));
+}
+
+export function oneShotAnimationDurationMs(frames: number, fps: number): number {
+  return frames <= 0 || fps <= 0 ? 0 : frames * (1000 / fps);
+}

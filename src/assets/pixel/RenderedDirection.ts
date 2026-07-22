@@ -11,9 +11,11 @@ const CORRECTED_CHARACTER_ROWS: Record<Direction, number> = {
 
 export function renderedDirectionRow(
   direction: Direction,
-  asset: { kind: string; category: string; orientations: string[] },
+  asset: { kind: string; category: string; orientations: string[]; screenDirections?: Record<string, string> },
   correctCharacterRows = false,
 ): number {
-  if (correctCharacterRows && asset.kind === 'character') return CORRECTED_CHARACTER_ROWS[direction];
+  // C3-BR sheets declare the real screen direction of every authored row, so
+  // they use the manifest order verbatim. Only legacy sheets need correction.
+  if (correctCharacterRows && asset.kind === 'character' && !asset.screenDirections) return CORRECTED_CHARACTER_ROWS[direction];
   return Math.max(0, asset.orientations.indexOf(direction));
 }

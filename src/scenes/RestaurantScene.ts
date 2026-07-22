@@ -12,7 +12,7 @@ import { FURNITURE_BY_ID } from '../game/data/furniture/catalog';
 import { STAFF_BY_ID } from '../game/data/staff';
 import { orientedFootprint } from '../game/systems/furniture/FurniturePlacement';
 import type { CustomerRuntime, RestaurantSimulation, WorkerActor } from '../game/simulation/RestaurantSimulation';
-import { characterMotionState } from '../game/systems/animation/CharacterAnimationState';
+import { characterMotionState, oneShotAnimationDurationMs, oneShotAnimationFrame } from '../game/systems/animation/CharacterAnimationState';
 import { directionBetween } from '../game/navigation/TileMovement';
 import { getFootprintFloorAnchorWorld } from '../game/grid/SpatialLayoutService';
 import { renderedDirectionRow } from '../assets/pixel/RenderedDirection';
@@ -494,15 +494,21 @@ export class RestaurantScene extends Phaser.Scene {
       const chair = table?.chairs.find((item) => customer.chairIds.includes(item.id));
       if (chair) { position = chair.seatAnchor; customer.direction = chair.orientation; }
     }
+    const sitDefinition = REQUIRED_CHARACTER_ANIMATIONS['sit-down'];
+    const sitElapsedMs = Math.max(0, this.time.now - visual.transitionStartedAt);
+    const sittingDown = Boolean(seated) && sitElapsedMs < oneShotAnimationDurationMs(sitDefinition.frames, sitDefinition.fps);
     let animation: PixelAnimationName = characterMotionState(customer);
     if (seated) animation = customer.state === 'eating' ? 'seated-eating'
-      : this.time.now - visual.transitionStartedAt < 350 ? 'sit-down'
+      : sittingDown ? 'sit-down'
         : customer.state === 'waiting_order' || customer.state === 'waiting_food' ? 'seated-waiting' : 'seated-idle';
     const point = seated
       ? getFootprintFloorAnchorWorld(position, { width: 1, depth: 1 })
       : gridToWorld(position);
     visual.sprite.setPosition(Math.round(point.x), Math.round(point.y)).setDepth(isoDepth(position, seated ? VISUAL_METRICS.depth.seatedCharacter : VISUAL_METRICS.depth.standingCharacter));
-    const assetId = canonicalCharacterAsset(`customer-${customer.variant}`); const animationIndex = this.animationFrame(animation);
+    const assetId = canonicalCharacterAsset(`customer-${customer.variant}`);
+    const animationIndex = animation === 'sit-down'
+      ? oneShotAnimationFrame(sitElapsedMs, sitDefinition.frames, sitDefinition.fps)
+      : this.animationFrame(animation);
     if (this.textures.exists(`blender:${assetId}`)) visual.sprite.setTexture(`blender:${assetId}`, renderedCharacterFrame(assetId, c3Animation(animation), customer.direction, animationIndex, true));
     else visual.sprite.setTexture('character-atlas', characterFrame(assetId, animation, customer.direction, animationIndex));
     const uiOffset = characterUiOffset(assetId);

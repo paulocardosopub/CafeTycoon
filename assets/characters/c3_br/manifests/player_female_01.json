@@ -128,7 +128,7 @@
   },
   "fallback": "idle",
   "paletteVersion": "c3-br-cartoon-3d-pixel-2.5d-v1",
-  "renderVersion": "0.0.7-c3-br-1",
+  "renderVersion": "0.0.7-c3-br-2",
   "qualityProfile": "c3-br-cartoon-3d-pixel-2.5d-v1",
   "transparent": true,
   "nativeScale": 1.0,

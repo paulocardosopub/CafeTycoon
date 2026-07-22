@@ -21,7 +21,7 @@ from mathutils import Vector
 
 
 VERSION = "0.0.7"
-RENDER_VERSION = "0.0.7-c3-br-1"
+RENDER_VERSION = "0.0.7-c3-br-2"
 QUALITY_PROFILE = "c3-br-cartoon-3d-pixel-2.5d-v1"
 FRAME_SIZE = (112, 168)
 FEET_ANCHOR = (56, 160)
@@ -1358,8 +1358,11 @@ def pose_character(definition, owner, snapshot, animation, frame, direction):
     if seated_amount:
         root.location.z -= .38 * seated_amount
         root.location.y += .06 * seated_amount
-        leg_l.rotation_euler.x = leg_r.rotation_euler.x = radians(76 * seated_amount)
-        knee_l.rotation_euler.x = knee_r.rotation_euler.x = radians(-82 * seated_amount)
+        # The character's authored front is local -Y. Negative thigh rotation
+        # sends the knees toward that front; the inverse signs used previously
+        # made the torso face the table while both legs folded behind the chair.
+        leg_l.rotation_euler.x = leg_r.rotation_euler.x = radians(-76 * seated_amount)
+        knee_l.rotation_euler.x = knee_r.rotation_euler.x = radians(82 * seated_amount)
     if animation == "walk" or animation.endswith("_walk"):
         stride = .55 * cycle
         arm_l.rotation_euler.x = stride; arm_r.rotation_euler.x = -stride
@@ -1689,7 +1692,12 @@ def build_and_render(project_root: Path, reference_path: Path, blend_path: Path,
     source_paths = save_sources(project_root, blend_path)
     rendered = []
     if render_sprites:
-        for definition in CHARACTERS:
+        role_filter = {role.strip() for role in os.environ.get("C3_BR_RENDER_ROLES", "").split(",") if role.strip()}
+        asset_filter = {asset_id.strip() for asset_id in os.environ.get("C3_BR_RENDER_ASSETS", "").split(",") if asset_id.strip()}
+        render_definitions = [definition for definition in CHARACTERS
+                              if (not role_filter or definition["role"] in role_filter)
+                              and (not asset_filter or definition["assetId"] in asset_filter)]
+        for definition in render_definitions:
             rendered.append(render_character(definition, project_root))
         write_manifests(project_root)
         save_sources(project_root, blend_path)

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createInitialGrid, createStations, createTablesFromConstruction, seatFacingTowardTable } from '../game/map/initialMap';
 import { validateRestaurantMap } from '../game/map/validateMap';
-import { characterMotionState } from '../game/systems/animation/CharacterAnimationState';
+import { characterMotionState, oneShotAnimationDurationMs, oneShotAnimationFrame } from '../game/systems/animation/CharacterAnimationState';
 import { depthAtBase, footprintDepthPoint, VISUAL_METRICS } from '../assets/pixel/VisualMetrics';
 import { createDefaultState } from '../game/save/defaultState';
 import { RestaurantSimulation } from '../game/simulation/RestaurantSimulation';
@@ -12,10 +12,18 @@ describe('regressões visuais de assento e movimento da 0.0.5', () => {
     const employee = { kind: 'character', category: 'characters/employees/waiters', orientations: ['ne', 'nw', 'se', 'sw'] };
     const customer = { kind: 'character', category: 'characters/customers', orientations: ['ne', 'nw', 'se', 'sw'] };
     const chair = { kind: 'furniture', category: 'furniture/chairs', orientations: ['ne', 'nw', 'se', 'sw'] };
+    const c3 = { kind: 'character', category: 'characters/c3_br/customer_01', orientations: ['ne', 'nw', 'se', 'sw'], screenDirections: { ne: 'right', nw: 'up', se: 'down', sw: 'left' } };
     expect((['ne', 'nw', 'se', 'sw'] as const).map((direction) => renderedDirectionRow(direction, employee, true))).toEqual([1, 0, 3, 2]);
     expect((['ne', 'nw', 'se', 'sw'] as const).map((direction) => renderedDirectionRow(direction, customer))).toEqual([0, 1, 2, 3]);
     expect((['ne', 'nw', 'se', 'sw'] as const).map((direction) => renderedDirectionRow(direction, customer, true))).toEqual([1, 0, 3, 2]);
     expect((['ne', 'nw', 'se', 'sw'] as const).map((direction) => renderedDirectionRow(direction, chair))).toEqual([0, 1, 2, 3]);
+    expect((['ne', 'nw', 'se', 'sw'] as const).map((direction) => renderedDirectionRow(direction, c3, true))).toEqual([0, 1, 2, 3]);
+  });
+
+  it('executa os seis quadros de sentar uma única vez antes de permanecer sentado', () => {
+    expect(oneShotAnimationDurationMs(6, 6)).toBe(1_000);
+    expect([0, 166, 333, 500, 666, 833, 1_000].map((time) => oneShotAnimationFrame(time, 6, 6)))
+      .toEqual([0, 0, 1, 3, 3, 4, 5]);
   });
   it('vira cada cadeira para a mesa pelas coordenadas atuais', () => {
     const table = { x: 8, y: 8 };

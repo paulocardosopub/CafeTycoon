@@ -2,6 +2,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { C3_BR_CHARACTER_ASSETS, C3_BR_LEGACY_ALIASES } from '../assets/pixel/c3brManifest';
+import { renderedDirectionRow } from '../assets/pixel/RenderedDirection';
 
 const projectRoot = resolve(import.meta.dirname, '../..');
 const manifestPath = resolve(projectRoot, 'public/assets/pixel/rendered/c3-br-character-manifest.json');
@@ -46,6 +47,8 @@ describe('pacote definitivo C3-BR 0.0.7', () => {
     expect(statSync(resolve(projectRoot, 'art_source/blender/render_scene/c3_br_render_scene.blend')).size).toBeGreaterThan(1_000_000);
     for (const asset of manifest.assets) {
       expect(asset.orientations).toEqual(['ne', 'nw', 'se', 'sw']);
+      expect(asset.screenDirections).toEqual({ ne: 'right', nw: 'up', se: 'down', sw: 'left' });
+      expect(asset.orientations.map((direction) => renderedDirectionRow(direction as 'ne' | 'nw' | 'se' | 'sw', asset, true))).toEqual([0, 1, 2, 3]);
       expect(asset.rigId).toBe('C3BR_Humanoid_v1');
       expect(asset.facialRig).toBe('bones+shape-keys');
       expect(asset.fallback).toBe('idle');
