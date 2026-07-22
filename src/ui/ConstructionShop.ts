@@ -36,6 +36,7 @@ export class ConstructionShop {
   private previewUnsubscribers: (() => void)[] = [];
   private pendingWorldCellTimer?: number;
   private lastWorldItemAt = 0;
+  private lastEditorUiPointerAt = 0;
   private status = 'Escolha um móvel e toque em um quadrado livre.';
   private statusTone: 'info' | 'success' | 'warning' = 'info';
   private originalChairLayout = new Map<string, { gridX: number; gridY: number; orientation: Direction }>();
@@ -57,6 +58,11 @@ export class ConstructionShop {
     this.overlay = document.createElement('section');
     this.overlay.className = 'construction-overlay construction-live-overlay';
     this.overlay.setAttribute('aria-label', 'Loja e organização do restaurante');
+    this.overlay.addEventListener('pointerdown', (event) => {
+      if (!(event.target as HTMLElement).closest('[data-editor-action]')) return;
+      this.lastEditorUiPointerAt = performance.now();
+      event.stopPropagation();
+    });
     this.overlay.addEventListener('click', (event) => { void this.handleClick(event); });
     this.root.append(this.overlay);
     this.previewUnsubscribers = [
@@ -98,7 +104,7 @@ export class ConstructionShop {
       // Um único toque pode atingir o sprite e o losango que existe atrás
       // dele. A seleção do móvel sempre vence; o deslocamento exige o toque
       // seguinte, evitando teleporte ou desaparecimento acidental.
-      if (performance.now() - this.lastWorldItemAt < 100) return;
+      if (performance.now() - this.lastWorldItemAt < 100 || performance.now() - this.lastEditorUiPointerAt < 250) return;
       this.useCell(x, y);
     }, 0);
   }

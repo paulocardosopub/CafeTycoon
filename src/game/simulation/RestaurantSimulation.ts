@@ -1143,6 +1143,7 @@ export class RestaurantSimulation {
           position: seat.position, visualPosition: seat.visualPosition, approach: seat.approach, sitPoint: seat.sitPoint, seatAnchor: seat.seatAnchor,
           footprint: seat.footprint, depthOffset: seat.depthOffset, visualSkinId: seat.visualSkinId, layerAssetIds: seat.layerAssetIds,
           servicePoint: seat.servicePoint, platePosition: seat.platePosition, dirtPosition: seat.dirtPosition,
+          orientation: seat.orientation, tableId: seat.tableId,
           enabled: seat.enabled, accessible: seat.accessible,
         });
       }
