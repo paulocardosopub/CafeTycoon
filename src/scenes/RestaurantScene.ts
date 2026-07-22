@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { installPixelAtlases } from '../assets/pixel/PixelAtlasFactory';
 import { REQUIRED_CHARACTER_ANIMATIONS, WORLD_ASSETS, characterFrame, effectFrame } from '../assets/pixel/manifest';
 import { BLENDER_RENDERED_ASSETS } from '../assets/pixel/blenderManifest';
+import { C3_BR_CHARACTER_ASSETS, C3_BR_LEGACY_ALIASES } from '../assets/pixel/c3brManifest';
 import { footprintDepthPoint, VISUAL_METRICS } from '../assets/pixel/VisualMetrics';
 import { gameEvents } from '../core/events';
 import type { ConstructionSaveState, Direction, FurnitureEditSession, GridPoint, PixelAnimationName, StationRuntime, TableRuntime, WorldAssetId } from '../core/types';
@@ -47,6 +48,7 @@ interface TableVisual {
 
 const ZOOM_LEVELS = VISUAL_METRICS.zoomLevels;
 const SEATED_STATES = ['sitting', 'waiting_order', 'waiting_food', 'eating', 'paying'];
+const RENDERED_ASSETS = [...BLENDER_RENDERED_ASSETS.filter((asset) => asset.kind !== 'character'), ...C3_BR_CHARACTER_ASSETS];
 
 export class RestaurantScene extends Phaser.Scene {
   private actorVisuals = new Map<string, ActorVisual>();
@@ -69,7 +71,7 @@ export class RestaurantScene extends Phaser.Scene {
   constructor(private readonly simulation: RestaurantSimulation) { super('restaurant'); }
 
   preload(): void {
-    for (const asset of BLENDER_RENDERED_ASSETS) {
+    for (const asset of RENDERED_ASSETS) {
       const source = `${asset.spriteSheet}?v=${encodeURIComponent(asset.renderVersion)}`;
       this.load.spritesheet(`blender:${asset.assetId}`, source, { frameWidth: asset.frameSize[0], frameHeight: asset.frameSize[1] });
     }
@@ -77,7 +79,7 @@ export class RestaurantScene extends Phaser.Scene {
 
   create(): void {
     installPixelAtlases(this, this.simulation.state.profile?.appearance);
-    for (const asset of BLENDER_RENDERED_ASSETS) this.textures.get(`blender:${asset.assetId}`).setFilter(Phaser.Textures.FilterMode.NEAREST);
+    for (const asset of RENDERED_ASSETS) this.textures.get(`blender:${asset.assetId}`).setFilter(Phaser.Textures.FilterMode.NEAREST);
     this.cameras.main.setBackgroundColor('#294b3a');
     this.cameras.main.setBounds(-920, -250, 1840, 1250);
     this.cameras.main.centerOn(0, 320).setZoom(ZOOM_LEVELS[this.zoomIndex]);
@@ -460,7 +462,7 @@ export class RestaurantScene extends Phaser.Scene {
     else if (actor.carrying === 'dish') animation = 'carry-plate';
     else if (actor.carrying === 'ingredients') animation = 'carry-ingredients';
     const frame = this.animationFrame(animation);
-    if (this.textures.exists(`blender:${variant}`)) visual.sprite.setTexture(`blender:${variant}`, renderedCharacterFrame(variant, animation, actor.direction, frame, true));
+    if (this.textures.exists(`blender:${variant}`)) visual.sprite.setTexture(`blender:${variant}`, renderedCharacterFrame(variant, c3Animation(animation, characterMotionState(actor) === 'walk'), actor.direction, frame, true));
     else visual.sprite.setTexture('character-atlas', characterFrame(variant, animation, actor.direction, frame));
     const point = gridToWorld(actor.visual);
     visual.sprite.setPosition(Math.round(point.x), Math.round(point.y)).setDepth(isoDepth(actor.visual, VISUAL_METRICS.depth.standingCharacter));
@@ -501,7 +503,7 @@ export class RestaurantScene extends Phaser.Scene {
       : gridToWorld(position);
     visual.sprite.setPosition(Math.round(point.x), Math.round(point.y)).setDepth(isoDepth(position, seated ? VISUAL_METRICS.depth.seatedCharacter : VISUAL_METRICS.depth.standingCharacter));
     const assetId = canonicalCharacterAsset(`customer-${customer.variant}`); const animationIndex = this.animationFrame(animation);
-    if (this.textures.exists(`blender:${assetId}`)) visual.sprite.setTexture(`blender:${assetId}`, renderedCharacterFrame(assetId, animation, customer.direction, animationIndex, true));
+    if (this.textures.exists(`blender:${assetId}`)) visual.sprite.setTexture(`blender:${assetId}`, renderedCharacterFrame(assetId, c3Animation(animation), customer.direction, animationIndex, true));
     else visual.sprite.setTexture('character-atlas', characterFrame(assetId, animation, customer.direction, animationIndex));
     const uiOffset = characterUiOffset(assetId);
     visual.bubble.setPosition(Math.round(point.x), Math.round(point.y - uiOffset)).setDepth(isoDepth(position, 99));
@@ -671,15 +673,18 @@ const WORLD_BLENDER_ASSET: Partial<Record<WorldAssetId, string>> = {
 };
 
 function blenderAsset(assetId: string) {
-  return BLENDER_RENDERED_ASSETS.find((asset) => asset.assetId === assetId);
+  return RENDERED_ASSETS.find((asset) => asset.assetId === assetId);
 }
 
 function canonicalCharacterAsset(assetId: string): string {
+  if (C3_BR_CHARACTER_ASSETS.some((asset) => asset.assetId === assetId)) return assetId;
+  if (C3_BR_LEGACY_ALIASES[assetId]) return C3_BR_LEGACY_ALIASES[assetId];
   if (assetId.startsWith('customer-')) {
     const variant = Number(assetId.slice('customer-'.length));
-    return Number.isInteger(variant) && variant >= 0 && variant <= 7 ? `customer-${variant}` : 'customer-0';
+    if (Number.isInteger(variant) && variant >= 0 && variant <= 7) return C3_BR_LEGACY_ALIASES[`customer-${variant}`];
+    return `char_customer_${String((Number.isInteger(variant) ? Math.max(0, variant) : 0) % 6 + 1).padStart(2, '0')}`;
   }
-  return HIGH_DETAIL_CHARACTER_ASSETS.has(assetId) ? assetId : 'cook-0';
+  return HIGH_DETAIL_CHARACTER_ASSETS.has(assetId) ? C3_BR_LEGACY_ALIASES[assetId] : 'char_cook_female_01';
 }
 
 const HIGH_DETAIL_CHARACTER_ASSETS = new Set([
@@ -687,17 +692,28 @@ const HIGH_DETAIL_CHARACTER_ASSETS = new Set([
   'cook-0', 'cook-1', 'waiter-0', 'waiter-1', 'cleaner-0', 'stocker-0',
 ]);
 
-function renderedCharacterFrame(assetId: string, animation: PixelAnimationName, direction: Direction, frame: number, correctCharacterRows = false): number {
+function renderedCharacterFrame(assetId: string, animation: string, direction: Direction, frame: number, correctCharacterRows = false): number {
   const asset = blenderAsset(assetId);
   if (!asset) return 0;
+  const animationName = asset.animations[animation] ? animation : ('fallback' in asset ? asset.fallback : 'idle');
   let animationOffset = 0;
   for (const [name, frames] of Object.entries(asset.animations)) {
-    if (name === animation) break;
+    if (name === animationName) break;
     animationOffset += frames;
   }
-  const frameCount = asset.animations[animation] ?? 1;
+  const frameCount = asset.animations[animationName] ?? asset.animations.idle ?? 1;
   const directionIndex = renderedDirectionRow(direction, asset, correctCharacterRows);
   return directionIndex * asset.frameCount + animationOffset + (frame % frameCount);
+}
+
+function c3Animation(animation: PixelAnimationName, walking = false): string {
+  const mapped: Partial<Record<PixelAnimationName, string>> = {
+    'sit-down': 'sit_down', 'seated-idle': 'seated_idle', 'seated-waiting': 'wait_food', 'seated-eating': 'eat',
+    'stand-up': 'stand_up', 'carry-plate': walking ? 'carry_plate_walk' : 'carry_plate_idle',
+    'carry-ingredients': walking ? 'carry_ingredient_walk' : 'carry_ingredient_idle', cook: 'cook_stove',
+    'use-appliance': 'prep_counter', serve: 'serve_table', clean: 'clean_table', 'receive-payment': 'talk',
+  };
+  return mapped[animation] ?? animation;
 }
 
 function characterOrigin(assetId: string): { x: number; y: number } {

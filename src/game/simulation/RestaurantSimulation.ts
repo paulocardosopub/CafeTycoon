@@ -182,7 +182,7 @@ export class RestaurantSimulation {
     };
     return [
       ...employees,
-      this.makeActor(this.state.playerId, 'player', this.state.profile?.name ?? 'Você', playerRenderedStyle(this.state.profile?.appearance.hairStyle), start('player', { x: 9, y: 14 })),
+      this.makeActor(this.state.playerId, 'player', this.state.profile?.name ?? 'Você', playerRenderedStyle(this.state.profile?.appearance.presentation), start('player', { x: 9, y: 14 })),
     ];
   }
 
@@ -271,7 +271,7 @@ export class RestaurantSimulation {
         id: stableRuntimeId('customer'), state: 'entering', stateEnteredAt: this.simulationTime, partyId, partySize, partyIndex: index,
         patience: partyPatience, maxPatience: partyPatience,
         position: { ...streetSpawn }, visual: { ...streetSpawn }, path: [], moveProgress: 0, chairIds: [], eatRemaining: 0,
-        variant: this.customerSequence % 8, direction: 'nw', lastMovementAt: this.simulationTime, blockedSeconds: 0,
+        variant: (this.customerSequence - 1) % 6, direction: 'nw', lastMovementAt: this.simulationTime, blockedSeconds: 0,
         retryCount: 0, pathStatus: 'idle', motionState: 'idle', cleanupCompleted: false, paymentCompleted: false, outcomeApplied: false,
       };
       this.customers.push(customer);
@@ -1447,7 +1447,6 @@ export class RestaurantSimulation {
   private toRecords(value: unknown): Record<string, unknown>[] { return JSON.parse(JSON.stringify(value)) as Record<string, unknown>[]; }
 }
 
-function playerRenderedStyle(hairStyle?: string): string {
-  const index = ['wave', 'crop', 'bun', 'curls'].indexOf(hairStyle ?? 'wave');
-  return `player-style-${Math.max(0, index) % 2}`;
+function playerRenderedStyle(presentation?: string): string {
+  return presentation === 'masculina' ? 'char_player_male_01' : 'char_player_female_01';
 }

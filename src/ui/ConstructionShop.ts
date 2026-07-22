@@ -8,9 +8,10 @@ import { ConstructionEditor, type EditorResult } from '../game/systems/construct
 import type { SaveRepository } from '../game/save/SaveRepository';
 import type { RestaurantSimulation } from '../game/simulation/RestaurantSimulation';
 import { availableStaffFurniture, staffFurnitureRequirement } from '../game/systems/construction/StaffStartSystem';
+import { C3_BR_LEGACY_ALIASES } from '../assets/pixel/c3brManifest';
 
 const CONSTRUCTION_RELOAD_SESSION_KEY = 'bistro-bloom-construction-reload';
-const ASSET_VERSION = '0.0.6-blender-7';
+const ASSET_VERSION = '0.0.7-c3-br-1';
 
 type CatalogGroup = 'all' | 'dining' | 'kitchen' | 'service' | 'storage' | 'decoration';
 
@@ -349,7 +350,7 @@ export class ConstructionShop {
     }).join('');
     const staffIds = new Set(draft.construction.staffStartPositions.map((item) => item.staffId));
     const activeStaff = [
-      { id: 'player', label: this.state.profile?.name ? `${this.state.profile.name} · Jogador` : 'Jogador', assetId: 'player-style-0' },
+      { id: 'player', label: this.state.profile?.name ? `${this.state.profile.name} · Jogador` : 'Jogador', assetId: this.state.profile?.appearance.presentation === 'masculina' ? 'char_player_male_01' : 'char_player_female_01' },
       ...STAFF_CATALOG.filter((staff) => staff.includedByDefault || staffIds.has(staff.id)).map((staff) => ({ id: staff.id, label: staff.label, assetId: staff.assetId })),
     ];
     const staffRoster = activeStaff.map((staff) => {
@@ -403,7 +404,7 @@ function matchesGroup(category: FurnitureCategory, group: CatalogGroup): boolean
   return category === group;
 }
 
-function thumbnail(assetId: string): string { return `/assets/pixel/rendered/thumbnails/${assetId}.png?v=${ASSET_VERSION}`; }
+function thumbnail(assetId: string): string { return `/assets/pixel/rendered/thumbnails/${C3_BR_LEGACY_ALIASES[assetId] ?? assetId}.png?v=${ASSET_VERSION}`; }
 function escapeHtml(value: string): string { const element = document.createElement('div'); element.textContent = value; return element.innerHTML; }
 function directionLabel(direction: Direction): string { return ({ ne: 'nordeste', nw: 'noroeste', se: 'sudeste', sw: 'sudoeste' } as Record<Direction, string>)[direction]; }
 function sideLabel(side: 'north' | 'east' | 'south' | 'west'): string { return ({ north: 'Norte', east: 'Leste', south: 'Sul', west: 'Oeste' } as const)[side]; }

@@ -74,7 +74,8 @@ describe('contrato visual central da 0.0.4', () => {
   it('mostra os sprites Blender definitivos no criador de personagem', () => {
     const creator = readFileSync(resolve(import.meta.dirname, '../ui/characterCreator.ts'), 'utf8');
     expect(creator).toContain('character-preview-sprite');
-    expect(creator).toContain('/assets/pixel/rendered/thumbnails/player-style-${styleIndex}.png?v=0.0.6-blender-7');
+    expect(creator).toContain('/assets/pixel/rendered/thumbnails/${assetId}.png?v=0.0.7-c3-br-1');
+    expect(creator).toContain("appearance.presentation === 'masculina'");
     expect(creator).not.toContain('preview-legs"></div><div class="preview-body');
   });
 });

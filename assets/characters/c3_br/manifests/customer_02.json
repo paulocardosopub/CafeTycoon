@@ -1,0 +1,117 @@
+{
+  "assetId": "char_customer_02",
+  "displayName": "Cliente idosa elegante",
+  "kind": "character",
+  "role": "customer",
+  "presentation": "feminina",
+  "bodyProfile": "soft",
+  "category": "characters/c3_br/customer_02",
+  "renderedFile": "/assets/pixel/rendered/characters/c3_br/customer_02/char_customer_02.png",
+  "spriteSheet": "/assets/pixel/rendered/characters/c3_br/customer_02/char_customer_02.png",
+  "thumbnail": "/assets/pixel/rendered/thumbnails/char_customer_02.png",
+  "sourceBlend": "art_source/blender/characters/c3_br_characters.blend",
+  "sourceCollection": "char_customer_02",
+  "visualLevel": 1,
+  "footprint": [
+    1,
+    1
+  ],
+  "anchor": [
+    56,
+    160
+  ],
+  "orientations": [
+    "ne",
+    "nw",
+    "se",
+    "sw"
+  ],
+  "screenDirections": {
+    "ne": "right",
+    "nw": "up",
+    "se": "down",
+    "sw": "left"
+  },
+  "animations": {
+    "idle": 4,
+    "walk": 8,
+    "sit_down": 6,
+    "seated_idle": 4,
+    "stand_up": 6,
+    "talk": 6,
+    "wait": 4,
+    "react_happy": 6,
+    "wait_food": 4,
+    "eat": 8,
+    "drink": 8,
+    "talk_seated": 6,
+    "react_impatient": 6
+  },
+  "frameCount": 76,
+  "frameSize": [
+    112,
+    168
+  ],
+  "fps": {
+    "idle": 6,
+    "walk": 8,
+    "sit_down": 6,
+    "seated_idle": 6,
+    "stand_up": 6,
+    "talk": 6,
+    "wait": 6,
+    "react_happy": 6,
+    "wait_food": 6,
+    "eat": 8,
+    "drink": 8,
+    "talk_seated": 6,
+    "react_impatient": 6
+  },
+  "loops": {
+    "idle": true,
+    "walk": true,
+    "sit_down": false,
+    "seated_idle": true,
+    "stand_up": false,
+    "talk": true,
+    "wait": true,
+    "react_happy": true,
+    "wait_food": true,
+    "eat": true,
+    "drink": true,
+    "talk_seated": true,
+    "react_impatient": true
+  },
+  "events": {
+    "pickup_dish": {
+      "attach": 0.5
+    },
+    "place_dish": {
+      "release": 0.55
+    },
+    "serve_table": {
+      "release": 0.58
+    },
+    "clear_table": {
+      "attach": 0.48
+    }
+  },
+  "fallback": "idle",
+  "paletteVersion": "c3-br-cartoon-3d-pixel-2.5d-v1",
+  "renderVersion": "0.0.7-c3-br-1",
+  "qualityProfile": "c3-br-cartoon-3d-pixel-2.5d-v1",
+  "transparent": true,
+  "nativeScale": 1.0,
+  "logicalHeightBlocks": 1.656,
+  "identityProfile": "char_customer_02:silver_waves:elegant_red",
+  "visualSkinId": "c3-br-original",
+  "referenceMode": "visual-reference-only-not-rendered",
+  "rigId": "C3BR_Humanoid_v1",
+  "facialRig": "bones+shape-keys",
+  "visualBounds": {
+    "widthCells": 1.0,
+    "depthCells": 1.0,
+    "heightBlocks": 1.656,
+    "overhangCells": 0.27
+  }
+}

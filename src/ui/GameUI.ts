@@ -22,9 +22,9 @@ import { recipeRequirements } from '../game/recipes/RecipeAvailability';
 
 type PanelId = 'staff' | 'stock' | 'recipes' | 'production' | 'orders' | 'upgrades' | 'player' | 'roles' | 'professions' | 'offline' | 'settings' | 'tasks';
 
-function playerSpriteThumb(hairStyle: string): string {
-  const index = Math.max(0, ['wave', 'crop', 'bun', 'curls'].indexOf(hairStyle)) % 2;
-  return `/assets/pixel/rendered/thumbnails/player-style-${index}.png?v=0.0.6-blender-7`;
+function playerSpriteThumb(_hairStyle: string, presentation?: string): string {
+  const assetId = presentation === 'masculina' ? 'char_player_male_01' : 'char_player_female_01';
+  return `/assets/pixel/rendered/thumbnails/${assetId}.png?v=0.0.7-c3-br-1`;
 }
 
 const ROLE_INFO: Record<HelpRole, { name: string; icon: string; profession: ProfessionId; text: string }> = {
@@ -221,7 +221,7 @@ export class GameUI {
     const role = ROLE_INFO[profile.helpRole];
     const profession = profile.professions[role.profession];
     this.root.querySelector<HTMLElement>('#owner-card')!.innerHTML = `
-      <button class="owner-portrait" data-open="player" aria-label="Abrir perfil"><img src="${playerSpriteThumb(profile.appearance.hairStyle)}" alt="" /><i>✦</i></button>
+      <button class="owner-portrait" data-open="player" aria-label="Abrir perfil"><img src="${playerSpriteThumb(profile.appearance.hairStyle, profile.appearance.presentation)}" alt="" /><i>✦</i></button>
       <div class="owner-copy"><small>PROPRIETÁRIO · NÍVEL ${profile.level}</small><strong>${escapeHtml(profile.name)}</strong><span>${role.icon} ${role.name} · ${this.simulation.playerTaskLabel()}</span><em>Destino ${this.simulation.playerDestinationLabel()} · ${this.simulation.playerIdleReason()}</em>
         <div class="mini-progress"><i style="width:${professionProgress(profession.xp, profession.level)}%"></i></div>
       </div><button class="help-button" data-open="roles">Onde ajudar?</button>`;
@@ -370,7 +370,7 @@ export class GameUI {
   private playerPanel(): string {
     const profile = this.state.profile!; const role = ROLE_INFO[profile.helpRole];
     const totalTasks = Object.values(profile.taskHistory).reduce((sum, value) => sum + value, 0);
-    return `<div class="profile-hero"><div class="large-portrait"><img src="${playerSpriteThumb(profile.appearance.hairStyle)}" alt="Sprite de ${escapeHtml(profile.name)}" /></div><div><small>PROPRIETÁRIO DO BISTRÔ</small><h3>${escapeHtml(profile.name)}</h3><p>Nível geral ${profile.level} · ${profile.xp} XP</p></div></div>
+    return `<div class="profile-hero"><div class="large-portrait"><img src="${playerSpriteThumb(profile.appearance.hairStyle, profile.appearance.presentation)}" alt="Sprite de ${escapeHtml(profile.name)}" /></div><div><small>PROPRIETÁRIO DO BISTRÔ</small><h3>${escapeHtml(profile.name)}</h3><p>Nível geral ${profile.level} · ${profile.xp} XP</p></div></div>
       <div class="profile-stats"><span><small>Função atual</small><b>${role.icon} ${role.name}</b></span><span><small>Tarefa atual</small><b>${this.simulation.playerTaskLabel()}</b></span><span><small>Tarefas feitas</small><b>${totalTasks}</b></span></div>
       <div class="button-stack"><button class="primary-button" data-open="roles">Onde ajudar?</button><button class="secondary-button" data-open="professions">Ver profissões e bônus</button></div>
       <div class="future-note">Personalização adicional e cosméticos serão expandidos em versões futuras.</div>`;

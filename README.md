@@ -1,6 +1,6 @@
-# Bistrô Bloom — v0.0.6
+# Bistrô Bloom — v0.0.7
 
-Jogo web de gerenciamento de restaurante em pixel art isométrica. A v0.0.6 transforma a operação em um sistema administrável: equipe contratável, turnos e salários, armazenamento físico, reposição manual/automática, produção programada em lotes e progresso offline limitado a oito horas.
+Jogo web de gerenciamento de restaurante em Pixel 2.5D isométrico. A v0.0.7 integra o primeiro pacote definitivo C3-BR com dez personagens brasileiros originais modelados, rigados e animados no Blender.
 
 A correção estrutural da v0.0.6 unifica grade, footprints, contato visual com o piso, direção de personagens, mesas de dois lugares e edição transacional diretamente no salão. Consulte [o contrato espacial](docs/STRUCTURAL_GRID_FIX.md) e [as evidências de QA](docs/QA_STRUCTURAL_FIX.md).
 

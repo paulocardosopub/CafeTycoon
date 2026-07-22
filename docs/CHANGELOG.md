@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.0.7 — 2026-07-22
+
+- Primeiro pacote definitivo C3-BR com exatamente dez personagens brasileiros originais.
+- Fontes Blender editáveis com dez rigs corporais/faciais, 159 ações e materiais organizados.
+- Sprites 112×168 em quatro direções reais, alpha transparente, pivô 56×160 e manifests centralizados.
+- Integração de jogador, cozinheira, garçom e seis clientes com fallbacks seguros e aliases para saves antigos.
+- Validação em desktop, mobile 390×844 e zooms 0,5×, 1× e 2×.
+
 ## 0.0.6 — 2026-07-21
 
 ### Correção estrutural espacial

@@ -1,0 +1,132 @@
+{
+  "assetId": "char_cook_female_01",
+  "displayName": "Cozinheira",
+  "kind": "character",
+  "role": "cook",
+  "presentation": "feminina",
+  "bodyProfile": "strong",
+  "category": "characters/c3_br/cook_female_01",
+  "renderedFile": "/assets/pixel/rendered/characters/c3_br/cook_female_01/char_cook_female_01.png",
+  "spriteSheet": "/assets/pixel/rendered/characters/c3_br/cook_female_01/char_cook_female_01.png",
+  "thumbnail": "/assets/pixel/rendered/thumbnails/char_cook_female_01.png",
+  "sourceBlend": "art_source/blender/characters/c3_br_characters.blend",
+  "sourceCollection": "char_cook_female_01",
+  "visualLevel": 1,
+  "footprint": [
+    1,
+    1
+  ],
+  "anchor": [
+    56,
+    160
+  ],
+  "orientations": [
+    "ne",
+    "nw",
+    "se",
+    "sw"
+  ],
+  "screenDirections": {
+    "ne": "right",
+    "nw": "up",
+    "se": "down",
+    "sw": "left"
+  },
+  "animations": {
+    "idle": 4,
+    "walk": 8,
+    "sit_down": 6,
+    "seated_idle": 4,
+    "stand_up": 6,
+    "talk": 6,
+    "wait": 4,
+    "react_happy": 6,
+    "carry_plate_idle": 4,
+    "carry_plate_walk": 8,
+    "carry_ingredient_idle": 4,
+    "carry_ingredient_walk": 8,
+    "pickup_ingredient": 6,
+    "cook_stove": 8,
+    "prep_counter": 8,
+    "wash_sink": 8,
+    "place_dish": 6,
+    "wait_workstation": 4
+  },
+  "frameCount": 108,
+  "frameSize": [
+    112,
+    168
+  ],
+  "fps": {
+    "idle": 6,
+    "walk": 8,
+    "sit_down": 6,
+    "seated_idle": 6,
+    "stand_up": 6,
+    "talk": 6,
+    "wait": 6,
+    "react_happy": 6,
+    "carry_plate_idle": 6,
+    "carry_plate_walk": 8,
+    "carry_ingredient_idle": 6,
+    "carry_ingredient_walk": 8,
+    "pickup_ingredient": 6,
+    "cook_stove": 8,
+    "prep_counter": 8,
+    "wash_sink": 8,
+    "place_dish": 6,
+    "wait_workstation": 6
+  },
+  "loops": {
+    "idle": true,
+    "walk": true,
+    "sit_down": false,
+    "seated_idle": true,
+    "stand_up": false,
+    "talk": true,
+    "wait": true,
+    "react_happy": true,
+    "carry_plate_idle": true,
+    "carry_plate_walk": true,
+    "carry_ingredient_idle": true,
+    "carry_ingredient_walk": true,
+    "pickup_ingredient": false,
+    "cook_stove": true,
+    "prep_counter": true,
+    "wash_sink": true,
+    "place_dish": false,
+    "wait_workstation": true
+  },
+  "events": {
+    "pickup_dish": {
+      "attach": 0.5
+    },
+    "place_dish": {
+      "release": 0.55
+    },
+    "serve_table": {
+      "release": 0.58
+    },
+    "clear_table": {
+      "attach": 0.48
+    }
+  },
+  "fallback": "idle",
+  "paletteVersion": "c3-br-cartoon-3d-pixel-2.5d-v1",
+  "renderVersion": "0.0.7-c3-br-1",
+  "qualityProfile": "c3-br-cartoon-3d-pixel-2.5d-v1",
+  "transparent": true,
+  "nativeScale": 1.0,
+  "logicalHeightBlocks": 1.747,
+  "identityProfile": "char_cook_female_01:turban_bun:cook_white",
+  "visualSkinId": "c3-br-original",
+  "referenceMode": "visual-reference-only-not-rendered",
+  "rigId": "C3BR_Humanoid_v1",
+  "facialRig": "bones+shape-keys",
+  "visualBounds": {
+    "widthCells": 1.0,
+    "depthCells": 1.0,
+    "heightBlocks": 1.747,
+    "overhangCells": 0.27
+  }
+}

@@ -54,8 +54,8 @@ export function showCharacterCreator(root: HTMLElement): Promise<PlayerProfile> 
     let confirmationReady = false;
     const refresh = () => {
       preview.dataset.hair = appearance.hairStyle; preview.dataset.outfit = appearance.outfit; preview.dataset.presentation = appearance.presentation;
-      const styleIndex = Math.max(0, ['wave', 'crop', 'bun', 'curls'].indexOf(appearance.hairStyle)) % 2;
-      root.querySelector<HTMLImageElement>('#character-preview-sprite')!.src = `/assets/pixel/rendered/thumbnails/player-style-${styleIndex}.png?v=0.0.6-blender-7`;
+      const assetId = appearance.presentation === 'masculina' ? 'char_player_male_01' : 'char_player_female_01';
+      root.querySelector<HTMLImageElement>('#character-preview-sprite')!.src = `/assets/pixel/rendered/thumbnails/${assetId}.png?v=0.0.7-c3-br-1`;
       root.querySelector<HTMLElement>('#preview-name')!.textContent = nameInput.value.trim() || 'Seu personagem';
     };
     form.addEventListener('input', (event) => {
