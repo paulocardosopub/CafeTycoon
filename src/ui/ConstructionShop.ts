@@ -11,7 +11,16 @@ import { availableStaffFurniture, staffFurnitureRequirement } from '../game/syst
 import { C3_BR_LEGACY_ALIASES } from '../assets/pixel/c3brManifest';
 
 const CONSTRUCTION_RELOAD_SESSION_KEY = 'bistro-bloom-construction-reload';
-const ASSET_VERSION = '0.0.7-c3-br-1';
+const ASSET_VERSION = '0.0.7-c3-br-2';
+
+// Curated for the recipes and core restaurant loop currently available.
+// Alternatives remain registered and save-safe, but no longer crowd purchases.
+const CURRENT_PURCHASABLE_FURNITURE_IDS = new Set([
+  'cooking.a1.stove', 'cooking.a3.griddle', 'cooking.a5.kettle', 'cooking.a8.coffee',
+  'refrigeration.b1.fridge', 'preparation.b3.counter', 'preparation.b4.ingredients',
+  'washing.b5.sink', 'service.c1.isolated', 'storage.c5.pantry', 'service.c7.plates',
+  'dining.table.basic', 'dining.chair.basic',
+]);
 
 type CatalogGroup = 'all' | 'dining' | 'kitchen' | 'service' | 'storage' | 'decoration';
 
@@ -34,6 +43,8 @@ export class ConstructionShop {
   private staffPlacementId?: string;
   private staffPlacementFacing: Direction = 'ne';
   private group: CatalogGroup = 'all';
+  private mode: 'shop' | 'organize' = 'shop';
+  private selectedShopDefinitionId?: string;
   private previewUnsubscribers: (() => void)[] = [];
   private pendingWorldCellTimer?: number;
   private lastWorldItemAt = 0;
@@ -60,7 +71,7 @@ export class ConstructionShop {
     this.overlay.className = 'construction-overlay construction-live-overlay';
     this.overlay.setAttribute('aria-label', 'Loja e organização do restaurante');
     this.overlay.addEventListener('pointerdown', (event) => {
-      if (!(event.target as HTMLElement).closest('[data-editor-action]')) return;
+      if (!(event.target as HTMLElement).closest('.construction-header,.construction-toolbar,.construction-catalog,.construction-options,.construction-selected,.construction-live-hint')) return;
       this.lastEditorUiPointerAt = performance.now();
       event.stopPropagation();
     });
@@ -142,18 +153,29 @@ export class ConstructionShop {
     const target = (event.target as HTMLElement).closest<HTMLElement>('[data-editor-action]');
     if (!target || !this.editor) return;
     const action = target.dataset.editorAction;
+    if (action === 'mode') {
+      this.mode = target.dataset.id === 'organize' ? 'organize' : 'shop';
+      this.pendingDefinitionId = undefined;
+      this.pendingStoredItemId = undefined;
+      this.selectedShopDefinitionId = undefined;
+      this.setStatus(this.mode === 'shop' ? 'Escolha um item para conhecer e comprar.' : 'Escolha um item seu e depois um quadrado livre.', 'info');
+      return;
+    }
     if (action === 'category') {
       this.group = target.dataset.id as CatalogGroup;
       this.render();
       return;
     }
-    if (action === 'catalog') {
-      this.pendingDefinitionId = target.dataset.id;
-      this.pendingStoredItemId = undefined;
-      this.selectedItemId = undefined;
-      this.moveMode = false;
-      this.staffPlacementId = undefined;
-      this.setStatus('Agora toque em um quadrado livre para colocar o móvel.', 'info');
+    if (action === 'shop-info') {
+      this.selectedShopDefinitionId = target.dataset.id;
+      this.render();
+      return;
+    }
+    if (action === 'purchase') {
+      const definitionId = target.dataset.id!;
+      const result = this.editor.purchase(definitionId);
+      if (result.ok) this.selectedShopDefinitionId = definitionId;
+      this.apply(result, 'Compra concluída. O item já está disponível na aba Organizar.');
       return;
     }
     if (action === 'stored') {
@@ -164,6 +186,7 @@ export class ConstructionShop {
       this.selectedItemId = undefined;
       this.moveMode = false;
       this.staffPlacementId = undefined;
+      this.mode = 'organize';
       this.setStatus('Item guardado selecionado. Escolha um quadrado livre.', 'info');
       return;
     }
@@ -333,8 +356,10 @@ export class ConstructionShop {
     const selectedDefinition = selected ? FURNITURE_BY_ID[selected.definitionId] : undefined;
     const editSession = this.editor.editSession;
     const selectedCounter = selected ? draft.construction.serviceCounters.find((module) => module.id === selected.id) : undefined;
-    const visibleCatalog = FURNITURE_DEFINITIONS.filter((definition) => matchesGroup(definition.category, this.group))
+    const groupedCatalog = FURNITURE_DEFINITIONS.filter((definition) => matchesGroup(definition.category, this.group))
       .filter((definition) => !['service.c2.left', 'service.c3.middle', 'service.c4.right'].includes(definition.id));
+    const visibleCatalog = groupedCatalog.filter((definition) => CURRENT_PURCHASABLE_FURNITURE_IDS.has(definition.id));
+    const unavailableCatalog = groupedCatalog.filter((definition) => !CURRENT_PURCHASABLE_FURNITURE_IDS.has(definition.id));
     const pendingExpansion = this.editor.pendingExpansion;
     const selectedPanel = selected && selectedDefinition ? `
       <article class="construction-selected">
@@ -348,6 +373,16 @@ export class ConstructionShop {
       const definition = FURNITURE_BY_ID[item.definitionId];
       return definition ? `<button class="stored-card" data-editor-action="stored" data-id="${item.id}"><img src="${thumbnail(definition.spriteSet.sw)}" alt=""/><span><b>${definition.code}</b>${escapeHtml(definition.name)}</span></button>` : '';
     }).join('');
+    const selectedShopDefinition = this.selectedShopDefinitionId ? FURNITURE_BY_ID[this.selectedShopDefinitionId] : undefined;
+    const shopCatalog = `
+      <div class="catalog-tabs">${GROUPS.map((group) => `<button data-editor-action="category" data-id="${group.id}" class="${this.group === group.id ? 'active' : ''}">${group.label}</button>`).join('')}</div>
+      <div class="catalog-items">${visibleCatalog.length ? visibleCatalog.map((definition) => `<article class="catalog-card shop-card ${this.selectedShopDefinitionId === definition.id ? 'selected' : ''}">
+        <button class="shop-card-info" data-editor-action="shop-info" data-id="${definition.id}" ${definition.level > this.state.restaurantLevel ? 'disabled' : ''}><img src="${thumbnail(definition.spriteSet.sw)}" alt=""/><span><small>${definition.code} · ${definition.footprintWidth}×${definition.footprintDepth}</small><b>${escapeHtml(definition.name)}</b><em>${escapeHtml(furniturePurpose(definition.functionId))}</em></span></button>
+        <p>${escapeHtml(furnitureDescription(definition.id, definition.functionId))}</p><button class="shop-buy" data-editor-action="purchase" data-id="${definition.id}" ${definition.level > this.state.restaurantLevel || draft.coins < definition.price ? 'disabled' : ''}>Comprar · ${definition.price} moedas</button>
+      </article>`).join('') : '<p class="catalog-empty">Nenhum móvel funcional nesta categoria por enquanto.</p>'}</div>
+      ${selectedShopDefinition ? `<section class="shop-detail"><strong>${escapeHtml(selectedShopDefinition.name)}</strong><span>${escapeHtml(furniturePurpose(selectedShopDefinition.functionId))}</span><p>${escapeHtml(furnitureDescription(selectedShopDefinition.id, selectedShopDefinition.functionId))}</p></section>` : ''}
+      ${unavailableCatalog.length ? `<details class="unavailable-catalog"><summary>Indisponíveis por enquanto (${unavailableCatalog.length})</summary><p>Alternativas sem função exclusiva nas receitas atuais.</p><div class="catalog-items unavailable-items">${unavailableCatalog.map((definition) => `<button class="catalog-card" disabled><img src="${thumbnail(definition.spriteSet.sw)}" alt=""/><span><small>${definition.code} · futuro</small><b>${escapeHtml(definition.name)}</b><em>Indisponível</em></span></button>`).join('')}</div></details>` : ''}`;
+    const organizeCatalog = `<section class="organize-owned"><h2>Seus itens</h2><p>Somente móveis que você já comprou ou guardou aparecem aqui.</p><div class="stored-list">${stored || '<p>Nenhum item guardado. Compre um item na Loja para vê-lo aqui.</p>'}</div></section>`;
     const staffIds = new Set(draft.construction.staffStartPositions.map((item) => item.staffId));
     const activeStaff = [
       { id: 'player', label: this.state.profile?.name ? `${this.state.profile.name} · Jogador` : 'Jogador', assetId: this.state.profile?.appearance.presentation === 'masculina' ? 'char_player_male_01' : 'char_player_female_01' },
@@ -365,19 +400,17 @@ export class ConstructionShop {
     }).join('');
     this.overlay.innerHTML = `
       <div class="construction-shell construction-live-shell">
-        <header class="construction-header"><div><small>LOJA E ORGANIZAÇÃO</small><h1>Monte seu Bistrô</h1><p>As alterações só entram no jogo quando você confirmar.</p></div><div class="construction-balance"><small>Saldo da organização</small><strong>${draft.coins.toLocaleString('pt-BR')} moedas</strong></div></header>
+        <header class="construction-header"><div><small>${this.mode === 'shop' ? 'LOJA' : 'ORGANIZAR'}</small><h1>${this.mode === 'shop' ? 'Compre para sua cozinha' : 'Organize seus móveis'}</h1><p>${this.mode === 'shop' ? 'Passe o mouse ou clique em um item para saber para que ele serve.' : 'Coloque somente os itens que você já possui.'}</p></div><nav class="construction-mode-tabs" aria-label="Loja e organização"><button data-editor-action="mode" data-id="shop" class="${this.mode === 'shop' ? 'active' : ''}">Loja</button><button data-editor-action="mode" data-id="organize" class="${this.mode === 'organize' ? 'active' : ''}">Organizar</button></nav><div class="construction-balance"><small>Saldo</small><strong>${draft.coins.toLocaleString('pt-BR')} moedas</strong></div></header>
         <div class="construction-toolbar"><button data-editor-action="undo" ${this.editor.canUndo ? '' : 'disabled'}>↶ Desfazer</button><button data-editor-action="redo" ${this.editor.canRedo ? '' : 'disabled'}>↷ Refazer</button><span class="construction-status ${this.statusTone}">${escapeHtml(this.status)}</span><button class="secondary" data-editor-action="cancel">Cancelar</button><button class="primary" data-editor-action="confirm">Confirmar e reabrir</button></div>
         <div class="construction-workspace construction-live-workspace">
           <aside class="construction-catalog">
-            <div class="catalog-tabs">${GROUPS.map((group) => `<button data-editor-action="category" data-id="${group.id}" class="${this.group === group.id ? 'active' : ''}">${group.label}</button>`).join('')}</div>
-            <div class="catalog-items">${visibleCatalog.map((definition) => `<button class="catalog-card ${this.pendingDefinitionId === definition.id ? 'selected' : ''}" data-editor-action="catalog" data-id="${definition.id}" ${definition.level > this.state.restaurantLevel ? 'disabled' : ''}><img src="${thumbnail(definition.spriteSet.sw)}" alt=""/><span><small>${definition.code} · ${definition.footprintWidth}×${definition.footprintDepth}</small><b>${escapeHtml(definition.name)}</b><em>${definition.price} moedas</em></span></button>`).join('')}</div>
-            <details ${stored ? 'open' : ''}><summary>Itens guardados (${draft.construction.storedFurniture.length})</summary><div class="stored-list">${stored || '<p>Nenhum móvel guardado.</p>'}</div></details>
+            ${this.mode === 'shop' ? shopCatalog : organizeCatalog}
           </aside>
           <main class="construction-live-stage" aria-label="Edição diretamente no restaurante">
             <div class="construction-live-hint"><strong>Editando no próprio salão</strong><span>Toque em um móvel e depois no quadrado de destino. A prévia aparece imediatamente.</span></div>
             ${selectedPanel}
           </main>
-          <aside class="construction-options">
+          <aside class="construction-options ${this.mode === 'shop' ? 'shop-hidden-options' : ''}">
             <details open><summary>Revestimentos</summary><div class="option-buttons"><button data-editor-action="surface" data-kind="floor" data-id="floor-terracotta">Piso terracota</button><button data-editor-action="surface" data-kind="floor" data-id="floor-cream">Piso creme</button><button data-editor-action="surface" data-kind="wall" data-id="wall-cream-green">Parede verde</button><button data-editor-action="surface" data-kind="wall" data-id="wall-cream-wood">Parede madeira</button></div></details>
             <details open><summary>Ampliar restaurante</summary><p class="option-help">Escolha o bloco e o lado. Os quadrados aparecem no salão antes da compra.</p>${EXPANSIONS.map((expansion) => { const purchased = draft.construction.builtAreas.some((area) => area.expansionDefinitionId === expansion.id) && pendingExpansion?.definition.id !== expansion.id; return `<article class="expansion-card ${pendingExpansion?.definition.id === expansion.id ? 'selected' : ''}"><strong>${expansion.width}×${expansion.depth}</strong><small>Nível ${expansion.unlockLevel} · ${expansion.coinCost} moedas${purchased ? ' · comprado' : ''}</small><div>${expansion.allowedSides.map((side) => `<button data-editor-action="expansion" data-id="${expansion.id}" data-side="${side}" class="${pendingExpansion?.definition.id === expansion.id && pendingExpansion.side === side ? 'active' : ''}" ${this.state.restaurantLevel < expansion.unlockLevel || purchased ? 'disabled' : ''}>${sideLabel(side)}</button>`).join('')}</div>${pendingExpansion?.definition.id === expansion.id ? '<div class="expansion-confirm"><button class="confirm-placement" data-editor-action="confirm-expansion" aria-label="Confirmar ampliação">✓ Confirmar quadrados</button><button class="cancel-placement" data-editor-action="cancel-expansion" aria-label="Cancelar ampliação">× Cancelar</button></div>' : ''}</article>`; }).join('')}</details>
             <details open><summary>Equipe e contratação</summary><p class="option-help">Funcionários vinculados ficam diante do móvel e acompanham seus movimentos automaticamente.</p><div class="staff-roster">${staffRoster}</div>${this.staffPlacementId ? `<div class="staff-facing"><small>Direção inicial</small><button data-editor-action="staff-facing" data-id="ne" class="${this.staffPlacementFacing === 'ne' ? 'active' : ''}">↗ NE</button><button data-editor-action="staff-facing" data-id="nw" class="${this.staffPlacementFacing === 'nw' ? 'active' : ''}">↖ NO</button><button data-editor-action="staff-facing" data-id="se" class="${this.staffPlacementFacing === 'se' ? 'active' : ''}">↘ SE</button><button data-editor-action="staff-facing" data-id="sw" class="${this.staffPlacementFacing === 'sw' ? 'active' : ''}">↙ SO</button></div>` : ''}${hireCards ? `<div class="hire-list"><small>Novas contratações</small>${hireCards}</div>` : '<p class="option-help">Todos os profissionais disponíveis já foram contratados.</p>'}</details>
@@ -408,3 +441,16 @@ function thumbnail(assetId: string): string { return `/assets/pixel/rendered/thu
 function escapeHtml(value: string): string { const element = document.createElement('div'); element.textContent = value; return element.innerHTML; }
 function directionLabel(direction: Direction): string { return ({ ne: 'nordeste', nw: 'noroeste', se: 'sudeste', sw: 'sudoeste' } as Record<Direction, string>)[direction]; }
 function sideLabel(side: 'north' | 'east' | 'south' | 'west'): string { return ({ north: 'Norte', east: 'Leste', south: 'Sul', west: 'Oeste' } as const)[side]; }
+function furniturePurpose(functionId?: string): string {
+  return ({ stove: 'Cozimento de receitas', oven: 'Assar receitas', grill: 'Grelhar receitas', cauldron: 'Cozimento em caldeira', coffee_machine: 'Preparo de bebidas', fridge: 'Conservação de ingredientes', prep: 'Preparo de ingredientes', assembly: 'Montagem de receitas', sink: 'Limpeza de louças', pickup: 'Entrega de pratos', storage: 'Armazenamento', table: 'Atendimento aos clientes', chair: 'Assento para clientes', decoration: 'Conforto e decoração' } as Record<string, string>)[functionId ?? ''] ?? 'Equipamento do restaurante';
+}
+function furnitureDescription(id: string, functionId?: string): string {
+  const exact: Record<string, string> = {
+    'cooking.a8.coffee': 'Prepara bebidas quentes para ampliar o cardápio da cafeteria.',
+    'preparation.b4.ingredients': 'Mantém os ingredientes acessíveis durante o preparo.',
+    'service.c7.plates': 'Organiza pratos limpos para o serviço funcionar sem interrupções.',
+    'dining.table.basic': 'Mesa robusta onde os clientes recebem e consomem os pedidos.',
+    'dining.chair.basic': 'Banco robusto que deve ser colocado ao lado de uma mesa.',
+  };
+  return exact[id] ?? ({ stove: 'Usado para cozinhar receitas compatíveis do cardápio.', oven: 'Assa receitas que precisam de calor uniforme.', grill: 'Prepara receitas grelhadas na cozinha.', cauldron: 'Cozinha receitas em grande volume.', coffee_machine: 'Prepara bebidas quentes para os clientes.', fridge: 'Conserva ingredientes e abastece a cozinha.', prep: 'Oferece uma superfície segura para preparar ingredientes.', assembly: 'Mantém ingredientes acessíveis para montar receitas.', sink: 'Lava a louça usada e a devolve ao fluxo de atendimento.', pickup: 'Recebe pratos prontos antes de serem levados às mesas.', storage: 'Guarda suprimentos e ingredientes do restaurante.', table: 'Recebe os pedidos e refeições dos clientes.', chair: 'Permite que um cliente se sente junto a uma mesa.', decoration: 'Melhora o visual e deixa o salão mais acolhedor.' } as Record<string, string>)[functionId ?? ''] ?? 'Item funcional para montar e melhorar o restaurante.';
+}

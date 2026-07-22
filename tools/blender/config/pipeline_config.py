@@ -114,16 +114,16 @@ FURNITURE = [
 ]
 
 EQUIPMENT = [
-    world_asset("stove_level_1", "equipment", "equipment/stoves", (2, 1), family="stove", skin_id="equipment-steel-level-1"),
+    world_asset("stove_level_1", "equipment", "equipment/stoves", (1, 1), family="stove", skin_id="equipment-steel-level-1"),
     world_asset("oven_level_1", "equipment", "equipment/ovens", (2, 1), family="oven", skin_id="equipment-steel-level-1"),
     world_asset("refrigerator_level_1", "equipment", "equipment/refrigerators", (2, 1), family="refrigerator", skin_id="equipment-steel-level-1"),
     world_asset("grill_level_1", "equipment", "equipment/grills", family="grill"),
     world_asset("coffee_machine_level_1", "equipment", "equipment/coffee-machines", family="coffee_machine"),
     world_asset("preparation_level_1", "equipment", "equipment/preparation", (2, 1), family="preparation"),
-    world_asset("sink_level_1", "equipment", "equipment/sinks", (2, 1), family="sink"),
+    world_asset("sink_level_1", "equipment", "equipment/sinks", (1, 1), family="sink"),
     world_asset("cauldron_level_1", "equipment", "equipment/cauldrons", family="cauldron"),
     world_asset("assembly_level_1", "equipment", "equipment/preparation", (2, 1), family="assembly"),
-    world_asset("a1_stove_industrial", "equipment", "equipment/stoves", (2, 1), family="stove"),
+    world_asset("a1_stove_industrial", "equipment", "equipment/stoves", (1, 1), family="stove"),
     world_asset("a2_convection_oven", "equipment", "equipment/ovens", family="oven"),
     world_asset("a3_griddle", "equipment", "equipment/griddles", family="grill"),
     world_asset("a4_fryer", "equipment", "equipment/fryers", family="fryer"),

@@ -23,14 +23,14 @@ const station = (
 export const STATIONS: StationDefinition[] = [
   station('storage', 'Armazenamento', 'storage', { x: 1, y: 2 }, { x: 2, y: 1 }, { x: 1, y: 3 }, 82, 0x70432a),
   station('prep', 'Bancada de preparo', 'prep', { x: 3, y: 2 }, { x: 2, y: 1 }, { x: 3, y: 3 }, 54, 0x7d9b68),
-  station('stove', 'Fogão', 'stove', { x: 6, y: 2 }, { x: 2, y: 1 }, { x: 6, y: 3 }, 58, 0xc65b3e),
+  station('stove', 'Fogão', 'stove', { x: 6, y: 2 }, { x: 1, y: 1 }, { x: 6, y: 3 }, 58, 0xc65b3e),
   station('grill', 'Grelha', 'grill', { x: 9, y: 2 }, { x: 1, y: 1 }, { x: 9, y: 3 }, 58, 0x8e3f2f),
   station('cauldron', 'Caldeirão', 'cauldron', { x: 11, y: 2 }, { x: 1, y: 1 }, { x: 11, y: 3 }, 66, 0x315b6e),
   station('coffee_machine', 'Cafeteira', 'coffee_machine', { x: 13, y: 2 }, { x: 1, y: 1 }, { x: 13, y: 3 }, 67, 0x70432a),
   station('fridge', 'Geladeira', 'fridge', { x: 15, y: 2 }, { x: 2, y: 1 }, { x: 15, y: 3 }, 92, 0x899397),
   station('oven', 'Forno', 'oven', { x: 1, y: 5 }, { x: 2, y: 1 }, { x: 1, y: 6 }, 78, 0x59656a),
   station('assembly', 'Bancada de montagem', 'assembly', { x: 11, y: 5 }, { x: 2, y: 1 }, { x: 11, y: 6 }, 54, 0xd8954f),
-  station('sink', 'Pia', 'sink', { x: 14, y: 5 }, { x: 2, y: 1 }, { x: 14, y: 6 }, 58, 0x4f8293),
+  station('sink', 'Pia', 'sink', { x: 14, y: 5 }, { x: 1, y: 1 }, { x: 14, y: 6 }, 58, 0x4f8293),
   station('pickup', 'Balcão de serviço', 'pickup', { x: 5, y: 7 }, { x: 6, y: 1 }, { x: 7, y: 6 }, 58, 0xa86435, 'ne', { x: 7, y: 8 }),
 ];
 

@@ -79,8 +79,15 @@ describe('footprints e frentes', () => {
     }
   });
 
-  it('declara fogão, forno e geladeira em 2×1 e com frente livre', () => {
-    for (const id of ['stove', 'oven', 'fridge'] as const) {
+  it('declara pia e fogão 1×1, mantendo forno e geladeira 2×1', () => {
+    for (const id of ['stove', 'sink'] as const) {
+      const station = STATION_BY_ID[id];
+      expect(station.size).toEqual({ x: 1, y: 1 });
+      expect(station.interactionPoints).toContainEqual(station.interaction);
+      expect(station.front).toBe('sw');
+      expect(station.blocksMovement).toBe(true);
+    }
+    for (const id of ['oven', 'fridge'] as const) {
       const station = STATION_BY_ID[id];
       expect(station.size).toEqual({ x: 2, y: 1 });
       expect(station.interactionPoints).toContainEqual(station.interaction);
@@ -120,7 +127,8 @@ describe('save e atlas 0.0.2', () => {
     for (const animation of ['idle', 'walk', 'carry-plate', 'carry-ingredients', 'cook', 'sit-down', 'seated-idle', 'seated-eating'] as const) {
       for (const direction of CHARACTER_DIRECTIONS) expect(characterFrame('player', animation, direction, 0)).toContain(`/${animation}/${direction}/0`);
     }
-    expect(WORLD_ASSETS.stove.footprint).toEqual({ width: 2, depth: 1 });
+    expect(WORLD_ASSETS.stove.footprint).toEqual({ width: 1, depth: 1 });
+    expect(WORLD_ASSETS.sink.footprint).toEqual({ width: 1, depth: 1 });
     expect(WORLD_ASSETS.fridge.footprint).toEqual({ width: 2, depth: 1 });
     expect(WORLD_ASSETS.oven.footprint).toEqual({ width: 2, depth: 1 });
   });

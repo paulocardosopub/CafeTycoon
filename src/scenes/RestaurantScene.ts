@@ -3,6 +3,9 @@ import { installPixelAtlases } from '../assets/pixel/PixelAtlasFactory';
 import { REQUIRED_CHARACTER_ANIMATIONS, WORLD_ASSETS, characterFrame, effectFrame } from '../assets/pixel/manifest';
 import { BLENDER_RENDERED_ASSETS } from '../assets/pixel/blenderManifest';
 import { C3_BR_CHARACTER_ASSETS, C3_BR_LEGACY_ALIASES } from '../assets/pixel/c3brManifest';
+import { STAGE_2B_FURNITURE_ASSETS, STAGE_2B_RENDERED_ASSET_IDS } from '../assets/pixel/stage2bPrototypeManifest';
+import { STAGE_2C_CHARACTER_ASSETS } from '../assets/pixel/stage2cCharacterManifest';
+import { FOOD_DIRTY_ASSET_ID, FOOD_DISPLAY_SCALE, STAGE_2D_FOOD_ASSETS, recipeFoodAssetId } from '../assets/pixel/stage2dFoodManifest';
 import { footprintDepthPoint, VISUAL_METRICS } from '../assets/pixel/VisualMetrics';
 import { gameEvents } from '../core/events';
 import type { ConstructionSaveState, Direction, FurnitureEditSession, GridPoint, PixelAnimationName, StationRuntime, TableRuntime, WorldAssetId } from '../core/types';
@@ -16,11 +19,13 @@ import { characterMotionState, oneShotAnimationDurationMs, oneShotAnimationFrame
 import { directionBetween } from '../game/navigation/TileMovement';
 import { getFootprintFloorAnchorWorld } from '../game/grid/SpatialLayoutService';
 import { renderedDirectionRow } from '../assets/pixel/RenderedDirection';
-import { RECIPE_BY_ID } from '../content/recipes/recipes';
 
 interface ActorVisual {
   sprite: Phaser.GameObjects.Sprite;
+  carriedDish: Phaser.GameObjects.Image;
   bubble: Phaser.GameObjects.Text;
+  previousDirection: Direction;
+  turnStartedAt: number;
 }
 
 interface CustomerVisual {
@@ -29,6 +34,9 @@ interface CustomerVisual {
   patience: Phaser.GameObjects.Graphics;
   previousState: string;
   transitionStartedAt: number;
+  standStartedAt: number;
+  standOrigin?: { x: number; y: number };
+  standDirection?: Direction;
 }
 
 interface StationVisual {
@@ -36,19 +44,25 @@ interface StationVisual {
   effect: Phaser.GameObjects.Sprite;
   progress: Phaser.GameObjects.Graphics;
   label: Phaser.GameObjects.Text;
-  plates: Phaser.GameObjects.Image[];
+  dish?: Phaser.GameObjects.Image;
+  dishCount?: Phaser.GameObjects.Text;
 }
 
 interface TableVisual {
   pieces: Phaser.GameObjects.Image[];
   stateIcon: Phaser.GameObjects.Text;
   seatPlates: Map<string, Phaser.GameObjects.Image>;
-  seatDirt: Map<string, Phaser.GameObjects.Text>;
+  seatDirt: Map<string, Phaser.GameObjects.Image>;
 }
 
 const ZOOM_LEVELS = VISUAL_METRICS.zoomLevels;
 const SEATED_STATES = ['sitting', 'waiting_order', 'waiting_food', 'eating', 'paying'];
-const RENDERED_ASSETS = [...BLENDER_RENDERED_ASSETS.filter((asset) => asset.kind !== 'character'), ...C3_BR_CHARACTER_ASSETS];
+const RENDERED_ASSETS = [
+  ...BLENDER_RENDERED_ASSETS.filter((asset) => asset.kind !== 'character' && !STAGE_2B_RENDERED_ASSET_IDS.has(asset.assetId)),
+  ...STAGE_2C_CHARACTER_ASSETS,
+  ...STAGE_2B_FURNITURE_ASSETS,
+  ...STAGE_2D_FOOD_ASSETS,
+];
 
 export class RestaurantScene extends Phaser.Scene {
   private actorVisuals = new Map<string, ActorVisual>();
@@ -112,7 +126,7 @@ export class RestaurantScene extends Phaser.Scene {
     const activeActorIds = new Set(this.simulation.actors.map((actor) => actor.id));
     for (const [actorId, visual] of this.actorVisuals) {
       if (activeActorIds.has(actorId)) continue;
-      visual.sprite.destroy(); visual.bubble.destroy(); this.actorVisuals.delete(actorId);
+      visual.sprite.destroy(); visual.carriedDish.destroy(); visual.bubble.destroy(); this.actorVisuals.delete(actorId);
     }
     this.simulation.customers.forEach((customer) => this.syncCustomer(customer));
     const activeCustomerIds = new Set(this.simulation.customers.map((customer) => customer.id));
@@ -309,7 +323,8 @@ export class RestaurantScene extends Phaser.Scene {
       visual.effect.setVisible(false);
       visual.progress.setVisible(visible);
       visual.label.setVisible(false);
-      visual.plates.forEach((plate) => plate.setVisible(false));
+      visual.dish?.setVisible(false);
+      visual.dishCount?.setVisible(false);
     }
     for (const visual of this.tableVisuals.values()) {
       visual.pieces.forEach((piece) => piece.setVisible(visible));
@@ -318,7 +333,7 @@ export class RestaurantScene extends Phaser.Scene {
       visual.seatDirt.forEach((dirt) => dirt.setVisible(false));
     }
     this.placedDecorationVisuals.forEach((decoration) => decoration.setVisible(visible));
-    for (const visual of this.actorVisuals.values()) { visual.sprite.setVisible(visible); visual.bubble.setVisible(false); }
+    for (const visual of this.actorVisuals.values()) { visual.sprite.setVisible(visible); visual.carriedDish.setVisible(false); visual.bubble.setVisible(false); }
     for (const visual of this.customerVisuals.values()) { visual.sprite.setVisible(visible); visual.bubble.setVisible(false); visual.patience.setVisible(visible); }
   }
 
@@ -396,13 +411,13 @@ export class RestaurantScene extends Phaser.Scene {
     const stateIcon = this.add.text(Math.round(point.x), Math.round(point.y - 56), '', this.pixelTextStyle('#fff8e9', '#294b3ae6'))
       .setOrigin(.5).setDepth(isoDepth(table.position, 90)).setVisible(false);
     const seatPlates = new Map<string, Phaser.GameObjects.Image>();
-    const seatDirt = new Map<string, Phaser.GameObjects.Text>();
+    const seatDirt = new Map<string, Phaser.GameObjects.Image>();
     for (const seat of table.chairs) {
       const seatPoint = getFootprintFloorAnchorWorld(seat.platePosition, { width: 1, depth: 1 });
-      seatPlates.set(seat.seatId, this.add.image(Math.round(seatPoint.x), Math.round(seatPoint.y - 28), 'world-atlas', WORLD_ASSETS.dish.frame)
-        .setOrigin(.5, 1).setScale(.4).setDepth(isoDepth(seat.platePosition, 42)).setVisible(false));
-      seatDirt.set(seat.seatId, this.add.text(Math.round(seatPoint.x), Math.round(seatPoint.y - 23), '×', this.pixelTextStyle('#8e3f2f', '#fff1cecc'))
-        .setOrigin(.5).setDepth(isoDepth(seat.dirtPosition, 43)).setVisible(false));
+      seatPlates.set(seat.seatId, this.add.image(Math.round(seatPoint.x), Math.round(seatPoint.y - 28), `blender:${recipeFoodAssetId(undefined)}`, worldRenderedFrame(seat.orientation, 0, recipeFoodAssetId(undefined)))
+        .setOrigin(.5).setScale(FOOD_DISPLAY_SCALE).setDepth(isoDepth(seat.platePosition, 42)).setVisible(false));
+      seatDirt.set(seat.seatId, this.add.image(Math.round(seatPoint.x), Math.round(seatPoint.y - 28), `blender:${FOOD_DIRTY_ASSET_ID}`, worldRenderedFrame(seat.orientation, 0, FOOD_DIRTY_ASSET_ID))
+        .setOrigin(.5).setScale(FOOD_DISPLAY_SCALE).setDepth(isoDepth(seat.dirtPosition, 43)).setVisible(false));
     }
     this.tableVisuals.set(table.id, { pieces, stateIcon, seatPlates, seatDirt });
   }
@@ -431,9 +446,16 @@ export class RestaurantScene extends Phaser.Scene {
     const labelOffset = useBlender && rendered ? Math.round(rendered.frameSize[1] * .72 * (station.visualScale ?? 1)) : station.visualHeight + 16;
     const label = this.add.text(Math.round(point.x), Math.round(point.y - labelOffset), station.name, this.pixelTextStyle('#fff8e9', '#294b3ae6'))
       .setOrigin(.5).setDepth(isoDepth(base, 96)).setVisible(false);
-    const plates = (station.id === 'pickup' || station.id.startsWith('pickup:')) ? [-28, 0, 28].map((offset) => this.add.image(Math.round(point.x + offset), Math.round(point.y - 37), 'world-atlas', WORLD_ASSETS.dish.frame)
-      .setOrigin(.5, 1).setDepth(stationDepth + 6).setScale(.58).setVisible(false)) : [];
-    this.stationVisuals.set(station.id, { sprite, effect, progress, label, plates });
+    const isServiceCounter = station.id === 'pickup' || station.id.startsWith('pickup:');
+    const dish = isServiceCounter
+      ? this.add.image(Math.round(point.x), Math.round(point.y - 48), `blender:${recipeFoodAssetId(undefined)}`, 0)
+        .setOrigin(.5).setDepth(stationDepth + 6).setScale(FOOD_DISPLAY_SCALE).setVisible(false)
+      : undefined;
+    const dishCount = isServiceCounter
+      ? this.add.text(Math.round(point.x), Math.round(point.y - 76), '', this.pixelTextStyle('#fff8e9', '#294b3ae6'))
+        .setOrigin(.5).setDepth(stationDepth + 7).setVisible(false)
+      : undefined;
+    this.stationVisuals.set(station.id, { sprite, effect, progress, label, dish, dishCount });
   }
 
   private createActor(actor: WorkerActor): void {
@@ -449,23 +471,45 @@ export class RestaurantScene extends Phaser.Scene {
     if (actor.kind === 'player') sprite.on('pointerdown', (_pointer: Phaser.Input.Pointer, _x: number, _y: number, event: Phaser.Types.Input.EventData) => { event.stopPropagation(); gameEvents.emit('ui:open-player', undefined); });
     const bubble = this.add.text(Math.round(point.x), Math.round(point.y - characterUiOffset(variant)), '', this.pixelTextStyle('#294b3a', '#fff8e9ee'))
       .setOrigin(.5).setDepth(isoDepth(actor.position, 98));
-    this.actorVisuals.set(actor.id, { sprite, bubble });
+    const carriedDish = this.add.image(Math.round(point.x), Math.round(point.y - 66), `blender:${recipeFoodAssetId(undefined)}`, 0)
+      .setOrigin(.5).setScale(FOOD_DISPLAY_SCALE).setDepth(isoDepth(actor.position, 56)).setVisible(false);
+    this.actorVisuals.set(actor.id, { sprite, carriedDish, bubble, previousDirection: actor.direction, turnStartedAt: 0 });
   }
 
   private syncActor(actor: WorkerActor): void {
     const visual = this.actorVisuals.get(actor.id)!;
     const variant = canonicalCharacterAsset(actor.assetId);
+    const motionState = characterMotionState(actor);
+    if (visual.previousDirection !== actor.direction) {
+      visual.previousDirection = actor.direction;
+      visual.turnStartedAt = motionState === 'walk' ? 0 : this.time.now;
+    }
     const task = actor.taskId ? this.simulation.tasks.get(actor.taskId) : undefined;
     let animation: PixelAnimationName = 'idle';
-    if (characterMotionState(actor) === 'walk') animation = actor.carrying === 'dish' ? 'carry-plate' : actor.carrying === 'ingredients' ? 'carry-ingredients' : 'walk';
+    if (motionState === 'walk') animation = actor.carrying === 'dish' ? 'carry-plate' : actor.carrying === 'ingredients' ? 'carry-ingredients' : 'walk';
     else if (task?.status === 'executing') animation = task.kind === 'cook_step' ? 'cook' : task.kind === 'clean' ? 'clean' : task.kind === 'deliver' ? 'serve' : task.kind === 'payment' ? 'receive-payment' : 'use-appliance';
     else if (actor.carrying === 'dish') animation = 'carry-plate';
     else if (actor.carrying === 'ingredients') animation = 'carry-ingredients';
-    const frame = this.animationFrame(animation);
-    if (this.textures.exists(`blender:${variant}`)) visual.sprite.setTexture(`blender:${variant}`, renderedCharacterFrame(variant, c3Animation(animation, characterMotionState(actor) === 'walk'), actor.direction, frame, true));
+    const asset = blenderAsset(variant);
+    const turnFrames = asset?.animations.turn ?? 0;
+    const turnElapsedMs = Math.max(0, this.time.now - visual.turnStartedAt);
+    const turning = motionState !== 'walk' && visual.turnStartedAt > 0 && turnFrames > 0 && turnElapsedMs < oneShotAnimationDurationMs(turnFrames, 12);
+    const renderedAnimation = turning ? 'turn' : c3TaskAnimation(task) ?? c3Animation(animation, motionState === 'walk');
+    const frame = turning
+      ? oneShotAnimationFrame(turnElapsedMs, turnFrames, renderedAnimationFps(variant, 'turn', 12))
+      : renderedLoopAnimationFrame(variant, renderedAnimation, this.simulation.animationClockMs());
+    if (this.textures.exists(`blender:${variant}`)) visual.sprite.setTexture(`blender:${variant}`, renderedCharacterFrame(variant, renderedAnimation, actor.direction, frame, true));
     else visual.sprite.setTexture('character-atlas', characterFrame(variant, animation, actor.direction, frame));
     const point = gridToWorld(actor.visual);
     visual.sprite.setPosition(Math.round(point.x), Math.round(point.y)).setDepth(isoDepth(actor.visual, VISUAL_METRICS.depth.standingCharacter));
+    const carriedOrder = actor.carryingOrderId ? this.simulation.orders.find((order) => order.id === actor.carryingOrderId) : undefined;
+    const carriedAssetId = recipeFoodAssetId(carriedOrder?.recipeId);
+    const carryOffsetX = actor.direction === 'ne' || actor.direction === 'se' ? 9 : -9;
+    visual.carriedDish
+      .setTexture(`blender:${carriedAssetId}`, worldRenderedFrame(actor.direction, 0, carriedAssetId))
+      .setPosition(Math.round(point.x + carryOffsetX), Math.round(point.y - 66))
+      .setDepth(isoDepth(actor.visual, VISUAL_METRICS.depth.standingCharacter + 2))
+      .setVisible(actor.carrying === 'dish' && Boolean(carriedOrder));
     const detail = this.technicalMode || Boolean(visual.sprite.getData('status-detail'));
     const active = actor.activity !== 'Sem tarefa';
     const staff = this.simulation.state.staff.instances.find((item) => item.id === actor.id);
@@ -485,42 +529,73 @@ export class RestaurantScene extends Phaser.Scene {
     const visual = this.customerVisuals.get(customer.id)!;
     if (visual.previousState !== customer.state) {
       if (customer.state === 'waiting_order') visual.transitionStartedAt = this.time.now;
+      if (SEATED_STATES.includes(visual.previousState) && !SEATED_STATES.includes(customer.state)) {
+        visual.standStartedAt = this.time.now;
+        visual.standOrigin = { x: visual.sprite.x, y: visual.sprite.y };
+        visual.standDirection = customer.direction;
+      }
       visual.previousState = customer.state;
     }
+    const assetId = canonicalCharacterAsset(`customer-${customer.variant}`);
+    const rendered = blenderAsset(assetId);
+    const standFrames = rendered?.animations.stand_up ?? 0;
+    const standElapsedMs = Math.max(0, this.time.now - visual.standStartedAt);
+    const standFps = renderedAnimationFps(assetId, 'stand_up', 6);
+    const standDurationMs = standFrames > 0 ? oneShotAnimationDurationMs(standFrames, standFps) : 0;
+    const standingUp = visual.standStartedAt > 0 && standElapsedMs < standDurationMs;
     let position = customer.visual;
+    let seatedDepthPoint = position;
+    let seatedDepthOffset = 0;
     const seated = customer.tableId && SEATED_STATES.includes(customer.state);
     if (seated) {
       const table = this.simulation.tables.find((item) => item.id === customer.tableId);
       const chair = table?.chairs.find((item) => customer.chairIds.includes(item.id));
-      if (chair) { position = chair.seatAnchor; customer.direction = chair.orientation; }
+      if (chair) {
+        position = chair.seatAnchor;
+        seatedDepthPoint = chair.visualPosition;
+        seatedDepthOffset = chair.depthOffset;
+        customer.direction = chair.orientation;
+      }
     }
     const sitDefinition = REQUIRED_CHARACTER_ANIMATIONS['sit-down'];
+    const sitFrames = rendered?.animations.sit_down ?? sitDefinition.frames;
+    const sitFps = renderedAnimationFps(assetId, 'sit_down', sitDefinition.fps);
     const sitElapsedMs = Math.max(0, this.time.now - visual.transitionStartedAt);
-    const sittingDown = Boolean(seated) && sitElapsedMs < oneShotAnimationDurationMs(sitDefinition.frames, sitDefinition.fps);
+    const sittingDown = Boolean(seated) && sitElapsedMs < oneShotAnimationDurationMs(sitFrames, sitFps);
     let animation: PixelAnimationName = characterMotionState(customer);
     if (seated) animation = customer.state === 'eating' ? 'seated-eating'
       : sittingDown ? 'sit-down'
         : customer.state === 'waiting_order' || customer.state === 'waiting_food' ? 'seated-waiting' : 'seated-idle';
-    const point = seated
+    else if (standingUp) animation = 'stand-up';
+    let point = seated
       ? getFootprintFloorAnchorWorld(position, { width: 1, depth: 1 })
       : gridToWorld(position);
-    visual.sprite.setPosition(Math.round(point.x), Math.round(point.y)).setDepth(isoDepth(position, seated ? VISUAL_METRICS.depth.seatedCharacter : VISUAL_METRICS.depth.standingCharacter));
-    const assetId = canonicalCharacterAsset(`customer-${customer.variant}`);
+    if (standingUp && visual.standOrigin) {
+      const progress = Phaser.Math.Clamp((standElapsedMs / Math.max(1, standDurationMs) - .7) / .3, 0, 1);
+      point = { x: Phaser.Math.Linear(visual.standOrigin.x, point.x, progress), y: Phaser.Math.Linear(visual.standOrigin.y, point.y, progress) };
+    }
+    const characterDepth = seated
+      ? isoDepth(seatedDepthPoint, VISUAL_METRICS.depth.seatedCharacter + seatedDepthOffset)
+      : isoDepth(position, VISUAL_METRICS.depth.standingCharacter);
+    visual.sprite.setPosition(Math.round(point.x), Math.round(point.y)).setDepth(characterDepth);
+    const renderedAnimation = c3Animation(animation);
     const animationIndex = animation === 'sit-down'
-      ? oneShotAnimationFrame(sitElapsedMs, sitDefinition.frames, sitDefinition.fps)
-      : this.animationFrame(animation);
-    if (this.textures.exists(`blender:${assetId}`)) visual.sprite.setTexture(`blender:${assetId}`, renderedCharacterFrame(assetId, c3Animation(animation), customer.direction, animationIndex, true));
-    else visual.sprite.setTexture('character-atlas', characterFrame(assetId, animation, customer.direction, animationIndex));
+      ? oneShotAnimationFrame(sitElapsedMs, sitFrames, sitFps)
+      : animation === 'stand-up'
+        ? oneShotAnimationFrame(standElapsedMs, standFrames, standFps)
+        : renderedLoopAnimationFrame(assetId, renderedAnimation, this.simulation.animationClockMs());
+    const renderedDirection = standingUp && visual.standDirection ? visual.standDirection : customer.direction;
+    if (this.textures.exists(`blender:${assetId}`)) visual.sprite.setTexture(`blender:${assetId}`, renderedCharacterFrame(assetId, renderedAnimation, renderedDirection, animationIndex, true));
+    else visual.sprite.setTexture('character-atlas', characterFrame(assetId, animation, customer.direction, this.animationFrame(animation)));
     const uiOffset = characterUiOffset(assetId);
     visual.bubble.setPosition(Math.round(point.x), Math.round(point.y - uiOffset)).setDepth(isoDepth(position, 99));
-    const recipe = customer.orderId ? this.simulation.orders.find((order) => order.id === customer.orderId)?.recipeId : undefined;
     const expectedFacing = customer.path[0] ? directionBetween(customer.visual, customer.path[0], customer.direction) : customer.direction;
     const baseLabel = customer.partySize > 1 ? `${this.simulation.customerLabel(customer)} · grupo ${customer.partySize}` : this.simulation.customerLabel(customer);
     const label = this.technicalMode ? `${baseLabel}\ngrid ${customer.position.x},${customer.position.y} · visual ${position.x.toFixed(2)},${position.y.toFixed(2)}\nface ${customer.direction} · esperado ${expectedFacing}\nmesa ${customer.tableId ?? '—'} · cadeira ${customer.seatId ?? '—'} · ${customer.state}` : baseLabel;
     const showStatus = ['queueing', 'waiting_order', 'waiting_food', 'paying', 'gave_up'].includes(customer.state)
       && (customer.state !== 'queueing' || customer.partyIndex === 0);
     const detail = this.technicalMode || Boolean(visual.sprite.getData('status-detail'));
-    visual.bubble.setText(detail ? (recipe ? `${RECIPE_LABEL[recipe] ?? ''} ${label}` : label) : customerStatusIcon(customer.state)).setVisible(showStatus || detail);
+    visual.bubble.setText(detail ? label : customerStatusIcon(customer.state)).setVisible(showStatus || detail);
     visual.patience.clear().setDepth(isoDepth(position, 100));
     if (['queueing', 'waiting_order', 'waiting_food', 'waiting_payment'].includes(customer.state)
       && (customer.state !== 'queueing' || customer.partyIndex === 0)) {
@@ -541,7 +616,7 @@ export class RestaurantScene extends Phaser.Scene {
     sprite.on('pointerdown', () => sprite.setData('status-detail', !sprite.getData('status-detail')));
     const bubble = this.add.text(Math.round(point.x), Math.round(point.y - characterUiOffset(assetId)), '', this.pixelTextStyle('#294b3a', '#fff8e9ee')).setOrigin(.5);
     const patience = this.add.graphics();
-    this.customerVisuals.set(customer.id, { sprite, bubble, patience, previousState: customer.state, transitionStartedAt: 0 });
+    this.customerVisuals.set(customer.id, { sprite, bubble, patience, previousState: customer.state, transitionStartedAt: 0, standStartedAt: 0 });
   }
 
   private syncStation(station: StationRuntime): void {
@@ -551,10 +626,8 @@ export class RestaurantScene extends Phaser.Scene {
     const counter = isServiceCounter
       ? this.simulation.counterModules.find((module) => module.gridX === station.position.x && module.gridY === station.position.y)
       : undefined;
-    const counterRecipe = counter?.assignedRecipeId ? RECIPE_BY_ID[counter.assignedRecipeId] : undefined;
-    const readyDishLabel = counter && counterRecipe && counter.currentQuantity > 0 ? `${counter.currentQuantity}× ${counterRecipe.name}` : undefined;
-    visual.label.setText(readyDishLabel ?? (this.technicalMode ? (station.state === 'no_ingredients' ? `${station.name} · sem ingredientes` : station.currentStep ?? station.name) : '!'))
-      .setVisible(Boolean(readyDishLabel) || station.state === 'no_ingredients' || (this.technicalMode && (station.state !== 'free' || Boolean(station.currentStep))));
+    visual.label.setText(this.technicalMode ? (station.state === 'no_ingredients' ? `${station.name} · sem ingredientes` : station.currentStep ?? station.name) : '!')
+      .setVisible(station.state === 'no_ingredients' || (this.technicalMode && (station.state !== 'free' || Boolean(station.currentStep))));
     const active = station.state === 'in_use';
     const effect = station.id === 'stove' || station.id === 'grill' ? 'flame' : station.id === 'oven' ? 'oven-glow' : station.id === 'cauldron' ? 'bubble' : 'steam';
     visual.effect.setVisible(active).setFrame(effectFrame(effect, Math.floor(this.time.now / 140) % 4));
@@ -571,7 +644,9 @@ export class RestaurantScene extends Phaser.Scene {
     }
     if (isServiceCounter) {
       const readyCount = counter?.currentQuantity ?? 0;
-      visual.plates.forEach((plate, index) => plate.setVisible(index < readyCount));
+      const foodAssetId = recipeFoodAssetId(counter?.assignedRecipeId);
+      visual.dish?.setTexture(`blender:${foodAssetId}`, worldRenderedFrame(station.orientation, 0, foodAssetId)).setVisible(readyCount > 0);
+      visual.dishCount?.setText(String(readyCount)).setVisible(readyCount >= 2);
       visual.effect.setVisible(readyCount > 0).setFrame(effectFrame('ready', Math.floor(this.time.now / 180) % 4));
     }
   }
@@ -581,7 +656,10 @@ export class RestaurantScene extends Phaser.Scene {
     visual.pieces.forEach((piece) => piece.setAlpha(table.state === 'unavailable' ? .5 : 1));
     for (const seat of table.chairs) {
       const order = seat.orderId ? this.simulation.orders.find((item) => item.id === seat.orderId) : undefined;
-      visual.seatPlates.get(seat.seatId)?.setVisible(Boolean(order && ['delivered', 'consumed'].includes(order.state) && seat.state !== 'dirty'));
+      const foodAssetId = recipeFoodAssetId(order?.recipeId);
+      visual.seatPlates.get(seat.seatId)
+        ?.setTexture(`blender:${foodAssetId}`, worldRenderedFrame(seat.orientation, 0, foodAssetId))
+        .setVisible(Boolean(order && ['delivered', 'consumed'].includes(order.state) && seat.state !== 'dirty' && seat.state !== 'cleaning'));
       visual.seatDirt.get(seat.seatId)?.setVisible(seat.state === 'dirty' || seat.state === 'cleaning');
     }
     const label = this.technicalMode
@@ -657,7 +735,6 @@ export class RestaurantScene extends Phaser.Scene {
   }
 }
 
-const RECIPE_LABEL: Record<string, string> = { coffee: 'CAFÉ', omelette: 'OMELETE', burger: 'BRASA', soup: 'SOPA' };
 
 const WORLD_BLENDER_ASSET: Partial<Record<WorldAssetId, string>> = {
   table: 'table_four',
@@ -680,6 +757,19 @@ const WORLD_BLENDER_ASSET: Partial<Record<WorldAssetId, string>> = {
 
 function blenderAsset(assetId: string) {
   return RENDERED_ASSETS.find((asset) => asset.assetId === assetId);
+}
+
+function renderedAnimationFps(assetId: string, animation: string, fallback: number): number {
+  const asset = blenderAsset(assetId);
+  if (!asset || !('fps' in asset)) return fallback;
+  return asset.fps[animation] ?? fallback;
+}
+
+function renderedLoopAnimationFrame(assetId: string, animation: string, clockMs: number): number {
+  const asset = blenderAsset(assetId);
+  const frames = asset?.animations[animation] ?? 1;
+  const fps = renderedAnimationFps(assetId, animation, 6);
+  return Math.floor(clockMs / (1000 / fps)) % Math.max(1, frames);
 }
 
 function canonicalCharacterAsset(assetId: string): string {
@@ -722,6 +812,21 @@ function c3Animation(animation: PixelAnimationName, walking = false): string {
   return mapped[animation] ?? animation;
 }
 
+function c3TaskAnimation(task: { status: string; kind: string; payload: Record<string, unknown> } | undefined): string | undefined {
+  if (!task || task.status !== 'executing') return undefined;
+  if (task.kind === 'cook_step') {
+    const stationId = String(task.payload.stationId ?? '');
+    if (stationId.includes('sink')) return 'wash_sink';
+    if (stationId.includes('prep') || stationId.includes('assembly') || stationId.includes('pickup')) return 'prep_counter';
+    return 'cook_stove';
+  }
+  if (task.kind === 'deliver') return task.payload.deliveryStage === 'collect' ? 'pickup_dish' : 'serve_table';
+  if (task.kind === 'clean') return 'clean_table';
+  if (task.kind === 'take_order' || task.kind === 'payment') return 'talk';
+  if (task.kind === 'stock_support' || task.kind === 'restock_purchase' || task.kind === 'production_batch') return 'pickup';
+  return undefined;
+}
+
 function characterOrigin(assetId: string): { x: number; y: number } {
   const asset = blenderAsset(assetId);
   if (!asset || asset.kind !== 'character') return { x: .5, y: 88 / 96 };
@@ -730,7 +835,7 @@ function characterOrigin(assetId: string): { x: number; y: number } {
 
 function characterUiOffset(assetId: string): number {
   const asset = blenderAsset(assetId);
-  return asset?.kind === 'character' ? Math.round(asset.anchor[1] - 4) : VISUAL_METRICS.character.uiOffset;
+  return asset?.kind === 'character' ? Math.round((asset.anchor[1] - 4) * (asset.nativeScale ?? 1)) : VISUAL_METRICS.character.uiOffset;
 }
 
 function customerStatusIcon(state: string): string {

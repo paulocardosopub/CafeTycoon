@@ -6,6 +6,9 @@
 - Fontes Blender editáveis com dez rigs corporais/faciais, 159 ações e materiais organizados.
 - Sprites 112×168 em quatro direções reais, alpha transparente, pivô 56×160 e manifests centralizados.
 - Integração de jogador, cozinheira, garçom e seis clientes com fallbacks seguros e aliases para saves antigos.
+- Quatro pratos low-poly definitivos ligados às receitas reais, com o mesmo visual no balcão, transporte, mesa e estado de louça usada.
+- Balcões agrupam pratos equivalentes em uma única representação e exibem contador apenas a partir de duas unidades.
+- Móveis 1×1, mesas, bancos, camadas de assento e âncoras dos personagens revisados sem alterar a lógica econômica.
 - Validação em desktop, mobile 390×844 e zooms 0,5×, 1× e 2×.
 
 ## 0.0.6 — 2026-07-21

@@ -2,6 +2,7 @@ import { readFileSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { applyEquipmentAsset, EQUIPMENT_ASSETS } from '../content/equipment/equipment';
+import { STAGE_2B_FURNITURE_ASSETS } from '../assets/pixel/stage2bPrototypeManifest';
 
 interface ManifestAsset {
   assetId: string; kind: 'character' | 'furniture' | 'equipment'; category: string; sourceBlend: string;
@@ -21,6 +22,7 @@ interface AssetManifest {
 
 const projectRoot = resolve(import.meta.dirname, '../..');
 const manifest = JSON.parse(readFileSync(resolve(projectRoot, 'public/assets/pixel/rendered/asset-manifest.json'), 'utf8')) as AssetManifest;
+const stage2bFurnitureById = new Map(STAGE_2B_FURNITURE_ASSETS.map((asset) => [asset.assetId, asset]));
 
 function canonicalPng(asset: ManifestAsset): string {
   return resolve(projectRoot, 'assets/pixel/rendered', asset.category, `${asset.assetId}.png`);
@@ -68,10 +70,11 @@ describe('pipeline Blender 0.0.4', () => {
       expect(asset.visualSkinId).toBeTruthy();
       expect(asset.visualBounds?.overhangCells).toBeLessThanOrEqual(.35);
       const header = pngHeader(canonicalPng(asset));
-      expect(header.height).toBe(asset.frameSize[1] * asset.orientations.length);
-      expect(header.width % asset.frameSize[0]).toBe(0);
-      expect(header.width).toBeGreaterThanOrEqual(asset.frameSize[0] * asset.frameCount);
-      expect(header.width).toBeLessThanOrEqual(asset.frameSize[0] * Math.max(asset.frameCount, asset.orientations.length));
+      const runtimeAsset = stage2bFurnitureById.get(asset.assetId) ?? asset;
+      expect(header.height).toBe(runtimeAsset.frameSize[1] * runtimeAsset.orientations.length);
+      expect(header.width % runtimeAsset.frameSize[0]).toBe(0);
+      expect(header.width).toBeGreaterThanOrEqual(runtimeAsset.frameSize[0] * runtimeAsset.frameCount);
+      expect(header.width).toBeLessThanOrEqual(runtimeAsset.frameSize[0] * Math.max(runtimeAsset.frameCount, runtimeAsset.orientations.length));
       expect(header.colorType).toBe(6);
       if (asset.kind === 'character') {
         expect(asset.frameSize).toEqual([96, 144]);

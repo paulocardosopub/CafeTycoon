@@ -52,10 +52,10 @@ describe('correção estrutural — 60 requisitos unitários', () => {
   it('23 cooking olha para o equipamento', () => expect(characterFacingState({ currentFacing: 'sw', from: { x: 4, y: 3 }, target: { x: 4, y: 2 }, action: 'cooking', animationKey: 'cook' }).currentFacing).toBe('ne'));
   it('24 serving olha para o destino', () => expect(characterFacingState({ currentFacing: 'ne', from: { x: 7, y: 10 }, target: { x: 8, y: 11 }, action: 'serving', animationKey: 'serve' }).screenFacing).toBe('front'));
   it('25 talking produz facings recíprocos', () => { const a = facingBetweenTargets({ x: 4, y: 4 }, { x: 5, y: 4 }); const b = facingBetweenTargets({ x: 5, y: 4 }, { x: 4, y: 4 }); expect([a, b]).toEqual(['se', 'nw']); });
-  it('26 define fogão 2×1', () => expect(orientedFootprint(FURNITURE_BY_ID['cooking.a1.stove'], 'sw')).toEqual({ width: 2, depth: 1 }));
-  it('27 define fogão rotacionado 1×2', () => expect(orientedFootprint(FURNITURE_BY_ID['cooking.a1.stove'], 'se')).toEqual({ width: 1, depth: 2 }));
-  it('28 define pia 2×1', () => expect(orientedFootprint(FURNITURE_BY_ID['washing.b5.sink'], 'sw')).toEqual({ width: 2, depth: 1 }));
-  it('29 define pia rotacionada 1×2', () => expect(orientedFootprint(FURNITURE_BY_ID['washing.b5.sink'], 'se')).toEqual({ width: 1, depth: 2 }));
+  it('26 define fogão 1×1', () => expect(orientedFootprint(FURNITURE_BY_ID['cooking.a1.stove'], 'sw')).toEqual({ width: 1, depth: 1 }));
+  it('27 mantém fogão 1×1 rotacionado', () => expect(orientedFootprint(FURNITURE_BY_ID['cooking.a1.stove'], 'se')).toEqual({ width: 1, depth: 1 }));
+  it('28 define pia 1×1', () => expect(orientedFootprint(FURNITURE_BY_ID['washing.b5.sink'], 'sw')).toEqual({ width: 1, depth: 1 }));
+  it('29 mantém pia 1×1 rotacionada', () => expect(orientedFootprint(FURNITURE_BY_ID['washing.b5.sink'], 'se')).toEqual({ width: 1, depth: 1 }));
   it('30 mantém balcão modular 1×1', () => expect(orientedFootprint(FURNITURE_BY_ID['service.c1.isolated'], 'nw')).toEqual({ width: 1, depth: 1 }));
   it('31 iguala altura de STANDARD_COUNTER', () => expect(new Set(FURNITURE_DEFINITIONS.filter((definition) => definition.heightCategory === 'STANDARD_COUNTER').map((definition) => definition.visualBounds.heightBlocks))).toEqual(new Set([FURNITURE_VISUAL_METRICS.standardCounterHeight])));
   it('32 classifica geladeira como TALL', () => expect(FURNITURE_BY_ID['refrigeration.b1.fridge'].heightCategory).toBe('TALL'));
@@ -98,7 +98,7 @@ describe('contrato espacial auxiliar', () => {
     expect(getSeatSlotCells(table,state.construction.placedFurniture)).toHaveLength(2);
     expect(getApproachSlotCells(table,chairs)).toHaveLength(2);
     expect(getSpriteAnchor(def)).toEqual(def.baseAnchor);
-    expect(getWorkSlotCells(item('stove','cooking.a1.stove',4,2),FURNITURE_BY_ID['cooking.a1.stove'])).toHaveLength(2);
+    expect(getWorkSlotCells(item('stove','cooking.a1.stove',4,2),FURNITURE_BY_ID['cooking.a1.stove'])).toHaveLength(1);
     expect(isIntegerGridPosition(table)).toBe(true);
     expect(canPlaceAt(item('plant','decor.plant.basic',15,15),FURNITURE_BY_ID['decor.plant.basic'],occupiedCells(table,def),state.construction.builtAreas)).toBe(true);
   });

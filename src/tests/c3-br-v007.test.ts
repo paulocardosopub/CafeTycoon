@@ -3,6 +3,8 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { C3_BR_CHARACTER_ASSETS, C3_BR_LEGACY_ALIASES } from '../assets/pixel/c3brManifest';
 import { renderedDirectionRow } from '../assets/pixel/RenderedDirection';
+import { STAGE_2B_PLAYER_ASSET } from '../assets/pixel/stage2bPrototypeManifest';
+import { STAGE_2C_CHARACTER_ASSETS } from '../assets/pixel/stage2cCharacterManifest';
 
 const projectRoot = resolve(import.meta.dirname, '../..');
 const manifestPath = resolve(projectRoot, 'public/assets/pixel/rendered/c3-br-character-manifest.json');
@@ -64,13 +66,15 @@ describe('pacote definitivo C3-BR 0.0.7', () => {
 
   it('exporta folhas RGBA nítidas, pivô estável e todos os PNGs individuais', () => {
     for (const asset of manifest.assets) {
+      const effectiveAsset = STAGE_2C_CHARACTER_ASSETS.find((candidate) => candidate.assetId === asset.assetId)
+        ?? (asset.assetId === STAGE_2B_PLAYER_ASSET.assetId ? STAGE_2B_PLAYER_ASSET : asset);
       expect(asset.frameSize).toEqual(manifest.frame.size);
       expect(asset.anchor).toEqual(manifest.frame.feetAnchor);
       expect(asset.transparent).toBe(true);
       const sheet = resolve(projectRoot, 'public', asset.spriteSheet.slice(1));
       const header = pngHeader(sheet);
-      expect(header.width).toBe(asset.frameSize[0] * asset.frameCount);
-      expect(header.height).toBe(asset.frameSize[1] * 4);
+      expect(header.width).toBe(effectiveAsset.frameSize[0] * effectiveAsset.frameCount);
+      expect(header.height).toBe(effectiveAsset.frameSize[1] * 4);
       expect(header.colorType).toBe(6);
       expect(statSync(sheet).size).toBeGreaterThan(10_000);
       const sourceDir = resolve(projectRoot, 'assets/characters/c3_br', asset.assetId.replace('char_', ''));

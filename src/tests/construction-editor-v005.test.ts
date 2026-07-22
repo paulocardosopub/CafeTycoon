@@ -27,17 +27,37 @@ describe('editor isometrico ao vivo', () => {
     expect(scene).toContain("gameEvents.emit('construction:world-cell'");
     expect(css).toContain('.construction-live-overlay{background:transparent');
   });
+
+  it('mantém a compra focada nos móveis funcionais e recolhe alternativas futuras', () => {
+    const shop = readFileSync(resolve(import.meta.dirname, '../ui/ConstructionShop.ts'), 'utf8');
+    expect(shop).toContain('CURRENT_PURCHASABLE_FURNITURE_IDS');
+    expect(shop).toContain('Indisponíveis por enquanto');
+    expect(shop).toContain('unavailableCatalog.map');
+    expect(shop).toContain("'dining.table.basic', 'dining.chair.basic'");
+    expect(shop).not.toContain("CURRENT_PURCHASABLE_FURNITURE_IDS.has('cooking.a2.convection')");
+    expect(shop).toContain("private mode: 'shop' | 'organize' = 'shop'");
+    expect(shop).toContain('data-id="shop"');
+    expect(shop).toContain('data-id="organize"');
+    expect(shop).toContain("this.editor.purchase(definitionId)");
+    expect(shop).toContain('Somente móveis que você já comprou ou guardou aparecem aqui.');
+    expect(shop).toContain('.construction-header,.construction-toolbar,.construction-catalog,.construction-options');
+  });
+
+  it('usa mesa e banco robustos com a biblioteca visual da cozinha', () => {
+    expect(FURNITURE_BY_ID['dining.table.basic']).toMatchObject({ name: 'Mesa robusta', blenderSource: expect.stringContaining('robust_dining') });
+    expect(FURNITURE_BY_ID['dining.chair.basic']).toMatchObject({ name: 'Banco robusto', blenderSource: expect.stringContaining('robust_dining') });
+  });
 });
 
 describe('editor físico e loja da 0.0.5', () => {
-  it('respeita footprint 1×1, 2×1 e rotação para 1×2', () => {
+  it('mantém pia e fogão exatamente 1×1 em todas as rotações', () => {
     const sink = FURNITURE_BY_ID['washing.b5.sink'];
     const stove = FURNITURE_BY_ID['cooking.a1.stove'];
-    expect(orientedFootprint(sink, 'sw')).toEqual({ width: 2, depth: 1 });
-    expect(orientedFootprint(sink, 'se')).toEqual({ width: 1, depth: 2 });
-    expect(orientedFootprint(stove, 'sw')).toEqual({ width: 2, depth: 1 });
-    expect(orientedFootprint(stove, 'se')).toEqual({ width: 1, depth: 2 });
-    expect(occupiedCells(item('a1', stove.id, 5, 5, 'se'))).toEqual(expect.arrayContaining([{ x: 5, y: 5 }, { x: 5, y: 6 }]));
+    expect(orientedFootprint(sink, 'sw')).toEqual({ width: 1, depth: 1 });
+    expect(orientedFootprint(sink, 'se')).toEqual({ width: 1, depth: 1 });
+    expect(orientedFootprint(stove, 'sw')).toEqual({ width: 1, depth: 1 });
+    expect(orientedFootprint(stove, 'se')).toEqual({ width: 1, depth: 1 });
+    expect(occupiedCells(item('a1', stove.id, 5, 5, 'se'))).toEqual([{ x: 5, y: 5 }]);
   });
 
   it('rejeita colisão e preserva entrada, saída e workSlots', () => {
@@ -46,7 +66,7 @@ describe('editor físico e loja da 0.0.5', () => {
     expect(validateFurniturePlacement(table, state.construction.placedFurniture, state.construction.builtAreas).valid).toBe(false);
     const entrance = item('table:door', 'dining.table.basic', 9, 17);
     expect(validateFurniturePlacement(entrance, state.construction.placedFurniture, state.construction.builtAreas).errors).toContain('A entrada e a saída precisam ficar livres.');
-    expect(resolvedWorkSlots(state.construction.placedFurniture.find((entry) => entry.id === 'furniture:a1')!)).toHaveLength(2);
+    expect(resolvedWorkSlots(state.construction.placedFurniture.find((entry) => entry.id === 'furniture:a1')!)).toHaveLength(1);
   });
 
   it('compra, liga cadeira à mesa, move, gira, guarda, vende, desfaz e refaz', () => {
@@ -69,6 +89,19 @@ describe('editor físico e loja da 0.0.5', () => {
     expect(editor.draft.construction.storedFurniture.some((entry) => entry.id === chair.id)).toBe(true);
     expect(editor.place('dining.chair.basic', 13, 12, 'sw', undefined, chair.id).ok).toBe(true);
     expect(editor.sell(chair.id).ok).toBe(true);
+  });
+
+  it('compra na Loja para o inventário e só coloca pela aba Organizar', () => {
+    const state = createDefaultState(0); state.coins = 500;
+    const editor = new ConstructionEditor(state);
+    const beforePlaced = editor.draft.construction.placedFurniture.length;
+    expect(editor.purchase('dining.chair.basic').ok).toBe(true);
+    expect(editor.draft.coins).toBe(465);
+    expect(editor.draft.construction.placedFurniture).toHaveLength(beforePlaced);
+    const stored = editor.draft.construction.storedFurniture.at(-1)!;
+    expect(stored.definitionId).toBe('dining.chair.basic');
+    expect(editor.place(stored.definitionId, 13, 12, 'sw', undefined, stored.id).ok).toBe(true);
+    expect(editor.draft.construction.storedFurniture.some((entry) => entry.id === stored.id)).toBe(false);
   });
 
   it('cancela transacionalmente e confirma apenas um restaurante operável', () => {

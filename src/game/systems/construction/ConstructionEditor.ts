@@ -113,6 +113,24 @@ export class ConstructionEditor {
     return { ok: true, warnings: validation.warnings };
   }
 
+  purchase(definitionId: string, skinId?: string): EditorResult {
+    const definition = FURNITURE_BY_ID[definitionId];
+    if (!definition) return { ok: false, reason: `Móvel desconhecido: ${definitionId}.` };
+    if (this.current.coins < definition.price) return { ok: false, reason: 'Moedas insuficientes.' };
+    const orientation: Direction = 'sw';
+    const item: PlacedFurniture = {
+      id: createPersistentId('furniture'), definitionId, gridX: 0, gridY: 0, orientation,
+      skinId: skinId ?? definition.skinIds[0], level: 1, state: {},
+      footprint: orientedFootprint(definition, orientation), anchor: getSpriteAnchor(definition),
+      visualScale: getVisualScale(definition), heightCategory: definition.heightCategory,
+      workSlotIds: definition.workSlots.map((slot) => slot.id),
+    };
+    this.record();
+    this.current.coins -= definition.price;
+    this.current.construction.storedFurniture.push(item);
+    return { ok: true };
+  }
+
   move(id: string, gridX: number, gridY: number): EditorResult {
     const item = this.current.construction.placedFurniture.find((entry) => entry.id === id);
     if (!item) return { ok: false, reason: 'Móvel não encontrado.' };
