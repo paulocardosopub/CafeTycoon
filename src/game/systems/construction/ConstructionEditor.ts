@@ -5,7 +5,7 @@ import { createPersistentId } from '../../../core/id';
 import { EXPANSION_BY_ID } from '../../data/expansions';
 import { FURNITURE_BY_ID } from '../../data/furniture/catalog';
 import { STAFF_BY_ID } from '../../data/staff';
-import { orientedFootprint, resolvedWorkSlots, validateFurniturePlacement, validateLayout } from '../furniture/FurniturePlacement';
+import { orientationTurns, orientedFootprint, resolvedWorkSlots, validateFurniturePlacement, validateLayout } from '../furniture/FurniturePlacement';
 import { getApproachSlotCells, getSpriteAnchor, getVisualScale, snapToGrid } from '../../grid/SpatialLayoutService';
 import { seatFacingTowardTable } from '../../map/initialMap';
 import { modulesFromFurniture } from '../service-counter/ServiceCounterSystem';
@@ -268,6 +268,8 @@ export class ConstructionEditor {
     if (this.furnitureEdit) return { ok: false, reason: 'Confirme no ✓ ou cancele no × a alteração do móvel selecionado.' };
     if (this.expansionEdit) return { ok: false, reason: 'Confirme no ✓ ou cancele no × a ampliação selecionada.' };
     this.refreshFurnitureRelationships();
+    const relationshipErrors = this.furnitureRelationshipErrors();
+    if (relationshipErrors.length) return { ok: false, reason: relationshipErrors[0] };
     const definitions = this.current.construction.placedFurniture.map((item) => FURNITURE_BY_ID[item.definitionId]).filter(Boolean);
     const missingEssential = Object.values(FURNITURE_BY_ID).find((definition) => definition.essential && !definitions.some((candidate) => candidate.id === definition.id));
     if (missingEssential) return { ok: false, reason: `${missingEssential.name} é essencial para reabrir o restaurante.` };
@@ -305,12 +307,22 @@ export class ConstructionEditor {
   private refreshFurnitureRelationships(): void {
     const tables = this.current.construction.placedFurniture.filter((item) => FURNITURE_BY_ID[item.definitionId]?.functionId === 'table');
     const chairs = this.current.construction.placedFurniture.filter((item) => FURNITURE_BY_ID[item.definitionId]?.functionId === 'chair');
+    const previousTableByChair = new Map(chairs.map((chair) => [chair.id, typeof chair.state.linkedTableId === 'string' ? chair.state.linkedTableId : undefined]));
+    const adjacentTablesByChair = new Map(chairs.map((chair) => [chair.id, tables.filter((table) => isAdjacent(table, chair))]));
     for (const chair of chairs) { chair.state = { ...chair.state }; delete chair.state.linkedTableId; delete chair.state.seatFacing; }
     syncLinkedStaffStarts(this.current.construction.staffStartPositions, this.current.construction.placedFurniture);
     const assigned = new Set<string>();
     for (const table of tables) {
-      const adjacent = chairs.filter((chair) => !assigned.has(chair.id) && Math.abs(table.gridX - chair.gridX) + Math.abs(table.gridY - chair.gridY) === 1)
-        .sort((a, b) => a.id.localeCompare(b.id));
+      const adjacent = chairs.filter((chair) => {
+        if (assigned.has(chair.id) || !isAdjacent(table, chair)) return false;
+        const candidates = adjacentTablesByChair.get(chair.id) ?? [];
+        const previousTableId = previousTableByChair.get(chair.id);
+        return previousTableId === table.id || candidates.length === 1;
+      }).sort((a, b) => {
+        const aStable = previousTableByChair.get(a.id) === table.id ? 0 : 1;
+        const bStable = previousTableByChair.get(b.id) === table.id ? 0 : 1;
+        return aStable - bStable || a.id.localeCompare(b.id);
+      });
       let selected: PlacedFurniture[] = [];
       outer: for (let i = 0; i < adjacent.length; i += 1) for (let j = i + 1; j < adjacent.length; j += 1) {
         if (adjacent[i].gridX + adjacent[j].gridX === table.gridX * 2 && adjacent[i].gridY + adjacent[j].gridY === table.gridY * 2) { selected = [adjacent[i], adjacent[j]]; break outer; }
@@ -335,6 +347,8 @@ export class ConstructionEditor {
     const chairs = furniture.filter((item) => FURNITURE_BY_ID[item.definitionId]?.functionId === 'chair');
     for (const chair of chairs) {
       if (typeof chair.state.linkedTableId !== 'string') errors.push(`A cadeira ${chair.id} precisa ficar adjacente e oposta a outra cadeira da mesa.`);
+      const adjacentTables = furniture.filter((item) => FURNITURE_BY_ID[item.definitionId]?.functionId === 'table' && isAdjacent(item, chair));
+      if (adjacentTables.length > 1) errors.push(`A cadeira ${chair.id} ficou entre duas mesas. Deixe um corredor livre entre os conjuntos.`);
     }
     for (const table of furniture.filter((item) => FURNITURE_BY_ID[item.definitionId]?.functionId === 'table')) {
       const attached = chairs.filter((chair) => chair.state.linkedTableId === table.id);
@@ -352,7 +366,7 @@ export class ConstructionEditor {
     const item = this.current.construction.placedFurniture.find((entry) => entry.id === edit.session.furnitureId)!;
     const definition = FURNITURE_BY_ID[item.definitionId];
     item.gridX = position.x; item.gridY = position.y; item.orientation = orientation; item.footprint = orientedFootprint(definition, orientation);
-    const turns = (definition.allowedOrientations.indexOf(orientation) - definition.allowedOrientations.indexOf(edit.session.originalRotation) + 4) % 4;
+    const turns = (orientationTurns(orientation) - orientationTurns(edit.session.originalRotation) + 4) % 4;
     for (const originalChair of edit.session.originalAttachedFurniture) {
       const chair = this.current.construction.placedFurniture.find((entry) => entry.id === originalChair.id); if (!chair) continue;
       let dx = originalChair.gridX - edit.session.originalGridPosition.x; let dy = originalChair.gridY - edit.session.originalGridPosition.y;
@@ -369,6 +383,10 @@ export class ConstructionEditor {
     edit.session.validationState = validation.valid && relationshipErrors.length === 0 ? 'valid' : 'invalid'; edit.session.validationErrors = validationErrors;
     return { ok: edit.session.validationState === 'valid', reason: validationErrors[0], warnings: validation.warnings };
   }
+}
+
+function isAdjacent(table: PlacedFurniture, chair: PlacedFurniture): boolean {
+  return Math.abs(table.gridX - chair.gridX) + Math.abs(table.gridY - chair.gridY) === 1;
 }
 
 function expansionArea(definition: ExpansionDefinition, side: ExpansionDefinition['allowedSides'][number], areas: ConstructionSaveState['builtAreas']): ConstructionSaveState['builtAreas'][number] {

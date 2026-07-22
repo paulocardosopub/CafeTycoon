@@ -24,6 +24,21 @@ describe('regressões visuais de assento e movimento da 0.0.5', () => {
     expect(seatFacingTowardTable({ x: 8, y: 7 }, table)).toBe('sw');
     expect(seatFacingTowardTable({ x: 8, y: 9 }, table)).toBe('ne');
   });
+  it('não deixa a sessão operacional antiga desfazer a rotação salva das cadeiras', () => {
+    const state = createDefaultState(0);
+    const previousSimulation = new RestaurantSimulation(state);
+    previousSimulation.prepareSave();
+    const table = state.construction.placedFurniture.find((item) => item.id === 'table:tutorial')!;
+    const west = state.construction.placedFurniture.find((item) => item.id === 'chair:tutorial-west')!;
+    const east = state.construction.placedFurniture.find((item) => item.id === 'chair:tutorial-east')!;
+    west.gridX = table.gridX; west.gridY = table.gridY - 1; west.orientation = 'sw'; west.state.seatFacing = 'sw';
+    east.gridX = table.gridX; east.gridY = table.gridY + 1; east.orientation = 'ne'; east.state.seatFacing = 'ne';
+
+    const restoredSimulation = new RestaurantSimulation(state);
+    const restoredChairs = restoredSimulation.tables.find((item) => item.id === table.id)!.chairs;
+    expect(restoredChairs.map((chair) => chair.orientation)).toEqual(['sw', 'ne']);
+    expect(restoredChairs.map((chair) => chair.tableId)).toEqual([table.id, table.id]);
+  });
 
   it('reduz mesa a duas cadeiras opostas com pontos livres do atendente', () => {
     const state = createDefaultState(0);

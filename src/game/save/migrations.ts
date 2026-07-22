@@ -213,25 +213,21 @@ function normalizeDiningFurniture(
   const tables = placed.filter((item) => FURNITURE_BY_ID[item.definitionId]?.functionId === 'table');
   const chairs = placed.filter((item) => FURNITURE_BY_ID[item.definitionId]?.functionId === 'chair');
   const assigned = new Set<string>();
-  const inside = (point: { x: number; y: number }) => builtAreas.some((area) => point.x >= area.x && point.y >= area.y && point.x < area.x + area.width && point.y < area.y + area.depth);
+  const previousTableByChair = new Map(chairs.map((chair) => [chair.id, typeof chair.state.linkedTableId === 'string' ? chair.state.linkedTableId : undefined]));
+  const adjacentTablesByChair = new Map(chairs.map((chair) => [chair.id, tables.filter((table) => isAdjacentDiningFurniture(table, chair))]));
   for (const table of tables) {
-    const adjacent = chairs.filter((chair) => !assigned.has(chair.id) && Math.abs(chair.gridX - table.gridX) + Math.abs(chair.gridY - table.gridY) === 1)
-      .sort((a, b) => Number(b.state.linkedTableId === table.id) - Number(a.state.linkedTableId === table.id) || a.id.localeCompare(b.id));
+    const adjacent = chairs.filter((chair) => {
+      if (assigned.has(chair.id) || !isAdjacentDiningFurniture(table, chair)) return false;
+      const candidates = adjacentTablesByChair.get(chair.id) ?? [];
+      return previousTableByChair.get(chair.id) === table.id || candidates.length === 1;
+    }).sort((a, b) => Number(previousTableByChair.get(b.id) === table.id) - Number(previousTableByChair.get(a.id) === table.id) || a.id.localeCompare(b.id));
     let selected: PlacedFurniture[] = [];
     outer: for (let i = 0; i < adjacent.length; i += 1) for (let j = i + 1; j < adjacent.length; j += 1) {
       if (adjacent[i].gridX + adjacent[j].gridX === table.gridX * 2 && adjacent[i].gridY + adjacent[j].gridY === table.gridY * 2) {
         selected = [adjacent[i], adjacent[j]]; break outer;
       }
     }
-    if (!selected.length && adjacent[0]) {
-      selected = [adjacent[0]];
-      const target = { x: table.gridX * 2 - adjacent[0].gridX, y: table.gridY * 2 - adjacent[0].gridY };
-      const second = adjacent.slice(1).find((chair) => {
-        const occupied = placed.some((item) => item.id !== chair.id && item.gridX === target.x && item.gridY === target.y);
-        return inside(target) && !occupied;
-      });
-      if (second) { second.gridX = target.x; second.gridY = target.y; selected.push(second); log.push(`${table.id}: cadeiras antigas reposicionadas em lados opostos.`); }
-    }
+    if (!selected.length && adjacent[0]) selected = [adjacent[0]];
     for (const chair of selected.slice(0, 2)) {
       assigned.add(chair.id);
       const facing = seatFacingTowardTable({ x: chair.gridX, y: chair.gridY }, { x: table.gridX, y: table.gridY });
@@ -256,6 +252,10 @@ function normalizeDiningFurniture(
     log.push(`${extras.length} cadeira(s) excedente(s) preservada(s) no inventário, sem exclusão.`);
   }
   return log;
+}
+
+function isAdjacentDiningFurniture(table: PlacedFurniture, chair: PlacedFurniture): boolean {
+  return Math.abs(chair.gridX - table.gridX) + Math.abs(chair.gridY - table.gridY) === 1;
 }
 
 function placeNearestFree(item: PlacedFurniture, placed: PlacedFurniture[]): void {

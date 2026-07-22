@@ -104,7 +104,34 @@ export function validateLayout(furniture: readonly PlacedFurniture[], builtAreas
     errors.push(...result.errors.map((error) => `${item.id}: ${error}`));
     warnings.push(...result.warnings.map((warning) => `${item.id}: ${warning}`));
   }
+  errors.push(...validateDiningApproaches(furniture, builtAreas, entrance));
   return { valid: errors.length === 0, errors, warnings, occupiedCells: furniture.flatMap((item) => occupiedCells(item)), workSlots: furniture.flatMap((item) => resolvedWorkSlots(item)) };
+}
+
+function validateDiningApproaches(furniture: readonly PlacedFurniture[], builtAreas: readonly BuiltAreaRect[], entrance: GridPoint): string[] {
+  const errors: string[] = [];
+  const tables = new Map(furniture
+    .filter((item) => FURNITURE_BY_ID[item.definitionId]?.functionId === 'table')
+    .map((item) => [item.id, item]));
+  const blocked = new Set(furniture.flatMap((item) => occupiedCells(item)).map(key));
+  const reachable = reachableCells(entrance, builtAreas, blocked);
+  for (const chair of furniture.filter((item) => FURNITURE_BY_ID[item.definitionId]?.functionId === 'chair')) {
+    const tableId = typeof chair.state.linkedTableId === 'string' ? chair.state.linkedTableId : undefined;
+    const table = tableId ? tables.get(tableId) : undefined;
+    if (!table) continue;
+    const dx = chair.gridX - table.gridX;
+    const dy = chair.gridY - table.gridY;
+    if (Math.abs(dx) + Math.abs(dy) !== 1) continue;
+    const approach = { x: chair.gridX + dx, y: chair.gridY + dy };
+    if (!cellInBuiltArea(approach, builtAreas) || isStructuralWall(approach, builtAreas, entrance)) {
+      errors.push(`${chair.id}: o acesso atrás da cadeira fica fora do salão.`);
+    } else if (blocked.has(key(approach))) {
+      errors.push(`${chair.id}: outro móvel bloqueia o acesso atrás da cadeira.`);
+    } else if (!reachable.has(key(approach))) {
+      errors.push(`${chair.id}: o corredor até a cadeira está bloqueado.`);
+    }
+  }
+  return errors;
 }
 
 function reachableCells(start: GridPoint, areas: readonly BuiltAreaRect[], blocked: Set<string>): Set<string> {
