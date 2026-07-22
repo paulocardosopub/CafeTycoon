@@ -12,6 +12,7 @@ import {
   recipeFoodAssetId,
 } from '../assets/pixel/stage2dFoodManifest';
 import { ServiceCounterStore } from '../game/systems/service-counter/ServiceCounterSystem';
+import { gridToWorld, getFootprintFloorAnchorWorld } from '../game/grid/SpatialLayoutService';
 
 const projectRoot = resolve(import.meta.dirname, '../..');
 
@@ -69,5 +70,24 @@ describe('pratos definitivos low-poly 0.0.7', () => {
     expect(scene).toContain('readyCount >= 2');
     expect(scene).toContain('FOOD_DIRTY_ASSET_ID');
     expect(recipeFoodAssetId(undefined)).toBe(FOOD_CLEAN_ASSET_ID);
+  });
+
+  it('apoia os pés no vértice inferior, põe pratos no tampo e limpa os ícones de estado', () => {
+    const center = gridToWorld({ x: 7, y: 9 });
+    const floor = getFootprintFloorAnchorWorld({ x: 7, y: 9 }, { width: 1, depth: 1 });
+    expect(floor.y - center.y).toBe(16);
+    const scene = readFileSync(resolve(projectRoot, 'src/scenes/RestaurantScene.ts'), 'utf8');
+    expect(scene).toContain('characterFloorPoint(actor.visual)');
+    expect(scene).toContain('characterFloorPoint(customer.position)');
+    expect(scene).toContain('const dishPoint = tableDishPoint(seat.platePosition, seat.position)');
+    expect(scene).toContain('customerBase.y, proximity) - 50');
+    expect(scene).toContain('carriedDishPoint(point, actor.direction)');
+    expect(scene).toContain("actor.direction === 'nw'");
+    expect(scene).toContain('standingCharacter - 2');
+    expect(scene).toContain('standingCharacter + 8');
+    expect(scene).toContain('Math.round(point.y - 56)');
+    expect(scene).toContain('visual.effect.setVisible(false)');
+    expect(scene).not.toContain('customerStatusIcon');
+    expect(scene).not.toContain("active ? '●'");
   });
 });
