@@ -1,8 +1,15 @@
 # Visão do projeto
 
-**Bistrô Bloom** é um simulador web 2D de restaurante em pixel art isométrica. A versão atual é a **0.0.3**, dedicada à auditoria jogável e à estabilização da operação.
+**Bistrô Bloom** é um simulador web 2D de restaurante em pixel art isométrica. A versão atual é a **0.0.6**, dedicada à administração da equipe, estoque físico, reposição segura e produção programada.
 
 ## Implementado
+
+- Equipe data-driven com contratação, gestão, posição inicial, turnos, salários, experiência, treinamento e recuperação de bloqueios.
+- Estoquista físico com pathfinding, animação de carga, WorkSlots externos e depósito transacional em C5/C6, geladeira ou freezer.
+- Capacidade por móvel e tipo, compra manual/automática com políticas, saldo protegido, limites, lista e histórico.
+- Produção até 999 unidades, lotes, prioridade, estoque-alvo, reservas e distribuição entre balcões modulares 1×1.
+- Save schema 5, migração idempotente da v0.0.5, normalização espacial sem perda e offline agregado de até 8 horas com custos e bloqueios.
+- Grade e escala unificadas, móveis ancorados ao vértice inferior do tile, mesas 1×1 com duas cadeiras opostas e editor direto transacional.
 
 - Restaurante lógico 18×18 conectado à rua, grade 64×32, A*, reservas tile-to-tile, câmera com arraste e zoom discreto.
 - Capacidade calculada por cadeira acessível: uma mesa de 2 e duas mesas de 4, totalizando 10 lugares independentes.
@@ -17,6 +24,6 @@
 - Pipeline Blender automatizado para gerar modelos-fonte, PNGs transparentes, sprite sheets, miniaturas e manifest sem carregar 3D no jogo.
 - Perfil visual `reference-scene-v5`: cena completa e anexos usados como padrão e não como cópia literal; jogador, funcionários e oito clientes distintos usam personagens 96×144, mundo 192×192 alinhado ao piso, balcão 6×1 em 256×192 e equipamentos industriais com estados completos.
 
-## Fora do escopo da 0.0.3
+## Fora do escopo da 0.0.6
 
-Editor e expansão de mapa, sistema completo de construção, upgrades visuais acima do nível 1, fornecedores, salários, cosméticos ampliados, nuvem, rankings, visitas, eventos e multiplayer real. A estrutura de dados permite níveis futuros, mas não exibe cópias falsas dos níveis 2 a 4.
+Fornecedores com mapa externo, delivery completo, férias/doenças, árvore complexa de habilidades, funcionários premium, mercado entre jogadores, nuvem, rankings, visitas, eventos complexos e multiplayer real. A estrutura de dados permite expansão futura sem exibir interfaces vazias.

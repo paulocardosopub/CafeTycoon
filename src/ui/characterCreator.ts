@@ -55,7 +55,7 @@ export function showCharacterCreator(root: HTMLElement): Promise<PlayerProfile> 
     const refresh = () => {
       preview.dataset.hair = appearance.hairStyle; preview.dataset.outfit = appearance.outfit; preview.dataset.presentation = appearance.presentation;
       const styleIndex = Math.max(0, ['wave', 'crop', 'bun', 'curls'].indexOf(appearance.hairStyle)) % 2;
-      root.querySelector<HTMLImageElement>('#character-preview-sprite')!.src = `/assets/pixel/rendered/thumbnails/player-style-${styleIndex}.png?v=0.0.4-blender-7`;
+      root.querySelector<HTMLImageElement>('#character-preview-sprite')!.src = `/assets/pixel/rendered/thumbnails/player-style-${styleIndex}.png?v=0.0.6-blender-7`;
       root.querySelector<HTMLElement>('#preview-name')!.textContent = nameInput.value.trim() || 'Seu personagem';
     };
     form.addEventListener('input', (event) => {
@@ -76,7 +76,7 @@ export function showCharacterCreator(root: HTMLElement): Promise<PlayerProfile> 
         return;
       }
       const professions = Object.fromEntries((['cook', 'waiter', 'cleaner', 'stocker'] as ProfessionId[]).map((id) => [id, { xp: 0, level: 1, tasksCompleted: 0 }])) as PlayerProfile['professions'];
-      const taskHistory = Object.fromEntries((['take_order', 'cook_step', 'deliver', 'payment', 'clean', 'stock_support'] as TaskKind[]).map((id) => [id, 0])) as PlayerProfile['taskHistory'];
+      const taskHistory = Object.fromEntries((['take_order', 'cook_step', 'deliver', 'payment', 'clean', 'stock_support', 'restock_purchase', 'production_batch'] as TaskKind[]).map((id) => [id, 0])) as PlayerProfile['taskHistory'];
       resolve({ id: createPersistentId('profile'), name, appearance: { ...appearance }, level: 1, xp: 0, helpRole: 'kitchen', professions, taskHistory });
     });
     refresh();

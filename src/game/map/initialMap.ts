@@ -5,6 +5,7 @@ import { RestaurantGrid } from '../grid/Grid';
 import { createInitialConstructionState } from './initialConstruction';
 import { FURNITURE_BY_ID } from '../data/furniture/catalog';
 import { orientedFootprint, resolvedWorkSlots, rotateDirection, orientationTurns } from '../systems/furniture/FurniturePlacement';
+import { facingBetweenTargets } from '../systems/animation/CharacterFacing';
 
 export const RESTAURANT_SIZE = { width: 18, height: 18 } as const;
 export const MAP_SIZE = { width: 34, height: 38 } as const;
@@ -21,23 +22,12 @@ export const CUSTOMER_QUEUE: GridPoint[] = [
 export const PICKUP_KITCHEN_POINT: GridPoint = { x: 7, y: 6 };
 export const PICKUP_SERVICE_POINT: GridPoint = { x: 7, y: 8 };
 
-const decoration = (id: string, asset: PersistedWorldObject['asset'], position: GridPoint, visualHeight: number, blocksMovement = true): PersistedWorldObject => ({
-  id, asset, position, footprint: { width: 1, depth: 1 }, orientation: 'sw', occupiedCells: blocksMovement ? [{ ...position }] : [],
-  front: 'sw', interactionPoints: [], requiredFreeCells: [], rotatable: false, anchor: { x: .5, y: asset === 'door' || asset === 'shelf' ? 1 : .85 }, visualHeight, blocksMovement,
-  visualSkinId: 'decor-bloom', visualBounds: { widthCells: 1, depthCells: 1, heightBlocks: visualHeight / 48, overhangCells: .2 }, depthOffset: 0,
-});
-
-export const DECORATIONS: PersistedWorldObject[] = [
-  decoration('decor:plant-a', 'plant', { x: 1, y: 9 }, 62),
-  decoration('decor:plant-b', 'plant', { x: 1, y: 14 }, 62),
-  decoration('decor:bin', 'bin', { x: 16, y: 7 }, 39),
-];
+// Decorative furniture now lives entirely in ConstructionSaveState so every
+// visible plant and bin can be selected, moved, rotated, stored or sold.
+export const DECORATIONS: PersistedWorldObject[] = [];
 
 export const seatFacingTowardTable = (chair: GridPoint, table: GridPoint): Direction => {
-  if (chair.x < table.x) return 'se';
-  if (chair.x > table.x) return 'nw';
-  if (chair.y < table.y) return 'sw';
-  return 'ne';
+  return facingBetweenTargets(chair, table, 'se');
 };
 
 const chairServicePoint = (chair: GridPoint, table: GridPoint): GridPoint => {
@@ -53,10 +43,7 @@ function createChair(tableId: string, suffix: string, position: GridPoint, table
   const id = `${tableId}-chair-${suffix}`;
   const visualSkinId = (['chair-wood', 'chair-upholstered', 'chair-bistro'] as const)[skinIndex % 3];
   const assetStem = visualSkinId.replace('chair-', 'chair_');
-  const visualPosition = {
-    x: position.x + Math.sign(position.x - tablePosition.x) * .28,
-    y: position.y + Math.sign(position.y - tablePosition.y) * .28,
-  };
+  const visualPosition = { ...position };
   return {
     id, seatId: `${tableId}-seat-${suffix}`, chairId: id, tableId, position, visualPosition, approach, sitPoint: { ...position },
     seatAnchor: { ...visualPosition }, footprint: { width: 1, depth: 1 }, depthOffset: 0, visualSkinId,
@@ -66,17 +53,10 @@ function createChair(tableId: string, suffix: string, position: GridPoint, table
   };
 }
 
-function table(id: string, label: string, position: GridPoint, seats: 2 | 4, waiterApproach: GridPoint): TableRuntime {
-  const chairSpecs = seats === 2
-    ? [
+function table(id: string, label: string, position: GridPoint, seats: 2, waiterApproach: GridPoint): TableRuntime {
+  const chairSpecs = [
       { suffix: 'west', position: { x: position.x - 1, y: position.y }, approach: { x: position.x - 1, y: position.y - 1 } },
       { suffix: 'east', position: { x: position.x + 1, y: position.y }, approach: { x: position.x + 1, y: position.y + 1 } },
-    ]
-    : [
-      { suffix: 'north', position: { x: position.x, y: position.y - 1 }, approach: { x: position.x - 1, y: position.y - 1 } },
-      { suffix: 'south', position: { x: position.x, y: position.y + 1 }, approach: { x: position.x + 1, y: position.y + 1 } },
-      { suffix: 'west', position: { x: position.x - 1, y: position.y }, approach: { x: position.x - 1, y: position.y + 1 } },
-      { suffix: 'east', position: { x: position.x + 1, y: position.y }, approach: { x: position.x + 1, y: position.y - 1 } },
     ];
   const tableSkinIndex = id.includes('garden') ? 0 : id.includes('sun') ? 1 : 2;
   const chairs = chairSpecs.map((spec) => createChair(id, spec.suffix, spec.position, position, spec.approach, tableSkinIndex));
@@ -95,7 +75,7 @@ export function createTablesFromConstruction(construction: ConstructionSaveState
   const chairs = construction.placedFurniture.filter((item) => FURNITURE_BY_ID[item.definitionId]?.functionId === 'chair');
   return tables.map((placed, index) => {
     const position = { x: placed.gridX, y: placed.gridY };
-    const linked = chairs.filter((chair) => chair.state.linkedTableId === placed.id);
+    const linked = chairs.filter((chair) => chair.state.linkedTableId === placed.id).slice(0, 2);
     const runtimeChairs = linked.map((chair, chairIndex) => createPlacedChair(placed, chair, chairIndex));
     const waiterApproach = nearestTableServicePoint(position, linked);
     return {
@@ -125,7 +105,11 @@ export function createStations(construction: ConstructionSaveState = createIniti
     const primary = kitchenSlot?.point ?? workSlots[0]?.point ?? { x: item.gridX, y: item.gridY + size.depth };
     const serviceInteraction = waiterSlot?.point;
     const asset = worldAssetForStation(baseId);
-    const renderedAssetId = definition.spriteSet[item.orientation];
+    const counterVariant = construction.serviceCounters.find((module) => module.id === item.id)?.connectionVariant;
+    const renderDefinition = baseId === 'pickup' && counterVariant
+      ? FURNITURE_BY_ID[{ isolated: 'service.c1.isolated', left: 'service.c2.left', middle: 'service.c3.middle', right: 'service.c4.right', corner: 'service.c1.isolated' }[counterVariant]]
+      : definition;
+    const renderedAssetId = renderDefinition.spriteSet[item.orientation];
     const interactionPoints = [...new Map(slots.map((slot) => [`${slot.point.x},${slot.point.y}`, slot.point])).values()];
     return {
       id, name: definition.name, icon: definition.code, position: { x: item.gridX, y: item.gridY }, size: { x: size.width, y: size.depth }, interaction: primary,
@@ -134,6 +118,7 @@ export function createStations(construction: ConstructionSaveState = createIniti
       outputSlot: serviceInteraction ?? primary, clearanceCells: interactionPoints, serviceInteraction,
       asset, anchor: definition.baseAnchor, visualHeight: Math.round(definition.visualBounds.heightBlocks * 48), blocksMovement: true, rotatable: definition.rotatable,
       visualSkinId: definition.category === 'service' ? 'counter-green' : 'equipment-steel-level-1', visualBounds: definition.visualBounds, depthOffset: 0,
+      visualScale: definition.visualScale, heightCategory: definition.heightCategory,
       renderedAssetId, equipmentFamilyId: baseId, visualLevel: item.level, gameplayLevel: item.level, thumbnailId: renderedAssetId,
       interactionSlots: slots.map((slot) => slot.id), animationSet: 'equipment-basic-v1', nextLevelAssetId: `${renderedAssetId}_level_2`,
       unlockRequirement: { restaurantLevel: 1 }, statsConfigId: `${definition.id}:level:${item.level}`,
@@ -164,6 +149,10 @@ export function createInitialGrid(tables = createTables(), stations = createStat
     item.chairs.forEach((chair) => grid.set(chair.position, { kind: 'blocked', walkable: false, furniturePart: chair.id }));
     grid.set(item.waiterApproach, { reservedFor: `table:${item.id}:waiter` });
   });
+  construction.placedFurniture.filter((item) => FURNITURE_BY_ID[item.definitionId]?.functionId === 'decoration').forEach((item) => {
+    const footprint = orientedFootprint(FURNITURE_BY_ID[item.definitionId], item.orientation);
+    grid.setRect({ x: item.gridX, y: item.gridY }, { x: footprint.width, y: footprint.depth }, { kind: 'blocked', walkable: false, furniturePart: item.id });
+  });
   DECORATIONS.filter((item) => item.blocksMovement).forEach((item) => grid.set(item.position, { kind: 'blocked', walkable: false, furniturePart: item.id }));
   for (let y = 0; y < grid.height; y += 1) for (let x = 0; x < grid.width; x += 1) {
     const built = construction.builtAreas.some((area) => x >= area.x && y >= area.y && x < area.x + area.width && y < area.y + area.depth);
@@ -177,7 +166,7 @@ function createPlacedChair(tableItem: PlacedFurniture, chairItem: PlacedFurnitur
   const position = { x: chairItem.gridX, y: chairItem.gridY };
   const delta = { x: Math.sign(position.x - tablePosition.x), y: Math.sign(position.y - tablePosition.y) };
   const approach = { x: position.x + delta.x, y: position.y + delta.y };
-  const visualPosition = { x: position.x + delta.x * .28, y: position.y + delta.y * .28 };
+  const visualPosition = { ...position };
   // Old saves may contain a stale facing. Seating direction is always derived
   // from the current chair/table geometry so rotations and moves stay correct.
   const orientation = seatFacingTowardTable(position, tablePosition);

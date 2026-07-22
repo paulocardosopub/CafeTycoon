@@ -1,5 +1,6 @@
 import { BALANCE } from '../../config/balance';
 import { RECIPE_BY_ID, RECIPES } from '../../content/recipes/recipes';
+import { INGREDIENT_BY_ID } from '../../content/ingredients/ingredients';
 import type {
   ActorKind, ChairRuntime, CustomerState, Direction, GameState, GridPoint, HelpRole, IngredientId, OperationSaveState,
   RecipeId, ServiceCounterModule, StationRuntime, TableRuntime, TaskKind,
@@ -19,7 +20,16 @@ import { awardPlayerTaskXp, updateRestaurantLevel } from '../progression/progres
 import { TaskManager, type RestaurantTask } from '../tasks/TaskManager';
 import { tickProduction, readyDishCapacity, readyDishUsed } from '../cooking/ProductionService';
 import { ServiceCounterStore } from '../systems/service-counter/ServiceCounterSystem';
-import { STAFF_CATALOG } from '../data/staff';
+import { STAFF_BY_ID } from '../data/staff';
+import {
+  awardStaffTaskExperience, effectiveMovementSpeed, effectiveStaffSpeed, processPayrollClock, staffStateFromTask, tickTraining,
+} from '../staff/StaffService';
+import { completePurchaseRequest, evaluateAutoPurchases, failPurchaseRequest, setPurchaseRequestStage } from '../inventory/ProcurementService';
+import { storageTargetPoint } from '../inventory/StorageService';
+import {
+  completeProductionTask, markProductionTaskStarted, prepareNextProductionTask, refreshMaintainTargetPlans,
+} from '../cooking/ProductionPlanningService';
+import { recipeIsOperational } from '../recipes/RecipeAvailability';
 
 interface Mover {
   id: string;
@@ -104,6 +114,7 @@ export interface CounterSlotRuntime {
 const TASK_LABELS: Record<TaskKind, string> = {
   take_order: 'Anotando pedido', cook_step: 'Preparando prato', deliver: 'Servindo lugar',
   payment: 'Recebendo pagamento', clean: 'Limpando lugar', stock_support: 'Repondo pedido',
+  restock_purchase: 'Buscando estoque', production_batch: 'Produzindo lote',
 };
 
 const CUSTOMER_LABELS: Record<CustomerState, string> = {
@@ -139,6 +150,9 @@ export class RestaurantSimulation {
   private seatAssignmentRetry = 0;
   private autoSpawn = true;
   private constructionPaused = false;
+  private speedBeforeConstruction: 0 | 1 | 2 | 4 = 1;
+  private automationCountdown = 0;
+  private productionSchedulerCountdown = 0;
 
   constructor(public readonly state: GameState) {
     this.tables = createTablesFromConstruction(state.construction);
@@ -150,19 +164,22 @@ export class RestaurantSimulation {
       id: `${module.id}:slot:${index + 1}`, moduleId: module.id, state: 'free' as const, quantity: 0,
     })));
     this.actors = this.createDefaultActors();
-    if (state.operation && [1, 2].includes(state.operation.dataVersion)) this.restoreOperation(state.operation);
+    if (state.operation && [1, 2, 3].includes(state.operation.dataVersion)) this.restoreOperation(state.operation);
     this.rebuildOccupancy();
     this.reconcileOperation();
   }
 
   private createDefaultActors(): WorkerActor[] {
-    const start = (assetId: string, fallback: GridPoint) => {
-      const saved = this.state.construction.staffStartPositions.find((item) => item.staffId === assetId);
+    const employees = this.state.staff.instances.map((instance) => {
+      const definition = STAFF_BY_ID[instance.definitionId];
+      const saved = this.state.construction.staffStartPositions.find((item) => item.staffId === instance.id || item.staffId === instance.definitionId);
+      const position = instance.startPosition ?? (saved ? { x: saved.gridX, y: saved.gridY } : definition.suggestedStart);
+      return this.makeActor(instance.id, instance.role, instance.customName, definition.assetId, position);
+    });
+    const start = (staffId: string, fallback: GridPoint) => {
+      const saved = this.state.construction.staffStartPositions.find((item) => item.staffId === staffId);
       return saved ? { x: saved.gridX, y: saved.gridY } : fallback;
     };
-    const employees = STAFF_CATALOG
-      .filter((staff) => staff.includedByDefault || this.state.construction.staffStartPositions.some((position) => position.staffId === staff.id))
-      .map((staff) => this.makeActor(staff.actorId, staff.role, staff.name, staff.assetId, start(staff.id, staff.suggestedStart)));
     return [
       ...employees,
       this.makeActor(this.state.playerId, 'player', this.state.profile?.name ?? 'Você', playerRenderedStyle(this.state.profile?.appearance.hairStyle), start('player', { x: 9, y: 14 })),
@@ -196,6 +213,21 @@ export class RestaurantSimulation {
   private tick(delta: number): void {
     this.simulationTime += delta;
     this.tasks.tick(delta);
+    tickTraining(this.state, delta, Date.now());
+    processPayrollClock(this.state, Date.now());
+    this.automationCountdown -= delta;
+    if (this.automationCountdown <= 0) {
+      evaluateAutoPurchases(this.state, true, Date.now());
+      this.automationCountdown = this.state.procurement.globalSettings.checkIntervalSeconds;
+    }
+    this.createRestockTasks();
+    this.productionSchedulerCountdown -= delta;
+    if (this.productionSchedulerCountdown <= 0) {
+      refreshMaintainTargetPlans(this.state, this.counterModules, Date.now());
+      this.createProductionTask();
+      this.productionSchedulerCountdown = BALANCE.production.schedulerIntervalSeconds;
+    }
+    this.tasks.releaseStaleReservations(BALANCE.movementRecovery.reservationTimeoutSeconds);
     this.pruneGoneCustomers();
     const production = tickProduction(this.state, delta);
     if (Object.keys(production.produced).length) gameEvents.emit('toast', { message: 'Produção programada concluída!', tone: 'success' });
@@ -463,7 +495,7 @@ export class RestaurantSimulation {
   private safeRemoveCustomer(customer: CustomerRuntime, reason: string): void {
     this.cleanupCustomerReferences(customer);
     this.completeCustomerDeparture(customer);
-    if (this.developmentMode()) console.warn(`[recuperação 0.0.4] ${customer.id} removido com segurança: ${reason}`);
+    if (this.developmentMode()) console.warn(`[recuperação 0.0.6] ${customer.id} removido com segurança: ${reason}`);
   }
 
   private pruneGoneCustomers(): void {
@@ -540,12 +572,69 @@ export class RestaurantSimulation {
     order.state = 'cancelled';
   }
 
+  private createRestockTasks(): void {
+    for (const request of this.state.procurement.requests.filter((item) => ['purchasing', 'delivering', 'storing'].includes(item.status))) {
+      const activeTask = this.tasks.list().some((task) => task.kind === 'restock_purchase'
+        && task.payload.purchaseRequestId === request.id && !['completed', 'cancelled'].includes(task.status));
+      if (!activeTask) {
+        request.status = 'approved'; request.responsibleStaffId = undefined;
+        request.blockedReason = 'Tarefa anterior interrompida; reposição devolvida automaticamente à fila.';
+      }
+    }
+    for (const request of this.state.procurement.requests.filter((item) => item.status === 'approved')) {
+      const allocation = request.lines.flatMap((line) => line.storageAllocations.map((part) => ({ ...part, ingredientId: line.ingredientId })))[0];
+      const destination = allocation ? storageTargetPoint(this.state.construction, allocation.placedFurnitureId) : undefined;
+      if (!destination) {
+        failPurchaseRequest(this.state, request.id, 'O móvel de armazenamento ou seu WorkSlot não está disponível.'); continue;
+      }
+      this.tasks.add({
+        key: `purchase:${request.id}:outbound`, kind: 'restock_purchase', role: 'stock', target: STREET_ENTRY_POINTS[1],
+        duration: 1.2, priority: request.priority,
+        payload: { purchaseRequestId: request.id, restockStage: 'outbound', storageId: allocation.placedFurnitureId, workSlotId: destination.workSlotId, storageX: destination.point.x, storageY: destination.point.y },
+        reservations: [
+          { type: 'workSlot', id: destination.workSlotId }, { type: 'storage', id: allocation.placedFurnitureId },
+          ...request.lines.map((line) => ({ type: 'ingredient' as const, id: line.ingredientId })),
+        ],
+      }, this.simulationTime);
+    }
+  }
+
+  private createProductionTask(): void {
+    if (this.tasks.list().some((task) => task.kind === 'production_batch')) return;
+    const prepared = prepareNextProductionTask(this.state, this.stations, this.counterModules, Date.now());
+    if (!prepared) return;
+    this.tasks.add({
+      key: `production:${prepared.task.id}`, kind: 'production_batch', role: 'kitchen', target: prepared.target,
+      duration: prepared.duration, priority: prepared.priority,
+      payload: {
+        productionTaskId: prepared.task.id, productionPlanId: prepared.task.productionPlanId,
+        stationId: prepared.station.id, workSlotId: prepared.task.workSlotId, outputCounterId: prepared.task.outputCounterId,
+      },
+      reservations: [
+        { type: 'equipment', id: prepared.station.id },
+        { type: 'workSlot', id: prepared.task.workSlotId ?? `${prepared.station.id}:primary` },
+        ...Object.keys(prepared.task.reservedIngredients).map((id) => ({ type: 'ingredient' as const, id })),
+        ...prepared.task.outputReservations.map((part) => ({ type: 'counter' as const, id: part.moduleId })),
+      ],
+    }, this.simulationTime);
+  }
+
   private updateActors(delta: number): void {
     for (const actor of this.actors) {
       actor.motionState = 'idle';
+      const staff = actor.kind === 'player' ? undefined : this.state.staff.instances.find((item) => item.id === actor.id);
+      if (staff) {
+        staff.currentPosition = { ...actor.position }; staff.currentFacing = actor.direction; staff.currentTaskId = actor.taskId;
+        const training = this.state.staff.training.some((session) => session.staffId === staff.id && session.status === 'active');
+        if ((!staff.enabled || training) && !actor.taskId) {
+          staff.currentState = training ? 'training' : 'offShift'; actor.activity = training ? 'Em treinamento' : 'Fora do turno'; actor.idleReason = actor.activity; continue;
+        }
+      }
       if (!actor.taskId) this.claimTask(actor);
       if (!actor.taskId) {
-        const start = this.state.construction.staffStartPositions.find((item) => item.staffId === (actor.kind === 'player' ? 'player' : actor.assetId) && item.returnWhenIdle)
+        const start = this.state.construction.staffStartPositions.find((item) => item.returnWhenIdle && (actor.kind === 'player'
+          ? item.staffId === 'player'
+          : item.staffId === actor.id || item.staffId === staff?.definitionId || item.staffId === actor.assetId))
           ?? (actor.kind === 'player' ? { staffId: 'player', gridX: 9, gridY: 14, facing: 'ne' as const, returnWhenIdle: true } : undefined);
         if (start && !actor.path.length && !this.samePoint(actor.position, { x: start.gridX, y: start.gridY })) {
           actor.path = findPath(this.grid, actor.position, { x: start.gridX, y: start.gridY }, actor.id);
@@ -560,7 +649,9 @@ export class RestaurantSimulation {
           actor.activity = 'Sem tarefa';
           if (actor.pathStatus !== 'no_path') actor.pathStatus = 'idle';
         }
-        actor.idleReason = `Nenhuma tarefa de ${this.roleLabel(this.primaryRole(actor))}`; continue;
+        actor.idleReason = `Nenhuma tarefa de ${this.roleLabel(this.primaryRole(actor))}`;
+        if (staff) { staff.currentState = 'idle'; staff.currentPosition = { ...actor.position }; staff.currentFacing = actor.direction; }
+        continue;
       }
       const task = this.tasks.get(actor.taskId);
       if (!task || ['completed', 'cancelled'].includes(task.status)) { this.clearActorTask(actor); continue; }
@@ -576,14 +667,20 @@ export class RestaurantSimulation {
         if (station) station.remaining = Math.max(0, actor.taskRemaining);
         if (actor.taskRemaining <= 0) this.completeTask(actor, task);
       }
+      if (staff) {
+        staff.currentState = staffStateFromTask(task.status, Boolean(actor.carrying), actor.blockedSeconds);
+        staff.currentTaskId = actor.taskId; staff.currentPosition = { ...actor.position }; staff.currentFacing = actor.direction;
+      }
     }
   }
 
   private claimTask(actor: WorkerActor): void {
     const roles = this.rolesForActor(actor);
+    const staff = actor.kind === 'player' ? undefined : this.state.staff.instances.find((item) => item.id === actor.id);
     const task = this.tasks.claim(actor.id, roles, actor.preferredTaskId, (candidate) => {
       const station = this.stationFromTask(candidate);
-      return !station || station.state === 'free' || station.queue[0] === candidate.payload.orderId;
+      const allowed = !staff || staff.automationSettings.allowedTasks.includes(candidate.kind);
+      return allowed && (!station || station.state === 'free' || station.queue[0] === candidate.payload.orderId);
     });
     actor.preferredTaskId = undefined;
     if (!task) return;
@@ -596,7 +693,12 @@ export class RestaurantSimulation {
     actor.taskId = task.id; actor.path = path; actor.pathStatus = path.length ? 'moving' : 'arrived';
     if (path.length) this.tasks.markMoving(task.id, actor.id);
     if (task.kind === 'deliver' && task.payload.deliveryStage === 'serve') { actor.carrying = 'dish'; actor.carryingOrderId = String(task.payload.orderId); }
-    if (task.kind === 'stock_support') actor.carrying = 'ingredients';
+    if (task.kind === 'stock_support' || (task.kind === 'restock_purchase' && task.payload.restockStage === 'inbound')) actor.carrying = 'ingredients';
+    if (task.kind === 'restock_purchase') setPurchaseRequestStage(this.state, String(task.payload.purchaseRequestId), task.payload.restockStage === 'inbound' ? 'delivering' : 'purchasing', actor.id, Date.now());
+    if (task.kind === 'production_batch') {
+      const productionTask = this.state.production.tasks.find((item) => item.id === task.payload.productionTaskId);
+      if (productionTask) productionTask.assignedStaffId = actor.id;
+    }
     const station = this.stationFromTask(task);
     if (station) { station.state = 'reserved'; station.workerId = actor.id; }
   }
@@ -613,12 +715,20 @@ export class RestaurantSimulation {
       if (order.ingredientsState === 'reserved') order.ingredientsState = 'consumed';
       order.state = 'preparing'; order.assignedActorId = actor.id;
     }
-    actor.taskRemaining = this.taskDuration(actor, task); actor.activity = TASK_LABELS[task.kind]; actor.idleReason = '';
+    if (task.kind === 'restock_purchase' && task.payload.restockStage === 'inbound') setPurchaseRequestStage(this.state, String(task.payload.purchaseRequestId), 'storing', actor.id, Date.now());
+    if (task.kind === 'production_batch') markProductionTaskStarted(this.state, String(task.payload.productionTaskId), actor.id, Date.now());
+    actor.taskRemaining = this.taskDuration(actor, task);
+    actor.activity = task.kind === 'restock_purchase' && task.payload.restockStage === 'inbound' ? 'Voltando com o estoque' : TASK_LABELS[task.kind]; actor.idleReason = '';
     const station = this.stationFromTask(task);
     if (station) {
       station.state = 'in_use'; station.workerId = actor.id; station.remaining = actor.taskRemaining;
       const equipmentCenter = { x: station.position.x + (station.size.x - 1) / 2, y: station.position.y + (station.size.y - 1) / 2 };
       actor.direction = directionBetween(actor.position, equipmentCenter, actor.direction);
+    } else {
+      const table = this.tableFor(task.payload.tableId);
+      const seat = this.seatFor(task.payload.seatId);
+      const interactionTarget = table?.position ?? seat?.position;
+      if (interactionTarget) actor.direction = directionBetween(actor.position, interactionTarget, actor.direction);
     }
   }
 
@@ -628,6 +738,8 @@ export class RestaurantSimulation {
     actor.blockedSeconds += delta; actor.pathStatus = 'blocked';
     if (actor.blockedSeconds < BALANCE.movementRecovery.retrySeconds) return;
     actor.blockedSeconds = 0; actor.retryCount += 1; this.grid.releaseReservations(actor.id);
+    const staff = this.state.staff.instances.find((instance) => instance.id === actor.id);
+    if (staff) { staff.recoveryAttempts += 1; staff.stats.blockedRecoveries += 1; staff.currentState = 'recovering'; }
     const path = findPath(this.grid, actor.position, task.target, actor.id);
     if (path.length || this.samePoint(actor.position, task.target)) { actor.path = path; actor.pathStatus = path.length ? 'moving' : 'arrived'; return; }
     this.releaseTaskStation(task);
@@ -641,6 +753,7 @@ export class RestaurantSimulation {
     this.releaseTaskStation(task);
     this.resolveTask(actor, task);
     if (actor.kind === 'player') awardPlayerTaskXp(this.state, task.kind);
+    else awardStaffTaskExperience(this.state, actor.id, task.kind, Date.now());
     this.clearActorTask(actor); this.tasks.prune();
   }
 
@@ -653,6 +766,27 @@ export class RestaurantSimulation {
     else if (task.kind === 'payment' && customer && table && seat && customer.state === 'paying') this.completePayment(customer, table, seat);
     else if (task.kind === 'clean' && table && seat && seat.state === 'dirty') {
       seat.state = 'free'; seat.orderId = undefined; seat.reservationId = undefined; this.refreshTableState(table);
+    } else if (task.kind === 'restock_purchase') {
+      if (task.payload.restockStage === 'outbound') {
+        actor.carrying = 'ingredients';
+        const inbound = this.tasks.add({
+          key: `purchase:${task.payload.purchaseRequestId}:inbound`, kind: 'restock_purchase', role: 'stock',
+          target: { x: Number(task.payload.storageX), y: Number(task.payload.storageY) }, duration: 2.4, priority: Math.min(200, task.priority + 20),
+          payload: { ...task.payload, restockStage: 'inbound' }, reservations: task.reservations,
+        }, this.simulationTime);
+        actor.preferredTaskId = inbound.id;
+        setPurchaseRequestStage(this.state, String(task.payload.purchaseRequestId), 'delivering', actor.id, Date.now());
+        return;
+      }
+      actor.carrying = undefined;
+      const result = completePurchaseRequest(this.state, String(task.payload.purchaseRequestId), actor.id, Date.now());
+      if (result.ok) {
+        this.retryBlockedOrders();
+        gameEvents.emit('toast', { message: `Reposição concluída por ${actor.name}.`, tone: 'success' });
+      } else gameEvents.emit('toast', { message: result.reason ?? 'Reposição bloqueada.', tone: 'warning' });
+    } else if (task.kind === 'production_batch') {
+      const completed = completeProductionTask(this.state, String(task.payload.productionTaskId), this.counterModules, Date.now());
+      gameEvents.emit('toast', { message: completed ? 'Lote entregue aos balcões.' : 'Lote aguardando espaço ou ingredientes.', tone: completed ? 'success' : 'warning' });
     } else if (task.kind === 'stock_support') {
       actor.carrying = undefined;
       const order = this.orderFor(task.payload.orderId);
@@ -662,10 +796,8 @@ export class RestaurantSimulation {
 
   private placeOrder(customer: CustomerRuntime, table: TableRuntime, seat: ChairRuntime): void {
     if (customer.orderId) return;
-    const available = RECIPES.filter((recipe) => recipe.requiredLevel <= this.state.restaurantLevel && recipe.steps.every((step) => {
-      if (step.stationId === 'pickup') return this.counterModules.some((module) => module.assignedRecipeId === recipe.id);
-      return this.stations.some((station) => station.id === step.stationId || station.id.startsWith(`${step.stationId}:`));
-    }));
+    const enabledRecipes = new Set(this.state.enabledRecipeIds);
+    const available = RECIPES.filter((recipe) => enabledRecipes.has(recipe.id) && recipeIsOperational(this.state, recipe));
     if (!available.length) {
       gameEvents.emit('toast', { message: 'Nenhuma receita está ligada a uma cozinha e um balcão completos.', tone: 'warning' });
       return;
@@ -677,13 +809,15 @@ export class RestaurantSimulation {
       stepIndex: 0, plateId: stableRuntimeId('plate'), ingredientReservation: {}, ingredientsState: 'none', paymentCompleted: false,
     };
     this.orders.push(order); customer.orderId = order.id; seat.orderId = order.id; seat.state = 'waiting_food'; this.setCustomerState(customer, 'waiting_food'); this.refreshTableState(table);
+    if (this.placePreparedCounterDish(order)) return;
     if (this.state.readyDishes[recipe.id] > 0 && this.placeReadyDishOnCounter(order)) return;
     const reservation = reserveRecipe(this.state, recipe, 1);
     if (!reservation) {
       order.state = 'awaiting_ingredients';
       const firstStation = this.stationForStep(recipe.steps[0].stationId, recipe.id);
       if (firstStation) firstStation.state = 'no_ingredients';
-      gameEvents.emit('toast', { message: `${this.missingIngredientLabel(order)} · pedido mantido na fila.`, tone: 'warning' });
+      const issue = this.ingredientAvailabilityIssue(order);
+      gameEvents.emit('toast', { message: `${issue.message} · pedido mantido na fila.`, tone: issue.physicallyMissing ? 'warning' : 'info' });
       return;
     }
     order.ingredientReservation = reservation; order.ingredientsState = 'reserved'; order.state = 'awaiting_station'; this.createCookStep(order);
@@ -696,6 +830,15 @@ export class RestaurantSimulation {
     const module = this.counterModules.find((item) => item.id === slot.moduleId)!;
     module.currentQuantity += 1; module.reservedQuantity += 1; slot.stockReservation = [{ moduleId: module.id, quantity: 1 }]; slot.quantity = 1;
     this.state.readyDishes[order.recipeId] -= 1; slot.state = 'occupied'; order.counterSlotId = slot.id; order.state = 'awaiting_pickup'; this.createDelivery(order); return true;
+  }
+
+  private placePreparedCounterDish(order: OrderRuntime): boolean {
+    const slot = this.reserveCounterSlot(order.id, order.recipeId, 'existing');
+    if (!slot) return false;
+    const reservation = this.counterStore.reserve(order.recipeId, 1);
+    if (!reservation) { this.clearCounterSlot(slot); return false; }
+    slot.stockReservation = reservation; slot.quantity = 1; slot.state = 'occupied';
+    order.counterSlotId = slot.id; order.state = 'awaiting_pickup'; this.createDelivery(order); return true;
   }
 
   private createCookStep(order: OrderRuntime): void {
@@ -742,7 +885,7 @@ export class RestaurantSimulation {
     const station = module ? this.stationForCounterModule(module.id) : undefined;
     this.tasks.add({
       key: `deliver:${order.id}:collect`, kind: 'deliver', role: 'service', target: module?.waiterPickupSlot ?? station?.serviceInteraction ?? { x: 8, y: 7 },
-      duration: Math.min(1.2, BALANCE.actionSeconds.deliver / 2), priority: 100,
+      duration: Math.min(1.2, BALANCE.actionSeconds.deliver / 2), priority: 150,
       payload: { orderId: order.id, customerId: order.customerId, tableId: order.tableId, seatId: order.seatId, stationId: station?.id ?? 'pickup', deliveryStage: 'collect' },
       reservations: order.counterSlotId ? [{ type: 'counter', id: order.counterSlotId }] : [],
     }, this.simulationTime);
@@ -797,8 +940,10 @@ export class RestaurantSimulation {
   }
 
   private retryCounterOrders(): void {
-    for (const order of this.orders.filter((item) => item.state === 'awaiting_station')) {
+    for (const order of this.orders.filter((item) => item.state === 'awaiting_station' || item.state === 'awaiting_ingredients')) {
       const recipe = RECIPE_BY_ID[order.recipeId];
+      if (this.prioritizePreparedDish(order)) continue;
+      if (order.state !== 'awaiting_station') continue;
       if (order.ingredientsState === 'none' && this.state.readyDishes[order.recipeId] > 0) { this.placeReadyDishOnCounter(order); continue; }
       const step = recipe.steps[order.stepIndex];
       if (step?.stationId !== 'pickup' || order.counterSlotId || this.counterSlots.some((slot) => slot.state === 'free')) this.createCookStep(order);
@@ -847,19 +992,46 @@ export class RestaurantSimulation {
   activeOrderCount(): number { return this.orders.filter((order) => !TERMINAL_ORDER_STATES.has(order.state)).length; }
 
   prepareConstructionMode(): boolean {
-    this.autoSpawn = false;
-    for (const customer of [...this.customers]) if (!['gone', 'leaving', 'gave_up'].includes(customer.state)) this.beginDeparture(customer, false);
-    const previousSpeed = this.speed; this.speed = 4;
-    for (let elapsed = 0; elapsed < 45 && this.activeCustomerCount() > 0; elapsed += .05 * 4) this.update(.05);
-    for (const customer of [...this.customers]) if (customer.state !== 'gone') this.safeRemoveCustomer(customer, 'fechamento controlado para construção');
-    this.pruneGoneCustomers(); this.speed = 0; this.constructionPaused = true;
+    if (this.constructionPaused) return true;
+    this.speedBeforeConstruction = this.speed;
+    this.speed = 0;
+    this.constructionPaused = true;
     gameEvents.emit('construction:paused', undefined);
-    return this.activeCustomerCount() === 0 && previousSpeed >= 0;
+    return true;
   }
 
   cancelConstructionMode(): void {
-    this.constructionPaused = false; this.autoSpawn = true; this.speed = 1;
+    this.constructionPaused = false;
+    this.speed = this.speedBeforeConstruction;
     gameEvents.emit('construction:resumed', undefined);
+  }
+
+  finalizeConstructionMode(movedChairIds: readonly string[]): number {
+    const moved = new Set(movedChairIds);
+    let displaced = 0;
+    for (const customer of [...this.customers]) {
+      if (!customer.chairIds.some((chairId) => moved.has(chairId))) continue;
+      if (['gone', 'leaving', 'gave_up'].includes(customer.state)) continue;
+      const seat = this.seatFor(customer.seatId);
+      const table = seat ? this.tableFor(seat.tableId) : undefined;
+      this.customerGivesUp(customer);
+      // Moving an occupied chair releases it immediately instead of leaving
+      // a cleaning task tied to the old floor position.
+      this.cancelTasksForCustomer(customer.id);
+      if (seat) {
+        seat.customerId = undefined;
+        seat.reservationId = undefined;
+        seat.orderId = undefined;
+        seat.state = 'free';
+      }
+      if (table) this.refreshTableState(table);
+      displaced += 1;
+    }
+    this.constructionPaused = false;
+    this.speed = this.speedBeforeConstruction;
+    this.prepareSave();
+    gameEvents.emit('construction:resumed', undefined);
+    return displaced;
   }
 
   isConstructionMode(): boolean { return this.constructionPaused; }
@@ -915,6 +1087,33 @@ export class RestaurantSimulation {
   debugSetAutoSpawn(enabled: boolean): void { this.autoSpawn = enabled; }
   debugBeginDeparture(customer: CustomerRuntime, gaveUp = false): void { if (gaveUp) this.customerGivesUp(customer); else this.beginDeparture(customer, false); }
 
+  syncStaffRoster(): void {
+    const validIds = new Set(this.state.staff.instances.map((instance) => instance.id));
+    for (let index = this.actors.length - 1; index >= 0; index -= 1) {
+      const actor = this.actors[index];
+      if (actor.kind === 'player' || validIds.has(actor.id)) continue;
+      if (actor.taskId) this.tasks.release(actor.taskId, actor.id);
+      this.grid.vacate(actor.id); this.grid.releaseReservations(actor.id); this.actors.splice(index, 1);
+    }
+    for (const instance of this.state.staff.instances) {
+      if (this.actors.some((actor) => actor.id === instance.id)) continue;
+      const definition = STAFF_BY_ID[instance.definitionId];
+      const actor = this.makeActor(instance.id, instance.role, instance.customName, definition.assetId, instance.startPosition);
+      this.actors.splice(Math.max(0, this.actors.length - 1), 0, actor);
+      this.grid.occupy(actor.position, actor.id);
+    }
+  }
+
+  private prioritizePreparedDish(order: OrderRuntime): boolean {
+    if (order.stepIndex !== 0 || order.assignedActorId || this.counterStore.available(order.recipeId) < 1) return false;
+    const cookTasks = this.tasks.list().filter((task) => task.kind === 'cook_step' && task.payload.orderId === order.id);
+    if (cookTasks.some((task) => task.status !== 'pending')) return false;
+    for (const task of cookTasks) this.tasks.cancel(task.id, 'Prato pronto priorizado para o cliente.');
+    if (order.ingredientsState === 'reserved') releaseReservation(this.state, order.ingredientReservation);
+    order.ingredientReservation = {}; order.ingredientsState = 'none';
+    return this.placePreparedCounterDish(order);
+  }
+
   missingIngredients(): { id: IngredientId; needed: number; available: number }[] {
     const demand = new Map<IngredientId, number>();
     for (const order of this.orders.filter((item) => item.state === 'awaiting_ingredients')) {
@@ -925,7 +1124,7 @@ export class RestaurantSimulation {
 
   prepareSave(now = Date.now()): OperationSaveState {
     const operation: OperationSaveState = {
-      dataVersion: 2, savedAt: now, simulationTime: this.simulationTime, customerSequence: this.customerSequence, spawnCountdown: this.spawnCountdown,
+      dataVersion: 3, savedAt: now, simulationTime: this.simulationTime, customerSequence: this.customerSequence, spawnCountdown: this.spawnCountdown,
       actors: this.toRecords(this.actors), customers: this.toRecords(this.customers.filter((customer) => customer.state !== 'gone')),
       orders: this.toRecords(this.orders), tables: this.toRecords(this.tables), stations: this.toRecords(this.stations),
       tasks: this.tasks.serialize(), counterSlots: this.toRecords(this.counterSlots), counterModules: this.toRecords(this.counterModules),
@@ -1138,8 +1337,8 @@ export class RestaurantSimulation {
   private reserveCounterSlot(orderId: string, recipeId: RecipeId, mode: 'existing' | 'incoming' = 'existing'): CounterSlotRuntime | undefined {
     const existing = this.slotForOrder(orderId); if (existing) return existing;
     let modules = this.counterModules.filter((item) => item.assignedRecipeId === recipeId);
-    if (!modules.length) {
-      const assignable = this.counterModules.find((item) => !item.assignedRecipeId && item.currentQuantity === 0 && item.reservedQuantity === 0);
+    if (!modules.some((item) => mode === 'incoming' ? item.currentQuantity < item.maxCapacity : item.currentQuantity - item.reservedQuantity > 0) && mode === 'incoming') {
+      const assignable = this.counterModules.find((item) => item.currentQuantity === 0 && item.reservedQuantity === 0 && (item.incomingReservedQuantity ?? 0) === 0);
       if (assignable) { assignable.assignedRecipeId = recipeId; modules = [assignable]; }
     }
     const module = modules.find((item) => mode === 'incoming' ? item.currentQuantity < item.maxCapacity : item.currentQuantity - item.reservedQuantity > 0);
@@ -1161,9 +1360,14 @@ export class RestaurantSimulation {
     const free = readyDishCapacity(this.state) - readyDishUsed(this.state);
     if (free >= 1) this.state.readyDishes[order.recipeId] += 1;
   }
-  private missingIngredientLabel(order: OrderRuntime): string {
+  private ingredientAvailabilityIssue(order: OrderRuntime): { message: string; physicallyMissing: boolean } {
     const missing = RECIPE_BY_ID[order.recipeId].ingredients.find((part) => this.state.inventory[part.ingredientId] - this.state.inventoryReserved[part.ingredientId] < part.amount);
-    return missing ? `FALTA ${missing.ingredientId.toUpperCase()} · necessário ${missing.amount}` : 'Faltam ingredientes';
+    if (!missing) return { message: 'Ingredientes temporariamente indisponíveis', physicallyMissing: false };
+    const ingredient = INGREDIENT_BY_ID[missing.ingredientId];
+    const physicallyMissing = this.state.inventory[missing.ingredientId] < missing.amount;
+    return physicallyMissing
+      ? { message: `FALTA ${ingredient.name.toUpperCase()} · necessário ${missing.amount}`, physicallyMissing: true }
+      : { message: `${ingredient.name} em uso em outro preparo`, physicallyMissing: false };
   }
   private releaseTaskStation(task: RestaurantTask): void {
     const station = this.stationFromTask(task);
@@ -1171,7 +1375,7 @@ export class RestaurantSimulation {
   }
   private clearActorTask(actor: WorkerActor): void {
     actor.taskId = undefined; actor.taskRemaining = 0; actor.path = []; actor.moveProgress = 0; actor.activity = 'Disponível'; actor.idleReason = 'Aguardando tarefa'; actor.pathStatus = 'idle';
-    if (!actor.carryingOrderId) actor.carrying = undefined;
+    if (!actor.carryingOrderId && !actor.preferredTaskId) actor.carrying = undefined;
     this.grid.releaseReservations(actor.id);
   }
   private rolesForActor(actor: WorkerActor): HelpRole[] {
@@ -1184,18 +1388,30 @@ export class RestaurantSimulation {
     const result = advanceTileMover(this.grid, mover, delta, speed);
     const visualMoved = Math.abs(mover.visual.x - before.x) + Math.abs(mover.visual.y - before.y) > .0001;
     mover.motionState = visualMoved ? 'walk' : 'idle';
+    if (visualMoved) {
+      const staff = this.state.staff.instances.find((instance) => instance.id === mover.id);
+      if (staff) { staff.stats.distanceWalked += Math.abs(mover.visual.x - before.x) + Math.abs(mover.visual.y - before.y); staff.lastProgressAt = Date.now(); }
+    }
     if (result.moved) mover.pathStatus = mover.path.length ? 'moving' : 'arrived';
     else if (result.blocked) mover.pathStatus = 'blocked';
     else if (!mover.path.length && mover.pathStatus === 'moving') mover.pathStatus = 'arrived';
     return result;
   }
   private workerSpeed(actor: WorkerActor): number {
-    if (actor.kind !== 'player' || !this.state.profile) return 2.5 * BALANCE.movementSpeedMultiplier;
+    if (actor.kind !== 'player') {
+      const staff = this.state.staff.instances.find((instance) => instance.id === actor.id);
+      return 2.5 * BALANCE.movementSpeedMultiplier * (staff ? effectiveMovementSpeed(staff) : 1);
+    }
+    if (!this.state.profile) return 2.5 * BALANCE.movementSpeedMultiplier;
     const profession = this.professionForRole(this.state.profile.helpRole);
     return 2.5 * BALANCE.movementSpeedMultiplier * (1 + (this.state.profile.professions[profession].level - 1) * .05);
   }
   private taskDuration(actor: WorkerActor, task: RestaurantTask): number {
-    if (actor.kind !== 'player' || !this.state.profile) return task.duration;
+    if (actor.kind !== 'player') {
+      const staff = this.state.staff.instances.find((instance) => instance.id === actor.id);
+      return task.duration / Math.max(.5, staff ? effectiveStaffSpeed(staff) : 1);
+    }
+    if (!this.state.profile) return task.duration;
     const profession = this.professionForRole(task.role); const bonus = (this.state.profile.professions[profession].level - 1) * BALANCE.professionSpeedPerLevel;
     return task.duration * Math.max(.65, 1 - bonus);
   }

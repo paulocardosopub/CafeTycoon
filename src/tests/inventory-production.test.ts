@@ -9,18 +9,20 @@ describe('estoque e receitas', () => {
   it('calcula e consome ingredientes exatamente uma vez', () => {
     const state = createDefaultState();
     const beforeEggs = state.inventory.egg;
+    const beforeTomato = state.inventory.tomato;
+    const beforeSeasoning = state.inventory.seasoning;
     expect(canConsumeRecipe(state, RECIPE_BY_ID.omelette)).toBe(true);
     expect(consumeRecipe(state, RECIPE_BY_ID.omelette)).not.toBeNull();
     expect(state.inventory.egg).toBe(beforeEggs - 2);
-    expect(state.inventory.tomato).toBe(9);
-    expect(state.inventory.seasoning).toBe(13);
+    expect(state.inventory.tomato).toBe(beforeTomato - 1);
+    expect(state.inventory.seasoning).toBe(beforeSeasoning - 1);
   });
 
   it('respeita a capacidade do estoque', () => {
     const state = createDefaultState();
     expect(inventoryUsed(state)).toBeLessThanOrEqual(inventoryCapacity(state));
     state.upgrades.inventory = 2;
-    expect(inventoryCapacity(state)).toBe(150);
+    expect(inventoryCapacity(state)).toBe(540);
   });
 });
 

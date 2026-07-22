@@ -2,6 +2,10 @@ import type {
   BuiltAreaRect, Direction, FurnitureDefinition, FurnitureWorkSlot, GridPoint, PlacedFurniture,
 } from '../../../core/types';
 import { FURNITURE_BY_ID } from '../../data/furniture/catalog';
+import {
+  getFootprintCells, getFootprintCenter, getRotatedFootprint, getSpriteAnchor, getVisualBounds,
+  gridToWorld, orientationTurns as spatialOrientationTurns, rotateOffset as spatialRotateOffset, snapToGrid, worldToGrid,
+} from '../../grid/SpatialLayoutService';
 
 const ROTATION_ORDER: Direction[] = ['sw', 'se', 'ne', 'nw'];
 
@@ -19,7 +23,7 @@ export interface PlacementValidation {
 }
 
 export function orientationTurns(orientation: Direction): number {
-  return ROTATION_ORDER.indexOf(orientation);
+  return spatialOrientationTurns(orientation);
 }
 
 export function rotateDirection(direction: Direction, turns: number): Direction {
@@ -28,20 +32,14 @@ export function rotateDirection(direction: Direction, turns: number): Direction 
 }
 
 export function orientedFootprint(definition: FurnitureDefinition, orientation: Direction): { width: number; depth: number } {
-  return orientationTurns(orientation) % 2
-    ? { width: definition.footprintDepth, depth: definition.footprintWidth }
-    : { width: definition.footprintWidth, depth: definition.footprintDepth };
+  return getRotatedFootprint(definition, orientation);
 }
 
 export function rotateOffset(point: GridPoint, definition: FurnitureDefinition, orientation: Direction): GridPoint {
-  const turns = orientationTurns(orientation);
-  const width = definition.footprintWidth;
-  const depth = definition.footprintDepth;
-  if (turns === 1) return { x: depth - 1 - point.y, y: point.x };
-  if (turns === 2) return { x: width - 1 - point.x, y: depth - 1 - point.y };
-  if (turns === 3) return { x: point.y, y: width - 1 - point.x };
-  return { ...point };
+  return spatialRotateOffset(point, definition.footprintWidth, definition.footprintDepth, orientation);
 }
+
+export { getFootprintCells, getFootprintCenter, getSpriteAnchor, getVisualBounds, gridToWorld, snapToGrid, worldToGrid };
 
 export function occupiedCells(item: PlacedFurniture, definition = FURNITURE_BY_ID[item.definitionId]): GridPoint[] {
   if (!definition) return [];
@@ -79,11 +77,13 @@ export function validateFurniturePlacement(
   const warnings: string[] = [];
   const occupiedByOthers = new Set(furniture.filter((item) => item.id !== candidate.id).flatMap((item) => occupiedCells(item)).map(key));
   if (cells.some((cell) => !cellInBuiltArea(cell, builtAreas))) errors.push('O footprint está fora da área construída.');
+  if (cells.some((cell) => isStructuralWall(cell, builtAreas, entrance))) errors.push('O footprint invade uma parede.');
   if (cells.some((cell) => (cell.x === entrance.x || cell.x === entrance.x + 1) && cell.y === entrance.y)) errors.push('A entrada e a saída precisam ficar livres.');
   if (cells.some((cell) => occupiedByOthers.has(key(cell)))) errors.push('O footprint sobrepõe outro móvel.');
   const allBlocked = new Set([...occupiedByOthers, ...cells.map(key)]);
   for (const slot of slots.filter((item) => item.required)) {
     if (!cellInBuiltArea(slot.point, builtAreas)) errors.push(`WorkSlot obrigatório fora da área: ${slot.id}.`);
+    else if (isStructuralWall(slot.point, builtAreas, entrance)) errors.push(`WorkSlot obrigatório bloqueado por parede: ${slot.id}.`);
     else if (allBlocked.has(key(slot.point))) errors.push(`WorkSlot obrigatório bloqueado: ${slot.id}.`);
   }
   const reachable = reachableCells(entrance, builtAreas, allBlocked);
@@ -121,6 +121,14 @@ function reachableCells(start: GridPoint, areas: readonly BuiltAreaRect[], block
     }
   }
   return seen;
+}
+
+function isStructuralWall(point: GridPoint, areas: readonly BuiltAreaRect[], entrance: GridPoint): boolean {
+  const base = areas.find((area) => area.kind === 'base');
+  if (!base) return false;
+  const onEdge = point.x === base.x || point.y === base.y || point.x === base.x + base.width - 1 || point.y === base.y + base.depth - 1;
+  const doorway = point.y === entrance.y && (point.x === entrance.x || point.x === entrance.x + 1);
+  return onEdge && !doorway;
 }
 
 function nearestBuiltCell(point: GridPoint, areas: readonly BuiltAreaRect[], blocked: Set<string>): GridPoint | undefined {

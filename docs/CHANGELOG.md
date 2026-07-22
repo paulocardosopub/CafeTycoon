@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.0.6 — 2026-07-21
+
+### Correção estrutural espacial
+
+- Unificadas grade, footprints, âncoras inferiores, escalas, profundidade, WorkSlots, SeatSlots e ApproachSlots.
+- Corrigido o efeito de móveis “flutuando”: o contato visual passa do centro ao vértice inferior do footprint.
+- Normalizadas bases modulares de balcões, fogão, pia, geladeira e armazenamento; elementos funcionais permanecem acima da bancada.
+- Mesas agora ocupam 1×1, aceitam no máximo duas cadeiras opostas e preservam excedentes no inventário.
+- Editor passa a operar diretamente no salão com preview verde/vermelho, clique/arraste, ✓/×/Escape e desseleção ao concluir.
+- Facing usa vetores visuais e personagens parados não permanecem em animação de caminhada.
+- Save atualizado para schema 5 com backup e migração idempotente.
+
+- Adicionados `StaffDefinition`, `StaffInstance` e candidatos data-driven, com contratação confirmada, posição inicial validada, limite configurável, gestão, localização, pausa, demissão e persistência.
+- Adicionados turnos, folha salarial por período, proteção contra saldo negativo, atraso sem demissão automática, experiência moderada e treinamento com custo/duração.
+- Transformado o estoquista em agente físico: compra, transporte, animação de carga, pathfinding, WorkSlot externo e depósito apenas no armazenamento correto.
+- Integrados C5, C6, geladeira e freezer à capacidade física por tipo (`dry`, `general`, `refrigerated`, `frozen`), com reservas e overflow legado seguro.
+- Evoluída a compra rápida para solicitações atômicas; adicionadas lista de compras, cancelamento, responsável, estados e histórico limitado.
+- Adicionadas políticas globais e por ingrediente, desativadas por padrão, com saldo protegido, limites por ciclo/período, deduplicação, capacidade e motivos de bloqueio.
+- Adicionada central de produção até 999 unidades, modos, prioridades, lotes de até 50, pausa/retomada/cancelamento, estoque-alvo e distribuição segura entre balcões 1×1.
+- Centralizada a coordenação de pedidos, reposição e produção com reservas de funcionário, ingrediente, equipamento, WorkSlot, armazenamento e balcão; pedidos de clientes permanecem prioritários.
+- Integrado o personagem do jogador às tarefas de estoque e produção sem salário e sem duplicar lógica.
+- Ampliados modo técnico, recuperação de ausência de progresso, filtros, diagnóstico de reservas, tarefa, rota e bloqueios.
+- Ampliado o offline determinístico, ainda limitado a 8 horas, para salários, treinamento, compras automáticas, produção, custos e lucro líquido.
+- Adicionada migração idempotente de saves 0.0.5 para schema 4, com backup anterior, preservação de equipe/layout/moedas/pratos/ingredientes e relatório de ajustes.
+- Adicionados 48 testes unitários de aceite e 8 fluxos de integração, preservando a suíte anterior.
+- Validada a interface em desktop e no viewport 390×844, com 20 capturas reais em `artifacts/v006/`.
+
 ## 0.0.3 — 2026-07-19
 
 - Elevado o padrão visual da própria 0.0.3 para `reference-hd-v2`, sem alterar a versão do jogo.

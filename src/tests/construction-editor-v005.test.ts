@@ -33,7 +33,8 @@ describe('editor físico e loja da 0.0.5', () => {
   it('respeita footprint 1×1, 2×1 e rotação para 1×2', () => {
     const sink = FURNITURE_BY_ID['washing.b5.sink'];
     const stove = FURNITURE_BY_ID['cooking.a1.stove'];
-    expect(orientedFootprint(sink, 'sw')).toEqual({ width: 1, depth: 1 });
+    expect(orientedFootprint(sink, 'sw')).toEqual({ width: 2, depth: 1 });
+    expect(orientedFootprint(sink, 'se')).toEqual({ width: 1, depth: 2 });
     expect(orientedFootprint(stove, 'sw')).toEqual({ width: 2, depth: 1 });
     expect(orientedFootprint(stove, 'se')).toEqual({ width: 1, depth: 2 });
     expect(occupiedCells(item('a1', stove.id, 5, 5, 'se'))).toEqual(expect.arrayContaining([{ x: 5, y: 5 }, { x: 5, y: 6 }]));
@@ -95,24 +96,41 @@ describe('editor físico e loja da 0.0.5', () => {
     expect(editor.draft.construction.builtAreas.map((area) => [area.width, area.depth])).toEqual(expect.arrayContaining([[4, 4], [6, 6], [8, 8]]));
   });
 
-  it('reposiciona a equipe somente em célula segura', () => {
+  it('mantém a equipe vinculada diante do móvel ao reposicioná-lo', () => {
     const state = createDefaultState(0);
     const editor = new ConstructionEditor(state);
     expect(editor.setStaffStart({ staffId: 'cook-0', gridX: 4, gridY: 2, facing: 'ne', returnWhenIdle: true }).ok).toBe(false);
-    expect(editor.setStaffStart({ staffId: 'cook-0', gridX: 14, gridY: 14, facing: 'ne', returnWhenIdle: true }).ok).toBe(true);
+    expect(editor.setStaffStart({ staffId: 'cook-0', gridX: 14, gridY: 14, facing: 'ne', returnWhenIdle: true }).ok).toBe(false);
+    expect(editor.move('furniture:a1', 12, 14).ok).toBe(true);
+    expect(editor.draft.construction.staffStartPositions.find((start) => start.staffId === 'cook-0')).toEqual(expect.objectContaining({ linkedFurnitureId: 'furniture:a1', gridX: 12, gridY: 15 }));
   });
 
-  it('contrata novos funcionários, cobra uma vez e permite direcioná-los no salão', () => {
+  it('exige um fogão extra, cobra uma vez e vincula o novo cozinheiro', () => {
     const state = createDefaultState(0); state.coins = 2_000;
     const editor = new ConstructionEditor(state);
-    expect(editor.hireStaff('cook-1').ok).toBe(true);
-    expect(editor.draft.coins).toBe(1_550);
     expect(editor.hireStaff('cook-1').ok).toBe(false);
-    expect(editor.setStaffStart({ staffId: 'cook-1', gridX: 14, gridY: 14, facing: 'sw', returnWhenIdle: true }).ok).toBe(true);
+    expect(editor.place('cooking.a1.stove', 12, 14).ok).toBe(true);
+    expect(editor.hireStaff('cook-1').ok).toBe(true);
+    expect(editor.draft.coins).toBe(1_290);
+    expect(editor.hireStaff('cook-1').ok).toBe(false);
+    expect(editor.setStaffStart({ staffId: 'cook-1', gridX: 14, gridY: 14, facing: 'sw', returnWhenIdle: true }).ok).toBe(false);
     expect(editor.confirm().ok).toBe(true);
     const simulation = new RestaurantSimulation(state);
     expect(simulation.actors.filter((actor) => actor.kind === 'cook')).toHaveLength(2);
-    expect(simulation.actors.find((actor) => actor.assetId === 'cook-1')?.position).toEqual({ x: 14, y: 14 });
+    expect(simulation.actors.find((actor) => actor.assetId === 'cook-1')?.position).toEqual({ x: 12, y: 15 });
+  });
+
+  it('pré-visualiza quadrados da ampliação e só cobra após o ✓', () => {
+    const state = createDefaultState(0); state.coins = 1_000;
+    const editor = new ConstructionEditor(state);
+    expect(editor.previewExpansion('expansion-small-4x4', 'east').ok).toBe(true);
+    expect(editor.draft.construction.builtAreas.some((area) => area.expansionDefinitionId === 'expansion-small-4x4')).toBe(true);
+    expect(editor.draft.coins).toBe(1_000);
+    expect(editor.cancelExpansion().ok).toBe(true);
+    expect(editor.draft.construction.builtAreas.some((area) => area.expansionDefinitionId === 'expansion-small-4x4')).toBe(false);
+    expect(editor.previewExpansion('expansion-small-4x4', 'south').ok).toBe(true);
+    expect(editor.confirmExpansion().ok).toBe(true);
+    expect(editor.draft.coins).toBe(820);
   });
 
   it('mantém módulos 1×1 conectados e estoque reservado atomicamente sem negativo', () => {

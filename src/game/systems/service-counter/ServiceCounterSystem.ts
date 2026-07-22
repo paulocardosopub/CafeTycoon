@@ -18,6 +18,7 @@ export function modulesFromFurniture(furniture: readonly PlacedFurniture[], prev
       assignedRecipeId: old?.assignedRecipeId,
       currentQuantity: Math.max(0, Math.min(999, Math.floor(old?.currentQuantity ?? 0))),
       reservedQuantity: Math.max(0, Math.floor(old?.reservedQuantity ?? 0)),
+      incomingReservedQuantity: Math.max(0, Math.floor(old?.incomingReservedQuantity ?? 0)),
       maxCapacity: COUNTER_CAPACITY_BY_LEVEL[Math.min(4, Math.max(1, item.level))],
       skinId: item.skinId, level: item.level, connectionVariant: 'isolated' as ServiceCounterConnection,
       kitchenDropSlot: slots.find((slot) => slot.purpose === 'kitchen-drop')?.point ?? { x: item.gridX, y: item.gridY - 1 },

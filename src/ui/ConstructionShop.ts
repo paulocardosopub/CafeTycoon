@@ -7,9 +7,10 @@ import { STAFF_BY_ID, STAFF_CATALOG } from '../game/data/staff';
 import { ConstructionEditor, type EditorResult } from '../game/systems/construction/ConstructionEditor';
 import type { SaveRepository } from '../game/save/SaveRepository';
 import type { RestaurantSimulation } from '../game/simulation/RestaurantSimulation';
+import { availableStaffFurniture, staffFurnitureRequirement } from '../game/systems/construction/StaffStartSystem';
 
 const CONSTRUCTION_RELOAD_SESSION_KEY = 'bistro-bloom-construction-reload';
-const ASSET_VERSION = '0.0.4-blender-7';
+const ASSET_VERSION = '0.0.6-blender-7';
 
 type CatalogGroup = 'all' | 'dining' | 'kitchen' | 'service' | 'storage' | 'decoration';
 
@@ -37,6 +38,7 @@ export class ConstructionShop {
   private lastWorldItemAt = 0;
   private status = 'Escolha um móvel e toque em um quadrado livre.';
   private statusTone: 'info' | 'success' | 'warning' = 'info';
+  private originalChairLayout = new Map<string, { gridX: number; gridY: number; orientation: Direction }>();
 
   constructor(
     private readonly root: HTMLElement,
@@ -49,6 +51,9 @@ export class ConstructionShop {
     if (this.overlay) return;
     if (!this.simulation.prepareConstructionMode()) return;
     this.editor = new ConstructionEditor(this.state);
+    this.originalChairLayout = new Map(this.state.construction.placedFurniture
+      .filter((item) => FURNITURE_BY_ID[item.definitionId]?.functionId === 'chair')
+      .map((item) => [item.id, { gridX: item.gridX, gridY: item.gridY, orientation: item.orientation }]));
     this.overlay = document.createElement('section');
     this.overlay.className = 'construction-overlay construction-live-overlay';
     this.overlay.setAttribute('aria-label', 'Loja e organização do restaurante');
@@ -72,7 +77,17 @@ export class ConstructionShop {
         this.pendingWorldCellTimer = undefined;
         this.selectStaff(staffId);
       }),
+      gameEvents.on<{ itemId: string; x: number; y: number }>('construction:world-drag', ({ itemId, x, y }) => {
+        if (this.pendingDefinitionId || this.pendingStoredItemId || this.staffPlacementId) return;
+        if (this.selectedItemId !== itemId) this.selectItem(itemId);
+        this.apply(this.editor!.previewFurnitureMove(itemId, x, y), 'Prévia reposicionada. Use ✓ para confirmar.');
+      }),
+      gameEvents.on('construction:edit-confirm', () => this.confirmSelectedEdit()),
+      gameEvents.on('construction:edit-cancel', () => this.cancelSelectedEdit()),
     ];
+    const keyHandler = (event: KeyboardEvent) => { if (event.key === 'Escape' && this.editor?.editSession) this.cancelSelectedEdit(); };
+    window.addEventListener('keydown', keyHandler);
+    this.previewUnsubscribers.push(() => window.removeEventListener('keydown', keyHandler));
     this.render();
   }
 
@@ -95,12 +110,18 @@ export class ConstructionShop {
     this.pendingStoredItemId = undefined;
     this.staffPlacementId = undefined;
     this.moveMode = true;
-    this.setStatus('Móvel selecionado. Toque diretamente em outro quadrado do salão para movê-lo.', 'info');
+    this.editor?.beginFurnitureEdit(itemId);
+    this.setStatus('Móvel selecionado. Clique ou arraste; ✓ confirma e × restaura.', 'info');
   }
 
   private selectStaff(staffId: string): void {
     const position = this.editor?.draft.construction.staffStartPositions.find((item) => item.staffId === staffId);
     if (!position) return;
+    if (position.linkedFurnitureId) {
+      const furniture = this.editor?.draft.construction.placedFurniture.find((item) => item.id === position.linkedFurnitureId);
+      this.setStatus(`Este funcionário acompanha automaticamente ${furniture ? FURNITURE_BY_ID[furniture.definitionId].name : 'o móvel vinculado'}.`, 'info');
+      return;
+    }
     this.staffPlacementId = staffId;
     this.staffPlacementFacing = position.facing;
     this.selectedItemId = undefined;
@@ -152,7 +173,9 @@ export class ConstructionShop {
       this.setStatus(this.moveMode ? 'Toque no novo quadrado diretamente no restaurante.' : 'Selecione um móvel no restaurante primeiro.', this.moveMode ? 'info' : 'warning');
       return;
     }
-    if (action === 'rotate' && this.selectedItemId) this.apply(this.editor.rotate(this.selectedItemId), 'Móvel girado.');
+    if (action === 'rotate' && this.selectedItemId) this.apply(this.editor.previewFurnitureRotation(this.selectedItemId), 'Prévia girada. Use ✓ para confirmar.');
+    else if (action === 'confirm-item') this.confirmSelectedEdit();
+    else if (action === 'cancel-item') this.cancelSelectedEdit();
     else if (action === 'store' && this.selectedItemId) this.apply(this.editor.store(this.selectedItemId, true), 'Móvel guardado sem perder a compra.');
     else if (action === 'sell' && this.selectedItemId) {
       if (!window.confirm('Vender este móvel pelo valor de revenda?')) return;
@@ -160,17 +183,18 @@ export class ConstructionShop {
     } else if (action === 'skin' && this.selectedItemId) this.apply(this.editor.changeSkin(this.selectedItemId, target.dataset.id!), 'Acabamento aplicado.');
     else if (action === 'counter-recipe' && this.selectedItemId) this.apply(this.editor.assignCounterRecipe(this.selectedItemId, target.dataset.id as RecipeId), 'Receita ligada a este módulo.');
     else if (action === 'surface') this.apply(this.editor.setSurface(target.dataset.kind as 'floor' | 'wall' | 'door' | 'window', target.dataset.id!, Number(target.dataset.price ?? 0)), 'Revestimento aplicado.');
-    else if (action === 'expansion') this.apply(this.editor.buyExpansion(target.dataset.id!, target.dataset.side as 'north' | 'east' | 'south' | 'west'), 'Área comprada e liberada.');
+    else if (action === 'expansion') this.apply(this.editor.previewExpansion(target.dataset.id!, target.dataset.side as 'north' | 'east' | 'south' | 'west'), 'Quadrados selecionados. Use ✓ para comprar ou × para cancelar.');
+    else if (action === 'confirm-expansion') this.apply(this.editor.confirmExpansion(), 'Ampliação comprada. Confirme e reabra para aplicar.');
+    else if (action === 'cancel-expansion') this.apply(this.editor.cancelExpansion(), 'Seleção de ampliação cancelada.');
     else if (action === 'hire-staff') {
       const staffId = target.dataset.id!;
       const result = this.editor.hireStaff(staffId);
       if (!result.ok) { this.apply(result, ''); return; }
       const hired = STAFF_BY_ID[staffId];
-      this.staffPlacementId = staffId;
-      this.staffPlacementFacing = hired.facing;
+      this.staffPlacementId = undefined;
       this.selectedItemId = undefined;
       this.pendingDefinitionId = undefined;
-      this.status = `${hired.name} foi contratado(a). Toque no salão para definir onde começa.`;
+      this.status = `${hired.name} foi contratado(a) e vinculado(a) ao móvel disponível.`;
       this.statusTone = 'success';
       this.render();
       return;
@@ -209,15 +233,16 @@ export class ConstructionShop {
         this.selectedItemId = this.editor.draft.construction.placedFurniture.find((item) => !before.has(item.id))?.id;
         this.pendingDefinitionId = undefined;
         this.pendingStoredItemId = undefined;
+        if (this.selectedItemId) this.editor.beginFurnitureEdit(this.selectedItemId);
       }
       this.apply(result, 'Móvel colocado.');
       return;
     }
     if (this.selectedItemId) {
-      const result = this.editor.move(this.selectedItemId, x, y);
+      const result = this.editor.previewFurnitureMove(this.selectedItemId, x, y);
       if (!result.ok && result.reason) result.reason = `Quadrado ${x},${y}: ${result.reason}`;
       if (result.ok) this.moveMode = true;
-      this.apply(result, 'Móvel reposicionado.');
+      this.apply(result, 'Prévia reposicionada. Use ✓ para confirmar.');
       return;
     }
     this.setStatus('Escolha um móvel na loja ou selecione um item já colocado.', 'info');
@@ -241,6 +266,20 @@ export class ConstructionShop {
     this.render();
   }
 
+  private confirmSelectedEdit(): void {
+    if (!this.editor?.editSession) return;
+    const result = this.editor.confirmFurnitureEdit();
+    if (result.ok) { this.moveMode = false; this.selectedItemId = undefined; }
+    this.apply(result, 'Posição confirmada. Móvel desselecionado.');
+  }
+
+  private cancelSelectedEdit(): void {
+    if (!this.editor?.editSession) return;
+    const result = this.editor.cancelFurnitureEdit();
+    if (result.ok) { this.moveMode = false; this.selectedItemId = undefined; }
+    this.apply(result, 'Alteração cancelada; posição original restaurada.');
+  }
+
   private cancel(): void {
     this.editor?.cancel();
     if (this.pendingWorldCellTimer !== undefined) window.clearTimeout(this.pendingWorldCellTimer);
@@ -251,6 +290,7 @@ export class ConstructionShop {
     this.overlay?.remove();
     this.overlay = undefined;
     this.editor = undefined;
+    this.originalChairLayout.clear();
   }
 
   private async confirm(): Promise<void> {
@@ -260,7 +300,14 @@ export class ConstructionShop {
       this.apply(result, '');
       return;
     }
-    this.state.operation = undefined;
+    const currentChairs = new Map(this.state.construction.placedFurniture
+      .filter((item) => FURNITURE_BY_ID[item.definitionId]?.functionId === 'chair')
+      .map((item) => [item.id, item]));
+    const movedChairIds = [...this.originalChairLayout].filter(([id, original]) => {
+      const current = currentChairs.get(id);
+      return !current || current.gridX !== original.gridX || current.gridY !== original.gridY || current.orientation !== original.orientation;
+    }).map(([id]) => id);
+    this.simulation.finalizeConstructionMode(movedChairIds);
     this.state.lastActiveAt = Date.now();
     if (this.pendingWorldCellTimer !== undefined) window.clearTimeout(this.pendingWorldCellTimer);
     this.pendingWorldCellTimer = undefined;
@@ -277,22 +324,22 @@ export class ConstructionShop {
     const draft = this.editor.draft;
     const selected = draft.construction.placedFurniture.find((item) => item.id === this.selectedItemId);
     const selectedDefinition = selected ? FURNITURE_BY_ID[selected.definitionId] : undefined;
+    const editSession = this.editor.editSession;
     const selectedCounter = selected ? draft.construction.serviceCounters.find((module) => module.id === selected.id) : undefined;
-    const visibleCatalog = FURNITURE_DEFINITIONS.filter((definition) => matchesGroup(definition.category, this.group));
+    const visibleCatalog = FURNITURE_DEFINITIONS.filter((definition) => matchesGroup(definition.category, this.group))
+      .filter((definition) => !['service.c2.left', 'service.c3.middle', 'service.c4.right'].includes(definition.id));
+    const pendingExpansion = this.editor.pendingExpansion;
     const selectedPanel = selected && selectedDefinition ? `
       <article class="construction-selected">
         <img src="${thumbnail(selectedDefinition.spriteSet[selected.orientation])}" alt="" />
         <div><small>${selectedDefinition.code} · ${selectedDefinition.footprintWidth}×${selectedDefinition.footprintDepth}</small><strong>${escapeHtml(selectedDefinition.name)}</strong><span>Posição ${selected.gridX},${selected.gridY} · ${directionLabel(selected.orientation)}</span></div>
-        <div class="construction-actions"><button data-editor-action="move">Mover</button><button data-editor-action="rotate">Girar</button><button data-editor-action="store">Guardar</button><button data-editor-action="sell">Vender ${selectedDefinition.resaleValue}</button></div>
+        <div class="construction-actions contextual"><button class="confirm-placement" data-editor-action="confirm-item" ${editSession?.validationState === 'invalid' ? 'disabled' : ''} aria-label="Confirmar posição">✓</button><button class="cancel-placement" data-editor-action="cancel-item" aria-label="Cancelar e restaurar">×</button><button data-editor-action="rotate">↻ Girar</button><button data-editor-action="store">Guardar</button><button data-editor-action="sell">Vender ${selectedDefinition.resaleValue}</button></div>
+        ${editSession?.validationErrors.length ? `<p class="placement-error">${escapeHtml(editSession.validationErrors[0])}</p>` : ''}
         <div class="skin-actions">${selectedDefinition.skinIds.map((skin) => `<button data-editor-action="skin" data-id="${skin}" class="${selected.skinId === skin ? 'active' : ''}">${skin.replaceAll('-', ' ')}</button>`).join('')}${selectedCounter ? RECIPES.filter((recipe) => recipe.requiredLevel <= this.state.restaurantLevel).map((recipe) => `<button data-editor-action="counter-recipe" data-id="${recipe.id}" class="${selectedCounter.assignedRecipeId === recipe.id ? 'active' : ''}">${recipe.icon} ${escapeHtml(recipe.name)}</button>`).join('') : ''}</div>
       </article>` : '<div class="construction-empty-selection">Selecione um móvel colocado para editar.</div>';
     const stored = draft.construction.storedFurniture.map((item) => {
       const definition = FURNITURE_BY_ID[item.definitionId];
       return definition ? `<button class="stored-card" data-editor-action="stored" data-id="${item.id}"><img src="${thumbnail(definition.spriteSet.sw)}" alt=""/><span><b>${definition.code}</b>${escapeHtml(definition.name)}</span></button>` : '';
-    }).join('');
-    const placed = draft.construction.placedFurniture.map((item) => {
-      const definition = FURNITURE_BY_ID[item.definitionId];
-      return definition ? `<button class="stored-card ${item.id === this.selectedItemId ? 'selected' : ''}" data-editor-action="select-item" data-id="${item.id}"><img src="${thumbnail(definition.spriteSet[item.orientation])}" alt=""/><span><b>${definition.code} · ${escapeHtml(definition.name)}</b><small>quadrado ${item.gridX},${item.gridY}</small></span></button>` : '';
     }).join('');
     const staffIds = new Set(draft.construction.staffStartPositions.map((item) => item.staffId));
     const activeStaff = [
@@ -301,9 +348,14 @@ export class ConstructionShop {
     ];
     const staffRoster = activeStaff.map((staff) => {
       const position = draft.construction.staffStartPositions.find((item) => item.staffId === staff.id);
-      return `<button class="staff-card ${this.staffPlacementId === staff.id ? 'selected' : ''}" data-editor-action="staff" data-id="${staff.id}"><img src="${thumbnail(staff.assetId)}" alt=""/><span><b>${escapeHtml(staff.label)}</b><small>${position ? `quadrado ${position.gridX},${position.gridY} · ${directionLabel(position.facing)}` : 'definir posição'}</small></span></button>`;
+      const linked = position?.linkedFurnitureId ? draft.construction.placedFurniture.find((item) => item.id === position.linkedFurnitureId) : undefined;
+      return `<button class="staff-card ${this.staffPlacementId === staff.id ? 'selected' : ''}" data-editor-action="staff" data-id="${staff.id}"><img src="${thumbnail(staff.assetId)}" alt=""/><span><b>${escapeHtml(staff.label)}</b><small>${position ? linked ? `vinculado: ${escapeHtml(FURNITURE_BY_ID[linked.definitionId].name)} · quadrado ${position.gridX},${position.gridY}` : `quadrado ${position.gridX},${position.gridY} · ${directionLabel(position.facing)}` : 'definir posição'}</small></span></button>`;
     }).join('');
-    const hireCards = STAFF_CATALOG.filter((staff) => !staff.includedByDefault && !staffIds.has(staff.id)).map((staff) => `<button class="hire-card" data-editor-action="hire-staff" data-id="${staff.id}" ${draft.coins < staff.hireCost ? 'disabled' : ''}><img src="${thumbnail(staff.assetId)}" alt=""/><span><b>${escapeHtml(staff.label)}</b><small>${staff.hireCost} moedas</small></span><em>Contratar</em></button>`).join('');
+    const hireCards = STAFF_CATALOG.filter((staff) => !staff.includedByDefault && !staffIds.has(staff.id)).map((staff) => {
+      const requirement = staffFurnitureRequirement(staff.role);
+      const furniture = availableStaffFurniture(staff.role, draft.construction.placedFurniture, draft.construction.staffStartPositions);
+      return `<button class="hire-card" data-editor-action="hire-staff" data-id="${staff.id}" ${draft.coins < staff.hireCost || (requirement && !furniture) ? 'disabled' : ''}><img src="${thumbnail(staff.assetId)}" alt=""/><span><b>${escapeHtml(staff.label)}</b><small>${staff.hireCost} moedas · ${requirement ? furniture ? `${requirement} disponível` : `requer ${requirement} livre` : 'posição livre'}</small></span><em>Contratar</em></button>`;
+    }).join('');
     this.overlay.innerHTML = `
       <div class="construction-shell construction-live-shell">
         <header class="construction-header"><div><small>LOJA E ORGANIZAÇÃO</small><h1>Monte seu Bistrô</h1><p>As alterações só entram no jogo quando você confirmar.</p></div><div class="construction-balance"><small>Saldo da organização</small><strong>${draft.coins.toLocaleString('pt-BR')} moedas</strong></div></header>
@@ -311,7 +363,6 @@ export class ConstructionShop {
         <div class="construction-workspace construction-live-workspace">
           <aside class="construction-catalog">
             <div class="catalog-tabs">${GROUPS.map((group) => `<button data-editor-action="category" data-id="${group.id}" class="${this.group === group.id ? 'active' : ''}">${group.label}</button>`).join('')}</div>
-            <details class="live-placed-list" open><summary>No salão (${draft.construction.placedFurniture.length})</summary><div class="stored-list">${placed}</div></details>
             <div class="catalog-items">${visibleCatalog.map((definition) => `<button class="catalog-card ${this.pendingDefinitionId === definition.id ? 'selected' : ''}" data-editor-action="catalog" data-id="${definition.id}" ${definition.level > this.state.restaurantLevel ? 'disabled' : ''}><img src="${thumbnail(definition.spriteSet.sw)}" alt=""/><span><small>${definition.code} · ${definition.footprintWidth}×${definition.footprintDepth}</small><b>${escapeHtml(definition.name)}</b><em>${definition.price} moedas</em></span></button>`).join('')}</div>
             <details ${stored ? 'open' : ''}><summary>Itens guardados (${draft.construction.storedFurniture.length})</summary><div class="stored-list">${stored || '<p>Nenhum móvel guardado.</p>'}</div></details>
           </aside>
@@ -321,8 +372,8 @@ export class ConstructionShop {
           </main>
           <aside class="construction-options">
             <details open><summary>Revestimentos</summary><div class="option-buttons"><button data-editor-action="surface" data-kind="floor" data-id="floor-terracotta">Piso terracota</button><button data-editor-action="surface" data-kind="floor" data-id="floor-cream">Piso creme</button><button data-editor-action="surface" data-kind="wall" data-id="wall-cream-green">Parede verde</button><button data-editor-action="surface" data-kind="wall" data-id="wall-cream-wood">Parede madeira</button></div></details>
-            <details><summary>Ampliar restaurante</summary>${EXPANSIONS.map((expansion) => `<article class="expansion-card"><strong>${expansion.width}×${expansion.depth}</strong><small>Nível ${expansion.unlockLevel} · ${expansion.coinCost} moedas</small><div>${expansion.allowedSides.map((side) => `<button data-editor-action="expansion" data-id="${expansion.id}" data-side="${side}" ${this.state.restaurantLevel < expansion.unlockLevel ? 'disabled' : ''}>${sideLabel(side)}</button>`).join('')}</div></article>`).join('')}</details>
-            <details open><summary>Equipe e contratação</summary><p class="option-help">Selecione alguém e toque diretamente no quadrado onde deve começar.</p><div class="staff-roster">${staffRoster}</div>${this.staffPlacementId ? `<div class="staff-facing"><small>Direção inicial</small><button data-editor-action="staff-facing" data-id="ne" class="${this.staffPlacementFacing === 'ne' ? 'active' : ''}">↗ NE</button><button data-editor-action="staff-facing" data-id="nw" class="${this.staffPlacementFacing === 'nw' ? 'active' : ''}">↖ NO</button><button data-editor-action="staff-facing" data-id="se" class="${this.staffPlacementFacing === 'se' ? 'active' : ''}">↘ SE</button><button data-editor-action="staff-facing" data-id="sw" class="${this.staffPlacementFacing === 'sw' ? 'active' : ''}">↙ SO</button></div>` : ''}${hireCards ? `<div class="hire-list"><small>Novas contratações</small>${hireCards}</div>` : '<p class="option-help">Todos os profissionais disponíveis já foram contratados.</p>'}</details>
+            <details open><summary>Ampliar restaurante</summary><p class="option-help">Escolha o bloco e o lado. Os quadrados aparecem no salão antes da compra.</p>${EXPANSIONS.map((expansion) => { const purchased = draft.construction.builtAreas.some((area) => area.expansionDefinitionId === expansion.id) && pendingExpansion?.definition.id !== expansion.id; return `<article class="expansion-card ${pendingExpansion?.definition.id === expansion.id ? 'selected' : ''}"><strong>${expansion.width}×${expansion.depth}</strong><small>Nível ${expansion.unlockLevel} · ${expansion.coinCost} moedas${purchased ? ' · comprado' : ''}</small><div>${expansion.allowedSides.map((side) => `<button data-editor-action="expansion" data-id="${expansion.id}" data-side="${side}" class="${pendingExpansion?.definition.id === expansion.id && pendingExpansion.side === side ? 'active' : ''}" ${this.state.restaurantLevel < expansion.unlockLevel || purchased ? 'disabled' : ''}>${sideLabel(side)}</button>`).join('')}</div>${pendingExpansion?.definition.id === expansion.id ? '<div class="expansion-confirm"><button class="confirm-placement" data-editor-action="confirm-expansion" aria-label="Confirmar ampliação">✓ Confirmar quadrados</button><button class="cancel-placement" data-editor-action="cancel-expansion" aria-label="Cancelar ampliação">× Cancelar</button></div>' : ''}</article>`; }).join('')}</details>
+            <details open><summary>Equipe e contratação</summary><p class="option-help">Funcionários vinculados ficam diante do móvel e acompanham seus movimentos automaticamente.</p><div class="staff-roster">${staffRoster}</div>${this.staffPlacementId ? `<div class="staff-facing"><small>Direção inicial</small><button data-editor-action="staff-facing" data-id="ne" class="${this.staffPlacementFacing === 'ne' ? 'active' : ''}">↗ NE</button><button data-editor-action="staff-facing" data-id="nw" class="${this.staffPlacementFacing === 'nw' ? 'active' : ''}">↖ NO</button><button data-editor-action="staff-facing" data-id="se" class="${this.staffPlacementFacing === 'se' ? 'active' : ''}">↘ SE</button><button data-editor-action="staff-facing" data-id="sw" class="${this.staffPlacementFacing === 'sw' ? 'active' : ''}">↙ SO</button></div>` : ''}${hireCards ? `<div class="hire-list"><small>Novas contratações</small>${hireCards}</div>` : '<p class="option-help">Todos os profissionais disponíveis já foram contratados.</p>'}</details>
             <div class="construction-rules"><strong>Para o salão funcionar</strong><span>• Cadeiras precisam ficar ao lado da mesa.</span><span>• A entrada e os pontos de trabalho devem ficar livres.</span><span>• Fogão, geladeira, preparo, pia e balcão são essenciais.</span></div>
           </aside>
         </div>
@@ -331,6 +382,7 @@ export class ConstructionShop {
       construction: draft.construction,
       selectedItemId: this.selectedItemId,
       selectedStaffId: this.staffPlacementId,
+      editSession: this.editor.editSession,
       interactionMode: this.pendingDefinitionId || this.pendingStoredItemId ? 'place' : this.staffPlacementId ? 'staff' : this.selectedItemId ? 'move' : 'select',
       placementActive: Boolean(this.pendingDefinitionId || this.pendingStoredItemId || this.staffPlacementId || this.selectedItemId),
     });

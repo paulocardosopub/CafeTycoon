@@ -5,16 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#163f3a" />
     <meta name="description" content="Bistrô Bloom — um pequeno restaurante cheio de histórias." />
-    <meta property="og:title" content="Bistrô Bloom · Versão 0.0.4" />
+    <meta property="og:title" content="Bistrô Bloom · Versão 0.0.6" />
     <meta property="og:description" content="Gerencie um bistrô vivo em pixel art isométrica original." />
-    <meta property="og:image" content="/og.png" />
+    <meta property="og:image" content="/og-v006.png" />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:image" content="/og.png" />
-    <title>Bistrô Bloom · v0.0.4</title>
+    <meta name="twitter:image" content="/og-v006.png" />
+    <title>Bistrô Bloom · v0.0.6</title>
   </head>
   <body>
     <div id="app"></div>
-    <script type="module" src="/src/main.ts"></script>
+    <!-- A versao no modulo de entrada evita que o navegador integrado reutilize
+         o /src/main.ts de outra previa local que tenha usado a mesma porta. -->
+    <script type="module" src="/src/main.ts?v=bistro-bloom-006-ui"></script>
   </body>
 </html>

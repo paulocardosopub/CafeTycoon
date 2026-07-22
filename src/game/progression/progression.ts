@@ -3,6 +3,7 @@ import type { GameState, ProfessionId, TaskKind } from '../../core/types';
 
 const PROFESSION_FOR_TASK: Record<TaskKind, ProfessionId> = {
   take_order: 'waiter', cook_step: 'cook', deliver: 'waiter', payment: 'waiter', clean: 'cleaner', stock_support: 'stocker',
+  restock_purchase: 'stocker', production_batch: 'cook',
 };
 
 export function awardPlayerTaskXp(state: GameState, task: TaskKind): void {

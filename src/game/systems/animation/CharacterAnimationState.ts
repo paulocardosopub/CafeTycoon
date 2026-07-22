@@ -7,5 +7,6 @@ export interface CharacterMotionSource {
 
 /** Returns to idle immediately when a mover arrives or becomes blocked. */
 export function characterMotionState(source: CharacterMotionSource): CharacterMotionState {
-  return source.motionState ?? (source.pathStatus === 'moving' ? 'walk' : 'idle');
+  if (source.pathStatus !== 'moving') return 'idle';
+  return source.motionState ?? 'walk';
 }

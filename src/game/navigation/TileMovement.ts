@@ -1,5 +1,5 @@
 import type { Direction, GridPoint } from '../../core/types';
-import { facingBetween } from '../../assets/pixel/VisualMetrics';
+import { facingBetweenTargets } from '../systems/animation/CharacterFacing';
 import type { RestaurantGrid } from '../grid/Grid';
 
 export interface TileMover {
@@ -14,7 +14,7 @@ export interface TileMover {
 export interface MovementResult { moved: boolean; completedTile: boolean; blocked: boolean }
 
 export function directionBetween(from: GridPoint, to: GridPoint, fallback: Direction = 'se'): Direction {
-  return facingBetween(from, to, fallback);
+  return facingBetweenTargets(from, to, fallback);
 }
 
 export function advanceTileMover(grid: RestaurantGrid, mover: TileMover, deltaSeconds: number, blocksPerSecond: number): MovementResult {

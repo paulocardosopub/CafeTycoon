@@ -2,6 +2,10 @@ import { BALANCE } from '../../config/balance';
 import { INGREDIENTS, INGREDIENT_BY_ID } from '../../content/ingredients/ingredients';
 import { RECIPE_BY_ID } from '../../content/recipes/recipes';
 import type { GameState, IngredientId, RecipeDefinition } from '../../core/types';
+import {
+  commitStoredIngredient, planStorageAllocation, reconcileStorage, releaseStorageAllocation, removeStoredIngredient,
+  reserveStorageAllocation, storageCapacity,
+} from './StorageService';
 
 export type PurchaseMode = 'pack' | 'minimum' | 'target';
 export interface PurchaseQuote {
@@ -16,7 +20,7 @@ export interface PurchaseQuote {
 }
 
 export function inventoryCapacity(state: GameState): number {
-  return BALANCE.inventoryCapacity + state.upgrades.inventory * BALANCE.upgrades.inventory.amount;
+  return (state.storage ? storageCapacity(state) : BALANCE.inventoryCapacity) + state.upgrades.inventory * BALANCE.upgrades.inventory.amount;
 }
 
 export function inventoryUsed(state: GameState): number {
@@ -32,6 +36,7 @@ export function consumeRecipe(state: GameState, recipe: RecipeDefinition, count 
   const consumed: Partial<Record<IngredientId, number>> = {};
   recipe.ingredients.forEach(({ ingredientId, amount }) => {
     const total = amount * count;
+    if (state.storage) removeStoredIngredient(state, ingredientId, total);
     state.inventory[ingredientId] -= total;
     consumed[ingredientId] = total;
   });
@@ -61,6 +66,7 @@ export function consumeReservation(state: GameState, reservation: Partial<Record
   if (!valid) return false;
   for (const [rawId, rawAmount] of Object.entries(reservation)) {
     const id = rawId as IngredientId; const amount = Math.max(0, Number(rawAmount) || 0);
+    if (state.storage) removeStoredIngredient(state, id, amount);
     state.inventory[id] -= amount;
     state.inventoryReserved[id] -= amount;
   }
@@ -80,11 +86,14 @@ export function buyIngredient(state: GameState, id: IngredientId): { ok: boolean
 }
 
 export function quotePurchase(state: GameState, id: IngredientId, mode: PurchaseMode): PurchaseQuote {
+  if (state.storage && !state.procurement?.requests.some((request) => !['completed', 'cancelled', 'failed', 'blocked'].includes(request.status))) reconcileStorage(state);
   const item = INGREDIENT_BY_ID[id];
   const target = mode === 'pack' ? state.inventory[id] + item.quickBuyPackSize : mode === 'minimum' ? item.reorderPoint : item.targetStock;
   const desired = Math.max(0, target - state.inventory[id]);
   const personalSpace = Math.max(0, item.maxStock - state.inventory[id]);
-  const globalSpace = Math.max(0, inventoryCapacity(state) - inventoryUsed(state));
+  const physical = state.storage ? planStorageAllocation(state, id, desired) : undefined;
+  const compatibleSpace = physical?.ok ? desired : physical?.allocations.reduce((sum, part) => sum + part.quantity, 0) ?? Number.POSITIVE_INFINITY;
+  const globalSpace = Math.max(0, Math.min(inventoryCapacity(state) - inventoryUsed(state), compatibleSpace));
   const packLimited = Math.min(desired, personalSpace, globalSpace);
   const packs = Math.ceil(packLimited / item.quickBuyPackSize);
   const amount = Math.min(packLimited, packs * item.quickBuyPackSize);
@@ -104,8 +113,16 @@ export function executePurchase(state: GameState, quote: PurchaseQuote): { ok: b
   const space = Math.min(item.maxStock - state.inventory[quote.ingredientId], inventoryCapacity(state) - inventoryUsed(state));
   if (space < quote.amount) return { ok: false, reason: 'O espaço disponível mudou.' };
   if (fresh.amount <= 0) return { ok: false, reason: fresh.reason ?? 'Compra inválida.' };
+  if (state.storage) {
+    reconcileStorage(state);
+    const allocation = planStorageAllocation(state, quote.ingredientId, quote.amount);
+    if (!allocation.ok || !reserveStorageAllocation(state, quote.ingredientId, allocation.allocations)) return { ok: false, reason: allocation.reason ?? 'A capacidade física mudou.' };
+    if (!commitStoredIngredient(state, quote.ingredientId, quote.amount, allocation.allocations)) {
+      releaseStorageAllocation(state, quote.ingredientId, allocation.allocations);
+      return { ok: false, reason: 'A capacidade física mudou.' };
+    }
+  } else state.inventory[quote.ingredientId] += quote.amount;
   state.coins -= quote.cost;
-  state.inventory[quote.ingredientId] += quote.amount;
   return { ok: true };
 }
 

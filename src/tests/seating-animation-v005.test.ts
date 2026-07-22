@@ -5,8 +5,18 @@ import { characterMotionState } from '../game/systems/animation/CharacterAnimati
 import { depthAtBase, footprintDepthPoint, VISUAL_METRICS } from '../assets/pixel/VisualMetrics';
 import { createDefaultState } from '../game/save/defaultState';
 import { RestaurantSimulation } from '../game/simulation/RestaurantSimulation';
+import { renderedDirectionRow } from '../assets/pixel/RenderedDirection';
 
 describe('regressões visuais de assento e movimento da 0.0.5', () => {
+  it('mapeia quadro a quadro as quatro direções reais de personagens e cadeiras', () => {
+    const employee = { kind: 'character', category: 'characters/employees/waiters', orientations: ['ne', 'nw', 'se', 'sw'] };
+    const customer = { kind: 'character', category: 'characters/customers', orientations: ['ne', 'nw', 'se', 'sw'] };
+    const chair = { kind: 'furniture', category: 'furniture/chairs', orientations: ['ne', 'nw', 'se', 'sw'] };
+    expect((['ne', 'nw', 'se', 'sw'] as const).map((direction) => renderedDirectionRow(direction, employee, true))).toEqual([1, 0, 3, 2]);
+    expect((['ne', 'nw', 'se', 'sw'] as const).map((direction) => renderedDirectionRow(direction, customer))).toEqual([0, 1, 2, 3]);
+    expect((['ne', 'nw', 'se', 'sw'] as const).map((direction) => renderedDirectionRow(direction, customer, true))).toEqual([1, 0, 3, 2]);
+    expect((['ne', 'nw', 'se', 'sw'] as const).map((direction) => renderedDirectionRow(direction, chair))).toEqual([0, 1, 2, 3]);
+  });
   it('vira cada cadeira para a mesa pelas coordenadas atuais', () => {
     const table = { x: 8, y: 8 };
     expect(seatFacingTowardTable({ x: 7, y: 8 }, table)).toBe('se');
@@ -15,7 +25,7 @@ describe('regressões visuais de assento e movimento da 0.0.5', () => {
     expect(seatFacingTowardTable({ x: 8, y: 9 }, table)).toBe('ne');
   });
 
-  it('mantém mesa com quatro cadeiras acessível por um ponto livre do atendente', () => {
+  it('reduz mesa a duas cadeiras opostas com pontos livres do atendente', () => {
     const state = createDefaultState(0);
     const table = state.construction.placedFurniture.find((item) => item.definitionId === 'dining.table.basic')!;
     const extra = [
@@ -28,8 +38,8 @@ describe('regressões visuais de assento e movimento da 0.0.5', () => {
     const grid = createInitialGrid(tables, stations, state.construction);
     expect(validateRestaurantMap(grid, tables, stations).valid).toBe(true);
     expect(tables[0].accessible).toBe(true);
-    expect(tables[0].chairs).toHaveLength(4);
-    expect(new Set(tables[0].chairs.map((chair) => `${chair.servicePoint.x},${chair.servicePoint.y}`)).size).toBe(4);
+    expect(tables[0].chairs).toHaveLength(2);
+    expect(new Set(tables[0].chairs.map((chair) => `${chair.servicePoint.x},${chair.servicePoint.y}`)).size).toBe(2);
     expect(tables[0].chairs.every((chair) => chair.servicePoint.x !== chair.approach.x || chair.servicePoint.y !== chair.approach.y)).toBe(true);
   });
 
@@ -40,7 +50,7 @@ describe('regressões visuais de assento e movimento da 0.0.5', () => {
     expect(characterMotionState({ pathStatus: 'no_path' })).toBe('idle');
     expect(characterMotionState({ pathStatus: 'idle' })).toBe('idle');
     expect(characterMotionState({ pathStatus: 'moving', motionState: 'idle' })).toBe('idle');
-    expect(characterMotionState({ pathStatus: 'arrived', motionState: 'walk' })).toBe('walk');
+    expect(characterMotionState({ pathStatus: 'arrived', motionState: 'walk' })).toBe('idle');
   });
 
   it('ordena o móvel pelo centro do footprint e mantém visível quem está à frente', () => {
