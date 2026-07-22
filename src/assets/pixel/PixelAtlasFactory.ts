@@ -127,24 +127,24 @@ function drawRoad(ctx: Ctx): void {
 
 function drawWall(ctx: Ctx, side: 'nw' | 'ne'): void {
   const base = side === 'nw'
-    ? [{ x: 48, y: 72 }, { x: 64, y: 80 }, { x: 64, y: 38 }, { x: 48, y: 30 }]
-    : [{ x: 64, y: 80 }, { x: 80, y: 72 }, { x: 80, y: 30 }, { x: 64, y: 38 }];
+    ? [{ x: 32, y: 64 }, { x: 64, y: 80 }, { x: 64, y: 38 }, { x: 32, y: 22 }]
+    : [{ x: 64, y: 80 }, { x: 96, y: 64 }, { x: 96, y: 22 }, { x: 64, y: 38 }];
   pixelQuad(ctx, base, side === 'nw' ? P.cream : P.creamLight);
   const tileBand = side === 'nw'
-    ? [{ x: 48, y: 72 }, { x: 64, y: 80 }, { x: 64, y: 57 }, { x: 48, y: 49 }]
-    : [{ x: 64, y: 80 }, { x: 80, y: 72 }, { x: 80, y: 49 }, { x: 64, y: 57 }];
+    ? [{ x: 32, y: 64 }, { x: 64, y: 80 }, { x: 64, y: 57 }, { x: 32, y: 41 }]
+    : [{ x: 64, y: 80 }, { x: 96, y: 64 }, { x: 96, y: 41 }, { x: 64, y: 57 }];
   pixelQuad(ctx, tileBand, side === 'nw' ? P.sage : P.sageDark);
-  const railStart = side === 'nw' ? { x: 48, y: 49 } : { x: 64, y: 57 };
-  const railEnd = side === 'nw' ? { x: 64, y: 57 } : { x: 80, y: 49 };
+  const railStart = side === 'nw' ? { x: 32, y: 41 } : { x: 64, y: 57 };
+  const railEnd = side === 'nw' ? { x: 64, y: 57 } : { x: 96, y: 41 };
   pixelLine(ctx, railStart, railEnd, P.woodDark);
   pixelLine(ctx, { x: railStart.x, y: railStart.y - 1 }, { x: railEnd.x, y: railEnd.y - 1 }, P.woodLight);
   for (let offset = 7; offset <= 13; offset += 6) {
-    const a = side === 'nw' ? { x: 48, y: 49 + offset } : { x: 64, y: 57 + offset };
-    const b = side === 'nw' ? { x: 64, y: 57 + offset } : { x: 80, y: 49 + offset };
+    const a = side === 'nw' ? { x: 32, y: 41 + offset } : { x: 64, y: 57 + offset };
+    const b = side === 'nw' ? { x: 64, y: 57 + offset } : { x: 96, y: 41 + offset };
     pixelLine(ctx, a, b, '#6f8b61');
   }
-  const topStart = side === 'nw' ? { x: 48, y: 30 } : { x: 64, y: 38 };
-  const topEnd = side === 'nw' ? { x: 64, y: 38 } : { x: 80, y: 30 };
+  const topStart = side === 'nw' ? { x: 32, y: 22 } : { x: 64, y: 38 };
+  const topEnd = side === 'nw' ? { x: 64, y: 38 } : { x: 96, y: 22 };
   pixelLine(ctx, topStart, topEnd, P.woodMid);
   pixelLine(ctx, { x: topStart.x, y: topStart.y - 1 }, { x: topEnd.x, y: topEnd.y - 1 }, P.woodLight);
 }

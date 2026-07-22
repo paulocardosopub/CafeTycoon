@@ -30,6 +30,8 @@ import {
   completeProductionTask, markProductionTaskStarted, prepareNextProductionTask, refreshMaintainTargetPlans,
 } from '../cooking/ProductionPlanningService';
 import { recipeIsOperational } from '../recipes/RecipeAvailability';
+import { playerSkinAsset } from '../../content/characters/playerSkins';
+import { CUSTOMER_CHARACTER_ASSET_IDS } from '../../assets/pixel/characterVariantManifest';
 
 interface Mover {
   id: string;
@@ -44,7 +46,6 @@ interface Mover {
   pathStatus: 'idle' | 'moving' | 'blocked' | 'no_path' | 'arrived';
   motionState: 'idle' | 'walk';
 }
-
 export interface WorkerActor extends Mover {
   kind: ActorKind;
   name: string;
@@ -128,7 +129,7 @@ const ACTIVE_SEAT_STATES = new Set<ChairRuntime['state']>(['reserved', 'approach
 const PATIENCE_STATES = new Set<CustomerState>(['seeking_table', 'queueing', 'waiting_order', 'waiting_food', 'paying']);
 const TERMINAL_ORDER_STATES = new Set<OrderState>(['consumed', 'cancelled']);
 const ADMISSION_STATES = new Set<CustomerState>(['entering', 'seeking_table', 'queueing']);
-const NORMAL_QUEUE_LIMIT = 4;
+const MINIMUM_QUEUE_LIMIT = 1;
 
 export class RestaurantSimulation {
   readonly tables: TableRuntime[];
@@ -182,7 +183,7 @@ export class RestaurantSimulation {
     };
     return [
       ...employees,
-      this.makeActor(this.state.playerId, 'player', this.state.profile?.name ?? 'Você', playerRenderedStyle(this.state.profile?.appearance.presentation), start('player', { x: 9, y: 14 })),
+      this.makeActor(this.state.playerId, 'player', this.state.profile?.name ?? 'Você', playerSkinAsset(this.state.profile?.appearance), start('player', { x: 9, y: 14 })),
     ];
   }
 
@@ -233,15 +234,17 @@ export class RestaurantSimulation {
     if (Object.keys(production.produced).length) gameEvents.emit('toast', { message: 'Produção programada concluída!', tone: 'success' });
     this.spawnCountdown -= delta;
     const waitingCustomers = this.admissionCustomerCount();
-    const normalCustomerLimit = this.totalCapacity() + NORMAL_QUEUE_LIMIT;
-    if (this.autoSpawn && this.spawnCountdown <= 0 && waitingCustomers < NORMAL_QUEUE_LIMIT && this.activeCustomerCount() < normalCustomerLimit) {
+    const queueLimit = this.admissionQueueLimit();
+    const normalCustomerLimit = this.customerDemandCapacity() + queueLimit;
+    if (this.autoSpawn && this.spawnCountdown <= 0 && waitingCustomers < queueLimit && this.activeCustomerCount() < normalCustomerLimit) {
       const nextPartySize = this.customerSequence > 0 && this.customerSequence % 9 === 0 ? 4 : this.customerSequence > 0 && this.customerSequence % 5 === 0 ? 2 : 1;
       const openTableSize = this.largestOpenTableSize();
       const supportedPartySize = Math.min(nextPartySize, this.largestTableCapacity());
-      const queueAllowance = NORMAL_QUEUE_LIMIT - waitingCustomers;
+      const queueAllowance = queueLimit - waitingCustomers;
       const admissionSize = Math.min(supportedPartySize, normalCustomerLimit - this.activeCustomerCount(), openTableSize || queueAllowance);
       if (admissionSize > 0) this.spawnParty(admissionSize);
-      this.spawnCountdown = BALANCE.customerSpawnSeconds + (this.customerSequence % 4);
+      const demandScale = Math.max(.45, Math.sqrt(this.customerDemandCapacity() / 2) * this.reputationDemandFactor());
+      this.spawnCountdown = Math.max(2, BALANCE.customerSpawnSeconds / demandScale) + (this.customerSequence % 3);
     }
     this.seatAssignmentRetry -= delta;
     if (this.seatAssignmentRetry <= 0) {
@@ -271,7 +274,7 @@ export class RestaurantSimulation {
         id: stableRuntimeId('customer'), state: 'entering', stateEnteredAt: this.simulationTime, partyId, partySize, partyIndex: index,
         patience: partyPatience, maxPatience: partyPatience,
         position: { ...streetSpawn }, visual: { ...streetSpawn }, path: [], moveProgress: 0, chairIds: [], eatRemaining: 0,
-        variant: (this.customerSequence - 1) % 6, direction: 'nw', lastMovementAt: this.simulationTime, blockedSeconds: 0,
+        variant: (this.customerSequence - 1) % CUSTOMER_CHARACTER_ASSET_IDS.length, direction: 'nw', lastMovementAt: this.simulationTime, blockedSeconds: 0,
         retryCount: 0, pathStatus: 'idle', motionState: 'idle', cleanupCompleted: false, paymentCompleted: false, outcomeApplied: false,
       };
       this.customers.push(customer);
@@ -303,6 +306,14 @@ export class RestaurantSimulation {
 
   private admissionCustomerCount(): number {
     return this.customers.filter((customer) => ADMISSION_STATES.has(customer.state) && !customer.seatId).length;
+  }
+
+  private admissionQueueLimit(): number {
+    return Math.max(MINIMUM_QUEUE_LIMIT, Math.ceil(this.customerDemandCapacity() * .5));
+  }
+
+  private reputationDemandFactor(): number {
+    return .15 + Math.max(0, Math.min(100, this.state.reputation)) / 100 * .85;
   }
 
   private largestOpenTableSize(): number {
@@ -988,6 +999,10 @@ export class RestaurantSimulation {
   activeCustomerCount(): number { return this.customers.filter((customer) => customer.state !== 'gone').length; }
   seatedCustomerCount(): number { return this.tables.flatMap((table) => table.chairs).filter((seat) => ACTIVE_SEAT_STATES.has(seat.state)).length; }
   totalCapacity(): number { return this.tables.filter((table) => table.accessible).flatMap((table) => table.chairs).filter((seat) => this.seatUsable(seat)).length; }
+  customerDemandCapacity(): number {
+    const physicalCapacity = this.totalCapacity();
+    return physicalCapacity > 0 ? Math.max(1, Math.ceil(physicalCapacity * this.reputationDemandFactor())) : 0;
+  }
   dishesAwaitingPickup(): number { return this.counterSlots.filter((slot) => slot.state === 'occupied').length; }
   activeOrderCount(): number { return this.orders.filter((order) => !TERMINAL_ORDER_STATES.has(order.state)).length; }
 
@@ -1174,7 +1189,8 @@ export class RestaurantSimulation {
     const savedActors = operation.actors as unknown as WorkerActor[];
     for (const actor of this.actors) {
       const saved = savedActors.find((item) => item.id === actor.id); if (!saved) continue;
-      Object.assign(actor, saved, { taskId: undefined, path: [], moveProgress: 0, carrying: saved.carrying, carryingOrderId: saved.carryingOrderId });
+      const currentAssetId = actor.assetId;
+      Object.assign(actor, saved, { assetId: currentAssetId, taskId: undefined, path: [], moveProgress: 0, carrying: saved.carrying, carryingOrderId: saved.carryingOrderId });
     }
     for (const raw of operation.customers as unknown as CustomerRuntime[]) if (raw?.id && raw.position && raw.state !== 'gone') this.customers.push({ ...raw, path: [], moveProgress: 0, blockedSeconds: 0, pathStatus: 'idle', motionState: 'idle' });
     for (const raw of operation.orders as unknown as OrderRuntime[]) if (raw?.id && RECIPE_BY_ID[raw.recipeId]) this.orders.push({ ...raw, ingredientReservation: raw.ingredientReservation ?? {}, paymentCompleted: Boolean(raw.paymentCompleted) });
@@ -1288,7 +1304,7 @@ export class RestaurantSimulation {
     let retained = 0;
     for (const partyId of parties) {
       const members = this.partyMembers(partyId).filter((customer) => ADMISSION_STATES.has(customer.state) && !customer.seatId);
-      if (retained + members.length <= NORMAL_QUEUE_LIMIT) { retained += members.length; continue; }
+      if (retained + members.length <= this.admissionQueueLimit()) { retained += members.length; continue; }
       for (const customer of members) this.completeCustomerDeparture(customer);
     }
     this.pruneGoneCustomers();
@@ -1446,8 +1462,4 @@ export class RestaurantSimulation {
   private roleLabel(role: HelpRole): string { return { kitchen: 'Cozinha', service: 'Atendimento', cleaning: 'Limpeza', stock: 'Estoque e apoio' }[role]; }
   private developmentMode(): boolean { return typeof window === 'undefined' || ['localhost', '127.0.0.1'].includes(window.location.hostname); }
   private toRecords(value: unknown): Record<string, unknown>[] { return JSON.parse(JSON.stringify(value)) as Record<string, unknown>[]; }
-}
-
-function playerRenderedStyle(presentation?: string): string {
-  return presentation === 'masculina' ? 'char_player_male_01' : 'char_player_female_01';
 }

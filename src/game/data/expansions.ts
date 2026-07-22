@@ -1,9 +1,15 @@
 import type { ExpansionDefinition } from '../../core/types';
 
 export const EXPANSIONS: readonly ExpansionDefinition[] = [
-  { id: 'expansion-small-4x4', width: 4, depth: 4, unlockLevel: 1, coinCost: 180, allowedSides: ['north', 'east', 'south', 'west'], prerequisites: [] },
-  { id: 'expansion-medium-6x6', width: 6, depth: 6, unlockLevel: 2, coinCost: 420, allowedSides: ['north', 'east', 'south', 'west'], prerequisites: ['expansion-small-4x4'] },
-  { id: 'expansion-large-8x8', width: 8, depth: 8, unlockLevel: 3, coinCost: 820, allowedSides: ['north', 'east', 'south', 'west'], prerequisites: ['expansion-medium-6x6'] },
+  { id: 'restaurant-expansion-1', width: 18, depth: 18, unlockLevel: 1, coinCost: 600, allowedSides: ['east'], prerequisites: [] },
+  { id: 'restaurant-expansion-2', width: 18, depth: 18, unlockLevel: 2, coinCost: 1_200, allowedSides: ['south'], prerequisites: ['restaurant-expansion-1'] },
+  { id: 'restaurant-expansion-3', width: 18, depth: 18, unlockLevel: 3, coinCost: 2_200, allowedSides: ['east'], prerequisites: ['restaurant-expansion-2'] },
 ] as const;
+
+export const RESTAURANT_EXPANSION_ORIGINS: Readonly<Record<string, { x: number; y: number }>> = {
+  'restaurant-expansion-1': { x: 18, y: 0 },
+  'restaurant-expansion-2': { x: 18, y: 18 },
+  'restaurant-expansion-3': { x: 36, y: 0 },
+};
 
 export const EXPANSION_BY_ID = Object.fromEntries(EXPANSIONS.map((item) => [item.id, item])) as Record<string, ExpansionDefinition>;

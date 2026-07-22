@@ -5,6 +5,9 @@ import { C3_BR_CHARACTER_ASSETS, C3_BR_LEGACY_ALIASES } from '../assets/pixel/c3
 import { renderedDirectionRow } from '../assets/pixel/RenderedDirection';
 import { STAGE_2B_PLAYER_ASSET } from '../assets/pixel/stage2bPrototypeManifest';
 import { STAGE_2C_CHARACTER_ASSETS } from '../assets/pixel/stage2cCharacterManifest';
+import { PLAYER_SKINS, playerSkinAsset } from '../content/characters/playerSkins';
+import { STAFF_CATALOG, STAFF_CHEF_ASSET_ID } from '../game/data/staff';
+import { C3_BR_VARIANT_ASSETS, CUSTOMER_CHARACTER_ASSET_IDS, STAFF_ROLE_CHARACTER_ASSETS } from '../assets/pixel/characterVariantManifest';
 
 const projectRoot = resolve(import.meta.dirname, '../..');
 const manifestPath = resolve(projectRoot, 'public/assets/pixel/rendered/c3-br-character-manifest.json');
@@ -89,8 +92,21 @@ describe('pacote definitivo C3-BR 0.0.7', () => {
     }
     expect(new Set(Array.from({ length: 10 }, (_, index) => C3_BR_LEGACY_ALIASES[`customer-${index}`]))).toHaveLength(6);
     const simulation = readFileSync(resolve(projectRoot, 'src/game/simulation/RestaurantSimulation.ts'), 'utf8');
-    expect(simulation).toContain('variant: (this.customerSequence - 1) % 6');
+    expect(simulation).toContain('variant: (this.customerSequence - 1) % CUSTOMER_CHARACTER_ASSET_IDS.length');
     const scene = readFileSync(resolve(projectRoot, 'src/scenes/RestaurantScene.ts'), 'utf8');
     expect(scene).toContain("asset.animations[animation] ? animation : ('fallback' in asset ? asset.fallback : 'idle')");
+  });
+
+  it('oferece as trinta skins, vinte variantes e uniformes de chef por profissão', () => {
+    expect(C3_BR_VARIANT_ASSETS).toHaveLength(20);
+    expect(PLAYER_SKINS).toHaveLength(30);
+    expect(CUSTOMER_CHARACTER_ASSET_IDS).toHaveLength(22);
+    expect(playerSkinAsset({ assetId: 'char_customer_04', presentation: 'feminina' })).toBe('char_customer_04');
+    expect(STAFF_CHEF_ASSET_ID).toBe('char_staff_cook_hat_white_01');
+    expect(new Set(STAFF_CATALOG.map((staff) => staff.assetId))).toEqual(new Set(Object.values(STAFF_ROLE_CHARACTER_ASSETS)));
+    for (const asset of C3_BR_VARIANT_ASSETS) {
+      expect(statSync(resolve(projectRoot, 'public', asset.spriteSheet.slice(1))).size).toBeGreaterThan(10_000);
+      expect(statSync(resolve(projectRoot, 'public', asset.thumbnail.slice(1))).size).toBeGreaterThan(1_000);
+    }
   });
 });

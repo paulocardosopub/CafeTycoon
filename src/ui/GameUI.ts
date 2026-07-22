@@ -3,7 +3,7 @@ import { INGREDIENTS, INGREDIENT_BY_ID } from '../content/ingredients/ingredient
 import { RECIPES, RECIPE_BY_ID } from '../content/recipes/recipes';
 import { EQUIPMENT_ASSETS } from '../content/equipment/equipment';
 import { gameEvents } from '../core/events';
-import type { GameState, HelpRole, IngredientId, OfflineReport, ProfessionId, RecipeId } from '../core/types';
+import type { CharacterAppearance, GameState, HelpRole, IngredientId, OfflineReport, ProfessionId, RecipeId } from '../core/types';
 import { enqueueProduction, readyDishCapacity, readyDishUsed } from '../game/cooking/ProductionService';
 import { canConsumeRecipe, inventoryCapacity, inventoryUsed, quotePurchase, type PurchaseMode, type PurchaseQuote } from '../game/inventory/InventoryService';
 import { calculateOfflineProgress } from '../game/offline/OfflineService';
@@ -20,11 +20,14 @@ import { FURNITURE_BY_ID } from '../game/data/furniture/catalog';
 import { availableStaffFurniture, staffFurnitureRequirement } from '../game/systems/construction/StaffStartSystem';
 import { recipeRequirements } from '../game/recipes/RecipeAvailability';
 import { recipeFoodThumbnail } from '../assets/pixel/stage2dFoodManifest';
+import { playerSkinAsset } from '../content/characters/playerSkins';
+import { EXPANSIONS } from '../game/data/expansions';
+import { ConstructionEditor } from '../game/systems/construction/ConstructionEditor';
 
 type PanelId = 'staff' | 'stock' | 'recipes' | 'production' | 'orders' | 'upgrades' | 'player' | 'roles' | 'professions' | 'offline' | 'settings' | 'tasks';
 
-function playerSpriteThumb(_hairStyle: string, presentation?: string): string {
-  const assetId = presentation === 'masculina' ? 'char_player_male_01' : 'char_player_female_01';
+function playerSpriteThumb(appearance: CharacterAppearance | string, presentation?: CharacterAppearance['presentation']): string {
+  const assetId = typeof appearance === 'string' ? playerSkinAsset({ presentation: presentation ?? 'feminina' }) : playerSkinAsset(appearance);
   return `/assets/pixel/rendered/thumbnails/${assetId}.png?v=0.0.7-c3-br-1`;
 }
 
@@ -152,6 +155,7 @@ export class GameUI {
       else if (action === 'prioritize-task') this.prioritizeTask(target.dataset.id!);
       else if (action === 'cancel-player-task') this.cancelPlayerTask();
       else if (action === 'buy-upgrade') this.buyUpgrade(target.dataset.id as keyof GameState['upgrades']);
+      else if (action === 'buy-restaurant-expansion') await this.buyRestaurantExpansion(target.dataset.id!);
       else if (action === 'simulate-offline') this.simulateOffline(Number(target.dataset.seconds));
       else if (action === 'toggle-mute') { this.audio.update({ muted: !this.audio.settings.muted }); this.open('settings'); }
       else if (action === 'toggle-technical') gameEvents.emit('technical:toggle', undefined);
@@ -226,7 +230,7 @@ export class GameUI {
     const role = ROLE_INFO[profile.helpRole];
     const profession = profile.professions[role.profession];
     this.root.querySelector<HTMLElement>('#owner-card')!.innerHTML = `
-      <button class="owner-portrait" data-open="player" aria-label="Abrir perfil"><img src="${playerSpriteThumb(profile.appearance.hairStyle, profile.appearance.presentation)}" alt="" /><i>✦</i></button>
+      <button class="owner-portrait" data-open="player" aria-label="Abrir perfil"><img src="${playerSpriteThumb(profile.appearance)}" alt="" /><i>✦</i></button>
       <div class="owner-copy"><small>PROPRIETÁRIO · NÍVEL ${profile.level}</small><strong>${escapeHtml(profile.name)}</strong><span>${role.icon} ${role.name} · ${this.simulation.playerTaskLabel()}</span><em>Destino ${this.simulation.playerDestinationLabel()} · ${this.simulation.playerIdleReason()}</em>
         <div class="mini-progress"><i style="width:${professionProgress(profession.xp, profession.level)}%"></i></div>
       </div><button class="help-button" data-open="roles">Onde ajudar?</button>`;
@@ -359,7 +363,12 @@ export class GameUI {
       { id: 'stationSpeed', icon: '⚡', name: 'Utensílios eficientes', text: `${Math.round(BALANCE.upgrades.stationSpeed.amount * 100)}% mais rapidez nas estações` },
     ];
     const equipment = EQUIPMENT_ASSETS.map((item) => `<article class="equipment-card"><img src="/assets/pixel/rendered/thumbnails/${item.assetId}.png" alt="${item.name}"/><div><strong>${item.name}</strong><small>Nível visual 1 · ${item.footprint.width}×${item.footprint.depth}</small></div></article>`).join('');
-    return `<p class="panel-intro">Melhorias permanentes para este restaurante.</p><div class="upgrade-list">${items.map((item) => { const level = this.state.upgrades[item.id]; const config = BALANCE.upgrades[item.id]; const cost = config.baseCost * (level + 1); return `<article><span>${item.icon}</span><div><strong>${item.name}</strong><small>${item.text}</small><em>Nível ${level}</em></div><button data-action="buy-upgrade" data-id="${item.id}" ${this.state.coins < cost || level >= 3 ? 'disabled' : ''}>${level >= 3 ? 'Máximo' : `${cost} ●`}</button></article>`; }).join('')}</div><h3>Equipamentos instalados</h3><p class="panel-intro">Visuais Blender ativos nesta versão. Os próximos níveis ainda não estão disponíveis.</p><div class="equipment-catalog">${equipment}</div>`;
+    const expansionLevel = EXPANSIONS.filter((expansion) => this.state.construction.builtAreas.some((area) => area.expansionDefinitionId === expansion.id)).length;
+    const nextExpansion = EXPANSIONS[expansionLevel];
+    const expansionShape = ['18×18 original', '36×18, duas áreas', 'formato L, três áreas', 'quatro áreas completas'][expansionLevel];
+    const canBuyExpansion = Boolean(nextExpansion && this.state.coins >= nextExpansion.coinCost && this.state.restaurantLevel >= nextExpansion.unlockLevel);
+    const expansionCard = `<article><span>▧</span><div><strong>Expansão do restaurante</strong><small>${expansionShape}. Cada etapa acrescenta um bloco 18×18.</small><em>Etapa ${expansionLevel}/3</em></div><button data-action="buy-restaurant-expansion" data-id="${nextExpansion?.id ?? ''}" ${canBuyExpansion ? '' : 'disabled'}>${nextExpansion ? `${nextExpansion.coinCost.toLocaleString('pt-BR')} ●` : 'Máximo'}</button></article>`;
+    return `<p class="panel-intro">Melhorias permanentes para este restaurante.</p><div class="upgrade-list">${expansionCard}${items.map((item) => { const level = this.state.upgrades[item.id]; const config = BALANCE.upgrades[item.id]; const cost = config.baseCost * (level + 1); return `<article><span>${item.icon}</span><div><strong>${item.name}</strong><small>${item.text}</small><em>Nível ${level}</em></div><button data-action="buy-upgrade" data-id="${item.id}" ${this.state.coins < cost || level >= 3 ? 'disabled' : ''}>${level >= 3 ? 'Máximo' : `${cost} ●`}</button></article>`; }).join('')}</div><h3>Equipamentos instalados</h3><p class="panel-intro">Visuais Blender ativos nesta versão. Os próximos níveis ainda não estão disponíveis.</p><div class="equipment-catalog">${equipment}</div>`;
   }
 
   private rolesPanel(): string {
@@ -575,6 +584,23 @@ export class GameUI {
     const level = this.state.upgrades[id]; const config = BALANCE.upgrades[id]; const cost = config.baseCost * (level + 1);
     if (level >= 3 || this.state.coins < cost) return;
     this.state.coins -= cost; this.state.upgrades[id] += 1; this.toast('Melhoria instalada!', 'success'); this.renderDynamic(); this.renderPanel();
+  }
+
+  private async buyRestaurantExpansion(definitionId: string): Promise<void> {
+    const definition = EXPANSIONS.find((item) => item.id === definitionId);
+    if (!definition || this.state.coins < definition.coinCost || this.state.restaurantLevel < definition.unlockLevel) return;
+    if (!window.confirm(`Comprar a etapa de expansão por ${definition.coinCost.toLocaleString('pt-BR')} moedas?`)) return;
+    this.close();
+    if (!this.simulation.prepareConstructionMode()) return;
+    const editor = new ConstructionEditor(this.state);
+    const purchase = editor.buyExpansion(definition.id, definition.allowedSides[0]);
+    if (!purchase.ok) { editor.cancel(); this.simulation.cancelConstructionMode(); this.toast(purchase.reason ?? 'Não foi possível ampliar o restaurante.', 'warning'); return; }
+    const applied = editor.confirm();
+    if (!applied.ok) { editor.cancel(); this.simulation.cancelConstructionMode(); this.toast(applied.reason ?? 'A expansão deixou o salão inválido.', 'warning'); return; }
+    this.simulation.finalizeConstructionMode([]);
+    this.state.lastActiveAt = Date.now();
+    await this.repository.save(this.state);
+    window.location.reload();
   }
 
   private simulateOffline(seconds: number): void {

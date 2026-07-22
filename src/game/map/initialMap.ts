@@ -8,7 +8,7 @@ import { orientedFootprint, resolvedWorkSlots, rotateDirection, orientationTurns
 import { facingBetweenTargets } from '../systems/animation/CharacterFacing';
 
 export const RESTAURANT_SIZE = { width: 18, height: 18 } as const;
-export const MAP_SIZE = { width: 34, height: 38 } as const;
+export const MAP_SIZE = { width: 60, height: 38 } as const;
 export const ENTRANCE: GridPoint = { x: 9, y: 17 };
 export const EXIT: GridPoint = { x: 10, y: 17 };
 export const RESTAURANT_ENTRY_ZONE: GridPoint[] = [ENTRANCE, EXIT];
@@ -128,14 +128,14 @@ export function createStations(construction: ConstructionSaveState = createIniti
 }
 
 export function createInitialGrid(tables = createTables(), stations = createStations(), construction: ConstructionSaveState = createInitialConstructionState()): RestaurantGrid {
-  const grid = new RestaurantGrid(MAP_SIZE.width, MAP_SIZE.height);
-  for (let x = 0; x < RESTAURANT_SIZE.width; x += 1) {
-    grid.set({ x, y: 0 }, { kind: 'wall', walkable: false });
-    if (x !== ENTRANCE.x && x !== EXIT.x) grid.set({ x, y: RESTAURANT_SIZE.height - 1 }, { kind: 'wall', walkable: false });
-  }
-  for (let y = 0; y < RESTAURANT_SIZE.height; y += 1) {
-    grid.set({ x: 0, y }, { kind: 'wall', walkable: false });
-    grid.set({ x: RESTAURANT_SIZE.width - 1, y }, { kind: 'wall', walkable: false });
+  const builtMaxX = Math.max(...construction.builtAreas.map((area) => area.x + area.width));
+  const builtMaxY = Math.max(...construction.builtAreas.map((area) => area.y + area.depth));
+  const grid = new RestaurantGrid(Math.max(34, builtMaxX + 6), Math.max(38, builtMaxY + 2));
+  const built = (x: number, y: number) => construction.builtAreas.some((area) => x >= area.x && y >= area.y && x < area.x + area.width && y < area.y + area.depth);
+  for (let y = 0; y < grid.height; y += 1) for (let x = 0; x < grid.width; x += 1) {
+    if (!built(x, y)) continue;
+    const boundary = !built(x - 1, y) || !built(x + 1, y) || !built(x, y - 1) || !built(x, y + 1);
+    if (boundary && !(x === ENTRANCE.x && y === ENTRANCE.y) && !(x === EXIT.x && y === EXIT.y)) grid.set({ x, y }, { kind: 'wall', walkable: false });
   }
   grid.set(ENTRANCE, { kind: 'entrance', walkable: true });
   grid.set(EXIT, { kind: 'exit', walkable: true });
@@ -155,8 +155,7 @@ export function createInitialGrid(tables = createTables(), stations = createStat
   });
   DECORATIONS.filter((item) => item.blocksMovement).forEach((item) => grid.set(item.position, { kind: 'blocked', walkable: false, furniturePart: item.id }));
   for (let y = 0; y < grid.height; y += 1) for (let x = 0; x < grid.width; x += 1) {
-    const built = construction.builtAreas.some((area) => x >= area.x && y >= area.y && x < area.x + area.width && y < area.y + area.depth);
-    if (!built && y < RESTAURANT_SIZE.height) grid.set({ x, y }, { kind: 'outside', walkable: false });
+    if (!built(x, y) && y < RESTAURANT_SIZE.height) grid.set({ x, y }, { kind: 'outside', walkable: false });
   }
   return grid;
 }

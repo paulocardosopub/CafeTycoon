@@ -1,4 +1,7 @@
 import type { Direction, GridPoint, StaffDefinition, StaffRole, TaskKind } from '../../core/types';
+import { STAFF_ROLE_CHARACTER_ASSETS } from '../../assets/pixel/characterVariantManifest';
+
+export const STAFF_CHEF_ASSET_ID = STAFF_ROLE_CHARACTER_ASSETS.cook;
 
 const TASKS: Record<StaffRole, TaskKind[]> = {
   cook: ['cook_step', 'production_batch'],
@@ -28,8 +31,9 @@ interface StaffInput {
 function staff(input: StaffInput): StaffDefinition {
   return {
     ...input,
+    assetId: STAFF_ROLE_CHARACTER_ASSETS[input.role],
     label: `${input.name} · ${roleLabel(input.role)}`,
-    visualModelId: input.assetId,
+    visualModelId: STAFF_ROLE_CHARACTER_ASSETS[input.role],
     level: 1,
     experience: 0,
     movementSpeed: input.movementSpeed ?? 1,

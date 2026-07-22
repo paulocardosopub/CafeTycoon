@@ -1,8 +1,9 @@
-import { CHARACTER_OPTIONS } from '../content/characters/options';
-import type { CharacterAppearance, PlayerProfile, Presentation, ProfessionId, TaskKind } from '../core/types';
+import { PLAYER_SKINS, playerSkinAsset } from '../content/characters/playerSkins';
+import type { CharacterAppearance, PlayerProfile, ProfessionId, TaskKind } from '../core/types';
 import { createPersistentId } from '../core/id';
 
 const defaultAppearance: CharacterAppearance = {
+  assetId: 'char_player_female_01',
   presentation: 'feminina', skin: 'honey', hairStyle: 'wave', hairColor: 'espresso',
   face: 'bright', outfit: 'apron', outfitColor: 'teal',
 };
@@ -17,7 +18,7 @@ export function showCharacterCreator(root: HTMLElement): Promise<PlayerProfile> 
           <div class="creator-copy">
             <span class="eyebrow">ANTES DE ABRIR AS PORTAS</span>
             <h1>Quem vai dar vida a este pequeno bistrô?</h1>
-            <p>Crie a pessoa que trabalhará lado a lado com Nina e Caio. Você poderá trocar de função a qualquer momento.</p>
+            <p>Escolha quem você será no restaurante. Os funcionários usarão uniforme de chef para que a equipe seja reconhecida rapidamente.</p>
           </div>
           <div class="creator-scene" aria-label="Pré-visualização do personagem">
             <div class="window-sun"></div><div class="window-plant">♧</div>
@@ -31,16 +32,9 @@ export function showCharacterCreator(root: HTMLElement): Promise<PlayerProfile> 
           <form class="creator-form" id="creator-form">
             <header><span>FICHA DO PERSONAGEM</span><strong>Seu novo começo</strong></header>
             <label class="field"><span>Como devemos chamar você?</span><input id="character-name" maxlength="18" placeholder="Digite um nome" autocomplete="off" required /></label>
-            <fieldset><legend>Apresentação</legend><div class="choice-pills">
-              <label><input type="radio" name="presentation" value="feminina" checked /><span>Feminina</span></label>
-              <label><input type="radio" name="presentation" value="masculina" /><span>Masculina</span></label>
+            <fieldset class="player-skin-picker"><legend>Escolha sua aparência</legend><p>Esta será a roupa do seu personagem dentro do restaurante.</p><div class="player-skin-grid">
+              ${PLAYER_SKINS.map((skin) => `<label><input type="radio" name="playerSkin" value="${skin.assetId}" ${skin.assetId === defaultAppearance.assetId ? 'checked' : ''}/><span><img src="${skin.thumbnail}" alt=""/><b>${escapeCreatorText(skin.label)}</b></span></label>`).join('')}
             </div></fieldset>
-            ${selectField('skin', 'Tom de pele', CHARACTER_OPTIONS.skin)}
-            ${selectField('hairStyle', 'Estilo de cabelo', CHARACTER_OPTIONS.hairStyle)}
-            ${selectField('hairColor', 'Cor do cabelo', CHARACTER_OPTIONS.hairColor)}
-            ${selectField('face', 'Rosto', CHARACTER_OPTIONS.face)}
-            ${selectField('outfit', 'Roupa inicial', CHARACTER_OPTIONS.outfit)}
-            ${selectField('outfitColor', 'Cor da roupa', CHARACTER_OPTIONS.outfitColor)}
             <div class="creator-note"><span>✦</span><p>Sua aparência e seu progresso ficam salvos neste dispositivo.</p></div>
             <button class="primary-button creator-submit" type="submit">Abrir o Bistrô <span>→</span></button>
           </form>
@@ -53,17 +47,21 @@ export function showCharacterCreator(root: HTMLElement): Promise<PlayerProfile> 
     const submitButton = root.querySelector<HTMLButtonElement>('.creator-submit')!;
     let confirmationReady = false;
     const refresh = () => {
-      preview.dataset.hair = appearance.hairStyle; preview.dataset.outfit = appearance.outfit; preview.dataset.presentation = appearance.presentation;
-      const assetId = appearance.presentation === 'masculina' ? 'char_player_male_01' : 'char_player_female_01';
-      root.querySelector<HTMLImageElement>('#character-preview-sprite')!.src = `/assets/pixel/rendered/thumbnails/${assetId}.png?v=0.0.7-c3-br-1`;
+      preview.dataset.hair = appearance.hairStyle;
+      preview.dataset.outfit = appearance.outfit;
+      preview.dataset.presentation = appearance.presentation;
+      const assetId = playerSkinAsset(appearance);
+      root.querySelector<HTMLImageElement>('#character-preview-sprite')!.src = `/assets/pixel/rendered/thumbnails/${assetId}.png?v=0.0.7-c3-br-2`;
       root.querySelector<HTMLElement>('#preview-name')!.textContent = nameInput.value.trim() || 'Seu personagem';
     };
     form.addEventListener('input', (event) => {
-      const target = event.target as HTMLInputElement | HTMLSelectElement;
+      const target = event.target as HTMLInputElement;
       confirmationReady = false;
       submitButton.innerHTML = 'Abrir o Bistrô <span>→</span>';
-      if (target.name === 'presentation') appearance.presentation = target.value as Presentation;
-      else if (target.id && target.id in appearance) (appearance as unknown as Record<string, string>)[target.id] = target.value;
+      if (target.name === 'playerSkin') {
+        const skin = PLAYER_SKINS.find((entry) => entry.assetId === target.value);
+        if (skin) { appearance.assetId = skin.assetId; appearance.presentation = skin.presentation; }
+      }
       refresh();
     });
     form.addEventListener('submit', (event) => {
@@ -87,9 +85,4 @@ function escapeCreatorText(value: string): string {
   const element = document.createElement('div');
   element.textContent = value;
   return element.innerHTML;
-}
-
-function selectField(id: keyof CharacterAppearance, label: string, options: readonly { id: string; label: string; color?: string }[]): string {
-  const selected = defaultAppearance[id];
-  return `<label class="field"><span>${label}</span><select id="${id}">${options.map((option) => `<option value="${option.id}" ${option.id === selected ? 'selected' : ''}>${option.label}</option>`).join('')}</select></label>`;
 }

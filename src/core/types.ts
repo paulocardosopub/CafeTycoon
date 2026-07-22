@@ -588,6 +588,7 @@ export interface GraphicsSaveState { dataVersion: 2; objects: PersistedWorldObje
 
 export interface CharacterAppearance {
   presentation: Presentation;
+  assetId?: string;
   skin: string;
   hairStyle: string;
   hairColor: string;

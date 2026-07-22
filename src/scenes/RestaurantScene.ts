@@ -3,6 +3,7 @@ import { installPixelAtlases } from '../assets/pixel/PixelAtlasFactory';
 import { REQUIRED_CHARACTER_ANIMATIONS, WORLD_ASSETS, characterFrame, effectFrame } from '../assets/pixel/manifest';
 import { BLENDER_RENDERED_ASSETS } from '../assets/pixel/blenderManifest';
 import { C3_BR_CHARACTER_ASSETS, C3_BR_LEGACY_ALIASES } from '../assets/pixel/c3brManifest';
+import { C3_BR_VARIANT_ASSETS, CUSTOMER_CHARACTER_ASSET_IDS } from '../assets/pixel/characterVariantManifest';
 import { STAGE_2B_FURNITURE_ASSETS, STAGE_2B_RENDERED_ASSET_IDS } from '../assets/pixel/stage2bPrototypeManifest';
 import { STAGE_2C_CHARACTER_ASSETS } from '../assets/pixel/stage2cCharacterManifest';
 import { FOOD_DIRTY_ASSET_ID, FOOD_DISPLAY_SCALE, STAGE_2D_FOOD_ASSETS, recipeFoodAssetId } from '../assets/pixel/stage2dFoodManifest';
@@ -10,7 +11,7 @@ import { footprintDepthPoint, VISUAL_METRICS } from '../assets/pixel/VisualMetri
 import { gameEvents } from '../core/events';
 import type { ConstructionSaveState, Direction, FurnitureEditSession, GridPoint, PixelAnimationName, StationRuntime, TableRuntime, WorldAssetId } from '../core/types';
 import { gridToWorld, isoDepth, worldToGrid } from '../game/grid/IsoGrid';
-import { DECORATIONS, ENTRANCE, MAP_SIZE, RESTAURANT_SIZE } from '../game/map/initialMap';
+import { DECORATIONS, ENTRANCE, MAP_SIZE } from '../game/map/initialMap';
 import { FURNITURE_BY_ID } from '../game/data/furniture/catalog';
 import { STAFF_BY_ID } from '../game/data/staff';
 import { orientedFootprint } from '../game/systems/furniture/FurniturePlacement';
@@ -60,6 +61,7 @@ const SEATED_STATES = ['sitting', 'waiting_order', 'waiting_food', 'eating', 'pa
 const RENDERED_ASSETS = [
   ...BLENDER_RENDERED_ASSETS.filter((asset) => asset.kind !== 'character' && !STAGE_2B_RENDERED_ASSET_IDS.has(asset.assetId)),
   ...STAGE_2C_CHARACTER_ASSETS,
+  ...C3_BR_VARIANT_ASSETS,
   ...STAGE_2B_FURNITURE_ASSETS,
   ...STAGE_2D_FOOD_ASSETS,
 ];
@@ -78,6 +80,7 @@ export class RestaurantScene extends Phaser.Scene {
   private visualSkinSet: 'bloom' | 'sage' = activeVisualSkinSet();
   private constructionPreviewActive = false;
   private constructionPreviewObjects: Phaser.GameObjects.GameObject[] = [];
+  private constructionPreviewAreaSignature = '';
   private dragOrigin = { x: 0, y: 0, scrollX: 0, scrollY: 0 };
   private draggedFurnitureId?: string;
   private lastFurnitureDragCell?: string;
@@ -95,8 +98,14 @@ export class RestaurantScene extends Phaser.Scene {
     installPixelAtlases(this, this.simulation.state.profile?.appearance);
     for (const asset of RENDERED_ASSETS) this.textures.get(`blender:${asset.assetId}`).setFilter(Phaser.Textures.FilterMode.NEAREST);
     this.cameras.main.setBackgroundColor('#294b3a');
-    this.cameras.main.setBounds(-920, -250, 1840, 1250);
-    this.cameras.main.centerOn(0, 320).setZoom(ZOOM_LEVELS[this.zoomIndex]);
+    this.cameras.main.setBounds(-1500, -300, 3000, 2200);
+    const builtAreas = this.simulation.state.construction.builtAreas;
+    const minBuiltX = Math.min(...builtAreas.map((area) => area.x));
+    const minBuiltY = Math.min(...builtAreas.map((area) => area.y));
+    const maxBuiltX = Math.max(...builtAreas.map((area) => area.x + area.width));
+    const maxBuiltY = Math.max(...builtAreas.map((area) => area.y + area.depth));
+    const restaurantCenter = gridToWorld({ x: (minBuiltX + maxBuiltX - 1) / 2, y: (minBuiltY + maxBuiltY - 1) / 2 });
+    this.cameras.main.centerOn(restaurantCenter.x, restaurantCenter.y).setZoom(ZOOM_LEVELS[this.zoomIndex]);
     this.drawEnvironment();
     this.drawPlacedDecorations();
     this.simulation.tables.forEach((table) => this.drawTable(table));
@@ -196,8 +205,22 @@ export class RestaurantScene extends Phaser.Scene {
     for (const area of payload.construction.builtAreas) for (let y = area.y; y < area.y + area.depth; y += 1) for (let x = area.x; x < area.x + area.width; x += 1) {
       cells.set(`${x},${y}`, { x, y });
     }
+    const areaSignature = payload.construction.builtAreas.map((area) => `${area.x},${area.y},${area.width},${area.depth}`).join('|');
+    if (areaSignature !== this.constructionPreviewAreaSignature) {
+      this.constructionPreviewAreaSignature = areaSignature;
+      const minX = Math.min(...payload.construction.builtAreas.map((area) => area.x));
+      const minY = Math.min(...payload.construction.builtAreas.map((area) => area.y));
+      const maxX = Math.max(...payload.construction.builtAreas.map((area) => area.x + area.width));
+      const maxY = Math.max(...payload.construction.builtAreas.map((area) => area.y + area.depth));
+      const center = gridToWorld({ x: (minX + maxX - 1) / 2, y: (minY + maxY - 1) / 2 });
+      this.cameras.main.pan(center.x, center.y, 420, 'Sine.easeInOut');
+    }
+    const previewFloorAsset: WorldAssetId = payload.construction.floorSkinId === 'floor-cream' ? 'floor_kitchen' : 'floor_dining';
     for (const cell of cells.values()) {
       const point = gridToWorld(cell);
+      const floor = this.add.image(Math.round(point.x), Math.round(point.y), 'world-atlas', WORLD_ASSETS[previewFloorAsset].frame)
+        .setOrigin(.5).setDepth(-9_999 + cell.x + cell.y);
+      this.constructionPreviewObjects.push(floor);
       const protectedCell = (cell.x === 9 || cell.x === 10) && cell.y === 17;
       grid.fillStyle(protectedCell ? 0xf1c45b : 0x77d3b4, protectedCell ? .24 : .08);
       grid.lineStyle(protectedCell ? 2 : 1, protectedCell ? 0xf1c45b : 0x8ce1c4, protectedCell ? .9 : .36);
@@ -312,6 +335,7 @@ export class RestaurantScene extends Phaser.Scene {
   private endConstructionPreview(): void {
     if (!this.constructionPreviewActive) return;
     this.constructionPreviewActive = false;
+    this.constructionPreviewAreaSignature = '';
     this.draggedFurnitureId = undefined; this.lastFurnitureDragCell = undefined;
     this.constructionPreviewObjects.splice(0).forEach((object) => object.destroy());
     this.setOperationVisualsVisible(true);
@@ -338,21 +362,31 @@ export class RestaurantScene extends Phaser.Scene {
   }
 
   private drawEnvironment(): void {
+    const floorAsset: WorldAssetId = this.simulation.state.construction.floorSkinId === 'floor-cream' ? 'floor_kitchen' : 'floor_dining';
+    const areas = this.simulation.state.construction.builtAreas;
+    const minX = Math.min(...areas.map((area) => area.x));
+    const minY = Math.min(...areas.map((area) => area.y));
+    const maxX = Math.max(...areas.map((area) => area.x + area.width));
+    const maxY = Math.max(...areas.map((area) => area.y + area.depth));
     for (let y = -2; y < MAP_SIZE.height + 2; y += 1) {
       for (let x = -2; x < MAP_SIZE.width + 2; x += 1) {
-        const inside = x >= 0 && y >= 0 && x < RESTAURANT_SIZE.width && y < RESTAURANT_SIZE.height - 1;
-        const entrancePath = Math.abs(x - ENTRANCE.x) <= 1 && y >= RESTAURANT_SIZE.height - 1;
-        const farOutside = x <= -2 || y <= -2 || x >= RESTAURANT_SIZE.width + 1 || y >= RESTAURANT_SIZE.height + 1;
+        const inside = areas.some((area) => x >= area.x && y >= area.y && x < area.x + area.width && y < area.y + area.depth);
+        const entrancePath = Math.abs(x - ENTRANCE.x) <= 1 && y > ENTRANCE.y;
+        const farOutside = x < minX - 1 || y < minY - 1 || x > maxX || y > maxY;
         const asset: WorldAssetId = inside
-          ? y <= 7 ? 'floor_kitchen' : 'floor_dining'
+          ? floorAsset
           : entrancePath || farOutside ? 'floor_road' : (x + y) % 2 ? 'floor_grass_alt' : 'floor_outside';
         const point = gridToWorld({ x, y });
         this.add.image(Math.round(point.x), Math.round(point.y), 'world-atlas', WORLD_ASSETS[asset].frame)
           .setOrigin(.5).setDepth(-10_000 + x + y);
       }
     }
-    for (let x = 0; x < RESTAURANT_SIZE.width; x += 1) this.addWorldAsset('wall_nw', { x, y: 0 }, 8);
-    for (let y = 1; y < RESTAURANT_SIZE.height; y += 1) this.addWorldAsset('wall_ne', { x: 0, y }, 8);
+    const inside = (x: number, y: number) => areas.some((area) => x >= area.x && y >= area.y && x < area.x + area.width && y < area.y + area.depth);
+    for (let y = minY; y < maxY; y += 1) for (let x = minX; x < maxX; x += 1) {
+      if (!inside(x, y)) continue;
+      if (!inside(x, y - 1)) this.addWorldAsset('wall_nw', { x, y }, 8);
+      if (!inside(x - 1, y)) this.addWorldAsset('wall_ne', { x, y }, 8);
+    }
     DECORATIONS.forEach((item) => this.addWorldAsset(item.asset, item.position, item.asset === 'door' ? 9 : 18));
   }
 
@@ -413,7 +447,7 @@ export class RestaurantScene extends Phaser.Scene {
     const seatPlates = new Map<string, Phaser.GameObjects.Image>();
     const seatDirt = new Map<string, Phaser.GameObjects.Image>();
     for (const seat of table.chairs) {
-      const dishPoint = tableDishPoint(seat.platePosition, seat.position);
+      const dishPoint = tableDishPoint(table.position, seat.position);
       seatPlates.set(seat.seatId, this.add.image(dishPoint.x, dishPoint.y, `blender:${recipeFoodAssetId(undefined)}`, worldRenderedFrame(seat.orientation, 0, recipeFoodAssetId(undefined)))
         .setOrigin(.5).setScale(FOOD_DISPLAY_SCALE).setDepth(isoDepth(seat.platePosition, 42)).setVisible(false));
       seatDirt.set(seat.seatId, this.add.image(dishPoint.x, dishPoint.y, `blender:${FOOD_DIRTY_ASSET_ID}`, worldRenderedFrame(seat.orientation, 0, FOOD_DIRTY_ASSET_ID))
@@ -505,7 +539,7 @@ export class RestaurantScene extends Phaser.Scene {
     const carriedOrder = actor.carryingOrderId ? this.simulation.orders.find((order) => order.id === actor.carryingOrderId) : undefined;
     const carriedAssetId = recipeFoodAssetId(carriedOrder?.recipeId);
     const carryPoint = carriedDishPoint(point, actor.direction);
-    const carryDepthLayer = actor.direction === 'nw'
+    const carryDepthLayer = actor.direction === 'nw' || actor.direction === 'ne'
       ? VISUAL_METRICS.depth.standingCharacter - 2
       : VISUAL_METRICS.depth.standingCharacter + 8;
     visual.carriedDish
@@ -535,7 +569,7 @@ export class RestaurantScene extends Phaser.Scene {
       }
       visual.previousState = customer.state;
     }
-    const assetId = canonicalCharacterAsset(`customer-${customer.variant}`);
+    const assetId = customerCharacterAsset(customer.variant);
     const rendered = blenderAsset(assetId);
     const standFrames = rendered?.animations.stand_up ?? 0;
     const standElapsedMs = Math.max(0, this.time.now - visual.standStartedAt);
@@ -601,7 +635,7 @@ export class RestaurantScene extends Phaser.Scene {
 
   private createCustomer(customer: CustomerRuntime): void {
     const point = characterFloorPoint(customer.position);
-    const assetId = canonicalCharacterAsset(`customer-${customer.variant}`); const useBlender = this.textures.exists(`blender:${assetId}`);
+    const assetId = customerCharacterAsset(customer.variant); const useBlender = this.textures.exists(`blender:${assetId}`);
     const rendered = blenderAsset(assetId); const origin = characterOrigin(assetId);
     const sprite = this.add.sprite(Math.round(point.x), Math.round(point.y), useBlender ? `blender:${assetId}` : 'character-atlas', useBlender ? renderedCharacterFrame(assetId, 'idle', customer.direction, 0, true) : characterFrame(assetId, 'idle', customer.direction, 0))
       .setOrigin(origin.x, origin.y).setScale(useBlender ? rendered?.nativeScale ?? 1 : 1).setDepth(isoDepth(customer.position, 50)).setInteractive({ useHandCursor: true });
@@ -766,6 +800,7 @@ function renderedLoopAnimationFrame(assetId: string, animation: string, clockMs:
 
 function canonicalCharacterAsset(assetId: string): string {
   if (C3_BR_CHARACTER_ASSETS.some((asset) => asset.assetId === assetId)) return assetId;
+  if (C3_BR_VARIANT_ASSETS.some((asset) => asset.assetId === assetId)) return assetId;
   if (C3_BR_LEGACY_ALIASES[assetId]) return C3_BR_LEGACY_ALIASES[assetId];
   if (assetId.startsWith('customer-')) {
     const variant = Number(assetId.slice('customer-'.length));
@@ -773,6 +808,10 @@ function canonicalCharacterAsset(assetId: string): string {
     return `char_customer_${String((Number.isInteger(variant) ? Math.max(0, variant) : 0) % 6 + 1).padStart(2, '0')}`;
   }
   return HIGH_DETAIL_CHARACTER_ASSETS.has(assetId) ? C3_BR_LEGACY_ALIASES[assetId] : 'char_cook_female_01';
+}
+
+function customerCharacterAsset(variant: number): string {
+  return CUSTOMER_CHARACTER_ASSET_IDS[((variant % CUSTOMER_CHARACTER_ASSET_IDS.length) + CUSTOMER_CHARACTER_ASSET_IDS.length) % CUSTOMER_CHARACTER_ASSET_IDS.length];
 }
 
 const HIGH_DETAIL_CHARACTER_ASSETS = new Set([
@@ -834,13 +873,17 @@ function characterFloorPoint(position: GridPoint): GridPoint {
   return getFootprintFloorAnchorWorld(position, { width: 1, depth: 1 });
 }
 
-function tableDishPoint(tablePosition: GridPoint, customerPosition: GridPoint): GridPoint {
+function tableDishPoint(tablePosition: GridPoint, chairPosition: GridPoint): GridPoint {
   const tableBase = getFootprintFloorAnchorWorld(tablePosition, { width: 1, depth: 1 });
-  const customerBase = getFootprintFloorAnchorWorld(customerPosition, { width: 1, depth: 1 });
-  const proximity = .18;
+  const chairBase = getFootprintFloorAnchorWorld(chairPosition, { width: 1, depth: 1 });
+  const tabletopCenter = { x: tableBase.x, y: tableBase.y - 50 };
+  const slotOffset = {
+    x: Math.sign(chairBase.x - tableBase.x) * 14,
+    y: Math.sign(chairBase.y - tableBase.y) * 7,
+  };
   return {
-    x: Math.round(Phaser.Math.Linear(tableBase.x, customerBase.x, proximity)),
-    y: Math.round(Phaser.Math.Linear(tableBase.y, customerBase.y, proximity) - 50),
+    x: Math.round(tabletopCenter.x + slotOffset.x),
+    y: Math.round(tabletopCenter.y + slotOffset.y),
   };
 }
 

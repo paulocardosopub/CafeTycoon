@@ -122,6 +122,13 @@ function sanitizeConstruction(
     if (initialDining.every((item) => !occupied.has(`${item.gridX},${item.gridY}`))) placedFurniture.push(...initialDining.map((item) => sanitizePlaced({ ...item, state: { ...item.state } })));
   }
   const builtAreas = input.builtAreas.filter((area) => area && Number(area.width) > 0 && Number(area.depth) > 0).map((area) => ({ ...area, x: Math.floor(Number(area.x) || 0), y: Math.floor(Number(area.y) || 0), width: Math.max(1, Math.floor(Number(area.width) || 1)), depth: Math.max(1, Math.floor(Number(area.depth) || 1)) }));
+  const baseArea = builtAreas.find((area) => area.kind === 'base') ?? builtAreas.find((area) => area.id === 'area:base');
+  const fallbackBase = fallback.builtAreas.find((area) => area.kind === 'base')!;
+  if (baseArea) {
+    baseArea.x = fallbackBase.x; baseArea.y = fallbackBase.y;
+    baseArea.width = fallbackBase.width;
+    baseArea.depth = fallbackBase.depth;
+  } else builtAreas.unshift({ ...fallbackBase });
   const spatialMigrationLog = normalizeDiningFurniture(placedFurniture, storedFurniture, builtAreas);
   const serviceCounters = modulesFromFurniture(placedFurniture, Array.isArray(input.serviceCounters) ? input.serviceCounters : []);
   const staffStartPositions = Array.isArray(input.staffStartPositions) ? input.staffStartPositions.filter((position) => position && typeof position.staffId === 'string') : [];

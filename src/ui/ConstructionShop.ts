@@ -9,6 +9,7 @@ import type { SaveRepository } from '../game/save/SaveRepository';
 import type { RestaurantSimulation } from '../game/simulation/RestaurantSimulation';
 import { availableStaffFurniture, staffFurnitureRequirement } from '../game/systems/construction/StaffStartSystem';
 import { C3_BR_LEGACY_ALIASES } from '../assets/pixel/c3brManifest';
+import { playerSkinAsset } from '../content/characters/playerSkins';
 
 const CONSTRUCTION_RELOAD_SESSION_KEY = 'bistro-bloom-construction-reload';
 const ASSET_VERSION = '0.0.7-c3-br-2';
@@ -158,7 +159,7 @@ export class ConstructionShop {
       this.pendingDefinitionId = undefined;
       this.pendingStoredItemId = undefined;
       this.selectedShopDefinitionId = undefined;
-      this.setStatus(this.mode === 'shop' ? 'Escolha um item para conhecer e comprar.' : 'Escolha um item seu e depois um quadrado livre.', 'info');
+      this.setStatus(this.mode === 'shop' ? 'Escolha um item para conhecer e comprar.' : 'Organize seus itens ou pinte piso e paredes em Revestimentos.', 'info');
       return;
     }
     if (action === 'category') {
@@ -214,7 +215,7 @@ export class ConstructionShop {
     else if (action === 'counter-recipe' && this.selectedItemId) this.apply(this.editor.assignCounterRecipe(this.selectedItemId, target.dataset.id as RecipeId), 'Receita ligada a este módulo.');
     else if (action === 'surface') this.apply(this.editor.setSurface(target.dataset.kind as 'floor' | 'wall' | 'door' | 'window', target.dataset.id!, Number(target.dataset.price ?? 0)), 'Revestimento aplicado.');
     else if (action === 'expansion') this.apply(this.editor.previewExpansion(target.dataset.id!, target.dataset.side as 'north' | 'east' | 'south' | 'west'), 'Quadrados selecionados. Use ✓ para comprar ou × para cancelar.');
-    else if (action === 'confirm-expansion') this.apply(this.editor.confirmExpansion(), 'Ampliação comprada. Confirme e reabra para aplicar.');
+    else if (action === 'confirm-expansion') await this.confirmExpansionAndApply();
     else if (action === 'cancel-expansion') this.apply(this.editor.cancelExpansion(), 'Seleção de ampliação cancelada.');
     else if (action === 'hire-staff') {
       const staffId = target.dataset.id!;
@@ -349,6 +350,16 @@ export class ConstructionShop {
     window.location.replace(target);
   }
 
+  private async confirmExpansionAndApply(): Promise<void> {
+    if (!this.editor) return;
+    const result = this.editor.confirmExpansion();
+    if (!result.ok) { this.apply(result, ''); return; }
+    this.status = 'Expansão comprada. Atualizando o restaurante…';
+    this.statusTone = 'success';
+    this.render();
+    await this.confirm();
+  }
+
   private render(): void {
     if (!this.overlay || !this.editor) return;
     const draft = this.editor.draft;
@@ -385,7 +396,7 @@ export class ConstructionShop {
     const organizeCatalog = `<section class="organize-owned"><h2>Seus itens</h2><p>Somente móveis que você já comprou ou guardou aparecem aqui.</p><div class="stored-list">${stored || '<p>Nenhum item guardado. Compre um item na Loja para vê-lo aqui.</p>'}</div></section>`;
     const staffIds = new Set(draft.construction.staffStartPositions.map((item) => item.staffId));
     const activeStaff = [
-      { id: 'player', label: this.state.profile?.name ? `${this.state.profile.name} · Jogador` : 'Jogador', assetId: this.state.profile?.appearance.presentation === 'masculina' ? 'char_player_male_01' : 'char_player_female_01' },
+      { id: 'player', label: this.state.profile?.name ? `${this.state.profile.name} · Jogador` : 'Jogador', assetId: playerSkinAsset(this.state.profile?.appearance) },
       ...STAFF_CATALOG.filter((staff) => staff.includedByDefault || staffIds.has(staff.id)).map((staff) => ({ id: staff.id, label: staff.label, assetId: staff.assetId })),
     ];
     const staffRoster = activeStaff.map((staff) => {
@@ -404,7 +415,7 @@ export class ConstructionShop {
         <div class="construction-toolbar"><button data-editor-action="undo" ${this.editor.canUndo ? '' : 'disabled'}>↶ Desfazer</button><button data-editor-action="redo" ${this.editor.canRedo ? '' : 'disabled'}>↷ Refazer</button><span class="construction-status ${this.statusTone}">${escapeHtml(this.status)}</span><button class="secondary" data-editor-action="cancel">Cancelar</button><button class="primary" data-editor-action="confirm">Confirmar e reabrir</button></div>
         <div class="construction-workspace construction-live-workspace">
           <aside class="construction-catalog">
-            ${this.mode === 'shop' ? shopCatalog : organizeCatalog}
+            ${this.mode === 'shop' ? shopCatalog : `${organizeCatalog}<section class="organize-paint-hint"><strong>Pintar o restaurante</strong><p>Use Revestimentos ao lado para aplicar uma única cor de piso em todo o espaço construído e trocar as paredes.</p></section>`}
           </aside>
           <main class="construction-live-stage" aria-label="Edição diretamente no restaurante">
             <div class="construction-live-hint"><strong>Editando no próprio salão</strong><span>Toque em um móvel e depois no quadrado de destino. A prévia aparece imediatamente.</span></div>
@@ -412,7 +423,7 @@ export class ConstructionShop {
           </main>
           <aside class="construction-options ${this.mode === 'shop' ? 'shop-hidden-options' : ''}">
             <details open><summary>Revestimentos</summary><div class="option-buttons"><button data-editor-action="surface" data-kind="floor" data-id="floor-terracotta">Piso terracota</button><button data-editor-action="surface" data-kind="floor" data-id="floor-cream">Piso creme</button><button data-editor-action="surface" data-kind="wall" data-id="wall-cream-green">Parede verde</button><button data-editor-action="surface" data-kind="wall" data-id="wall-cream-wood">Parede madeira</button></div></details>
-            <details open><summary>Ampliar restaurante</summary><p class="option-help">Escolha o bloco e o lado. Os quadrados aparecem no salão antes da compra.</p>${EXPANSIONS.map((expansion) => { const purchased = draft.construction.builtAreas.some((area) => area.expansionDefinitionId === expansion.id) && pendingExpansion?.definition.id !== expansion.id; return `<article class="expansion-card ${pendingExpansion?.definition.id === expansion.id ? 'selected' : ''}"><strong>${expansion.width}×${expansion.depth}</strong><small>Nível ${expansion.unlockLevel} · ${expansion.coinCost} moedas${purchased ? ' · comprado' : ''}</small><div>${expansion.allowedSides.map((side) => `<button data-editor-action="expansion" data-id="${expansion.id}" data-side="${side}" class="${pendingExpansion?.definition.id === expansion.id && pendingExpansion.side === side ? 'active' : ''}" ${this.state.restaurantLevel < expansion.unlockLevel || purchased ? 'disabled' : ''}>${sideLabel(side)}</button>`).join('')}</div>${pendingExpansion?.definition.id === expansion.id ? '<div class="expansion-confirm"><button class="confirm-placement" data-editor-action="confirm-expansion" aria-label="Confirmar ampliação">✓ Confirmar quadrados</button><button class="cancel-placement" data-editor-action="cancel-expansion" aria-label="Cancelar ampliação">× Cancelar</button></div>' : ''}</article>`; }).join('')}</details>
+            <details open><summary>Melhorias do restaurante</summary><p class="option-help">Cada etapa acrescenta uma área inteira de 18×18. A posição é automática para manter o formato correto.</p>${EXPANSIONS.map((expansion, index) => { const purchased = draft.construction.builtAreas.some((area) => area.expansionDefinitionId === expansion.id) && pendingExpansion?.definition.id !== expansion.id; const prerequisitesMet = expansion.prerequisites.every((id) => draft.construction.builtAreas.some((area) => area.expansionDefinitionId === id)); const shape = ['36×18 · dobro do original', 'L · três áreas originais', 'quatro áreas originais'][index]; const side = expansion.allowedSides[0]; return `<article class="expansion-card ${pendingExpansion?.definition.id === expansion.id ? 'selected' : ''}"><strong>Etapa ${index + 1} · ${shape}</strong><small>Nível ${expansion.unlockLevel} · ${expansion.coinCost.toLocaleString('pt-BR')} moedas${purchased ? ' · comprado' : ''}</small><div><button data-editor-action="expansion" data-id="${expansion.id}" data-side="${side}" class="${pendingExpansion?.definition.id === expansion.id ? 'active' : ''}" ${this.state.restaurantLevel < expansion.unlockLevel || purchased || !prerequisitesMet ? 'disabled' : ''}>${purchased ? 'Adquirida' : 'Pré-visualizar melhoria'}</button></div>${pendingExpansion?.definition.id === expansion.id ? '<div class="expansion-confirm"><button class="confirm-placement" data-editor-action="confirm-expansion" aria-label="Confirmar ampliação">✓ Comprar expansão</button><button class="cancel-placement" data-editor-action="cancel-expansion" aria-label="Cancelar ampliação">× Cancelar</button></div>' : ''}</article>`; }).join('')}</details>
             <details open><summary>Equipe e contratação</summary><p class="option-help">Funcionários vinculados ficam diante do móvel e acompanham seus movimentos automaticamente.</p><div class="staff-roster">${staffRoster}</div>${this.staffPlacementId ? `<div class="staff-facing"><small>Direção inicial</small><button data-editor-action="staff-facing" data-id="ne" class="${this.staffPlacementFacing === 'ne' ? 'active' : ''}">↗ NE</button><button data-editor-action="staff-facing" data-id="nw" class="${this.staffPlacementFacing === 'nw' ? 'active' : ''}">↖ NO</button><button data-editor-action="staff-facing" data-id="se" class="${this.staffPlacementFacing === 'se' ? 'active' : ''}">↘ SE</button><button data-editor-action="staff-facing" data-id="sw" class="${this.staffPlacementFacing === 'sw' ? 'active' : ''}">↙ SO</button></div>` : ''}${hireCards ? `<div class="hire-list"><small>Novas contratações</small>${hireCards}</div>` : '<p class="option-help">Todos os profissionais disponíveis já foram contratados.</p>'}</details>
             <div class="construction-rules"><strong>Para o salão funcionar</strong><span>• Cadeiras precisam ficar ao lado da mesa.</span><span>• A entrada e os pontos de trabalho devem ficar livres.</span><span>• Fogão, geladeira, preparo, pia e balcão são essenciais.</span></div>
           </aside>
@@ -440,7 +451,6 @@ function matchesGroup(category: FurnitureCategory, group: CatalogGroup): boolean
 function thumbnail(assetId: string): string { return `/assets/pixel/rendered/thumbnails/${C3_BR_LEGACY_ALIASES[assetId] ?? assetId}.png?v=${ASSET_VERSION}`; }
 function escapeHtml(value: string): string { const element = document.createElement('div'); element.textContent = value; return element.innerHTML; }
 function directionLabel(direction: Direction): string { return ({ ne: 'nordeste', nw: 'noroeste', se: 'sudeste', sw: 'sudoeste' } as Record<Direction, string>)[direction]; }
-function sideLabel(side: 'north' | 'east' | 'south' | 'west'): string { return ({ north: 'Norte', east: 'Leste', south: 'Sul', west: 'Oeste' } as const)[side]; }
 function furniturePurpose(functionId?: string): string {
   return ({ stove: 'Cozimento de receitas', oven: 'Assar receitas', grill: 'Grelhar receitas', cauldron: 'Cozimento em caldeira', coffee_machine: 'Preparo de bebidas', fridge: 'Conservação de ingredientes', prep: 'Preparo de ingredientes', assembly: 'Montagem de receitas', sink: 'Limpeza de louças', pickup: 'Entrega de pratos', storage: 'Armazenamento', table: 'Atendimento aos clientes', chair: 'Assento para clientes', decoration: 'Conforto e decoração' } as Record<string, string>)[functionId ?? ''] ?? 'Equipamento do restaurante';
 }

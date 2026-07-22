@@ -9,6 +9,8 @@ import { FURNITURE_BY_ID } from '../game/data/furniture/catalog';
 import { calculateCounterConnections, modulesFromFurniture, ServiceCounterStore } from '../game/systems/service-counter/ServiceCounterSystem';
 import { RestaurantSimulation } from '../game/simulation/RestaurantSimulation';
 import { INGREDIENTS } from '../content/ingredients/ingredients';
+import { STAFF_ROLE_CHARACTER_ASSETS } from '../assets/pixel/characterVariantManifest';
+import { ENTRANCE, RESTAURANT_SIZE } from '../game/map/initialMap';
 
 const item = (id: string, definitionId: string, gridX: number, gridY: number, orientation: PlacedFurniture['orientation'] = 'sw'): PlacedFurniture => ({
   id, definitionId, gridX, gridY, orientation, skinId: definitionId.includes('chair') ? 'chair-wood' : definitionId.includes('table') ? 'table-oak' : 'steel-standard', level: 1, state: {},
@@ -64,7 +66,7 @@ describe('editor físico e loja da 0.0.5', () => {
     const state = createDefaultState(0);
     const table = item('table:new', 'dining.table.basic', 8, 11);
     expect(validateFurniturePlacement(table, state.construction.placedFurniture, state.construction.builtAreas).valid).toBe(false);
-    const entrance = item('table:door', 'dining.table.basic', 9, 17);
+    const entrance = item('table:door', 'dining.table.basic', ENTRANCE.x, ENTRANCE.y);
     expect(validateFurniturePlacement(entrance, state.construction.placedFurniture, state.construction.builtAreas).errors).toContain('A entrada e a saída precisam ficar livres.');
     expect(resolvedWorkSlots(state.construction.placedFurniture.find((entry) => entry.id === 'furniture:a1')!)).toHaveLength(1);
   });
@@ -89,6 +91,22 @@ describe('editor físico e loja da 0.0.5', () => {
     expect(editor.draft.construction.storedFurniture.some((entry) => entry.id === chair.id)).toBe(true);
     expect(editor.place('dining.chair.basic', 13, 12, 'sw', undefined, chair.id).ok).toBe(true);
     expect(editor.sell(chair.id).ok).toBe(true);
+  });
+
+  it('abre no tamanho original, com pintura unificada e paredes pelo contorno', () => {
+    const state = createDefaultState(0);
+    const base = state.construction.builtAreas.find((area) => area.kind === 'base')!;
+    expect(RESTAURANT_SIZE).toEqual({ width: 18, height: 18 });
+    expect(base.width * base.depth).toBe(18 * 18);
+    const scene = readFileSync(resolve(import.meta.dirname, '../scenes/RestaurantScene.ts'), 'utf8');
+    expect(scene).toContain("const floorAsset: WorldAssetId = this.simulation.state.construction.floorSkinId === 'floor-cream'");
+    expect(scene).not.toContain("y <= 7 ? 'floor_kitchen' : 'floor_dining'");
+    expect(scene).toContain('if (!inside(x, y - 1))');
+    expect(scene).toContain('if (!inside(x - 1, y))');
+    const simulation = readFileSync(resolve(import.meta.dirname, '../game/simulation/RestaurantSimulation.ts'), 'utf8');
+    expect(simulation).toContain('Math.ceil(this.customerDemandCapacity() * .5)');
+    expect(simulation).toContain('this.customerDemandCapacity() + queueLimit');
+    expect(simulation).toContain('this.state.reputation');
   });
 
   it('compra na Loja para o inventário e só coloca pela aba Organizar', () => {
@@ -119,14 +137,19 @@ describe('editor físico e loja da 0.0.5', () => {
     expect(confirmedState.construction.placedFurniture.some((entry) => entry.definitionId === 'decor.plant.basic' && entry.gridX === 14)).toBe(true);
   });
 
-  it('compra expansões 4×4, 6×6 e 8×8 com pré-requisitos', () => {
+  it('compra três blocos 18×18 em sequência e forma as quatro áreas finais', () => {
     const state = createDefaultState(0); state.coins = 10_000; state.restaurantLevel = 3;
     const editor = new ConstructionEditor(state);
-    expect(editor.buyExpansion('expansion-large-8x8', 'east').ok).toBe(false);
-    expect(editor.buyExpansion('expansion-small-4x4', 'east').ok).toBe(true);
-    expect(editor.buyExpansion('expansion-medium-6x6', 'east').ok).toBe(true);
-    expect(editor.buyExpansion('expansion-large-8x8', 'east').ok).toBe(true);
-    expect(editor.draft.construction.builtAreas.map((area) => [area.width, area.depth])).toEqual(expect.arrayContaining([[4, 4], [6, 6], [8, 8]]));
+    expect(editor.buyExpansion('restaurant-expansion-3', 'east').ok).toBe(false);
+    expect(editor.buyExpansion('restaurant-expansion-1', 'east').ok).toBe(true);
+    expect(editor.buyExpansion('restaurant-expansion-2', 'south').ok).toBe(true);
+    expect(editor.buyExpansion('restaurant-expansion-3', 'east').ok).toBe(true);
+    expect(editor.draft.construction.builtAreas).toEqual(expect.arrayContaining([
+      expect.objectContaining({ x: 0, y: 0, width: 18, depth: 18 }),
+      expect.objectContaining({ x: 18, y: 0, width: 18, depth: 18 }),
+      expect.objectContaining({ x: 18, y: 18, width: 18, depth: 18 }),
+      expect.objectContaining({ x: 36, y: 0, width: 18, depth: 18 }),
+    ]));
   });
 
   it('mantém a equipe vinculada diante do móvel ao reposicioná-lo', () => {
@@ -150,20 +173,20 @@ describe('editor físico e loja da 0.0.5', () => {
     expect(editor.confirm().ok).toBe(true);
     const simulation = new RestaurantSimulation(state);
     expect(simulation.actors.filter((actor) => actor.kind === 'cook')).toHaveLength(2);
-    expect(simulation.actors.find((actor) => actor.assetId === 'cook-1')?.position).toEqual({ x: 12, y: 15 });
+    expect(simulation.actors.find((actor) => actor.assetId === STAFF_ROLE_CHARACTER_ASSETS.cook && actor.name === 'Lúcia')?.position).toEqual({ x: 12, y: 15 });
   });
 
   it('pré-visualiza quadrados da ampliação e só cobra após o ✓', () => {
     const state = createDefaultState(0); state.coins = 1_000;
     const editor = new ConstructionEditor(state);
-    expect(editor.previewExpansion('expansion-small-4x4', 'east').ok).toBe(true);
-    expect(editor.draft.construction.builtAreas.some((area) => area.expansionDefinitionId === 'expansion-small-4x4')).toBe(true);
+    expect(editor.previewExpansion('restaurant-expansion-1', 'east').ok).toBe(true);
+    expect(editor.draft.construction.builtAreas.some((area) => area.expansionDefinitionId === 'restaurant-expansion-1')).toBe(true);
     expect(editor.draft.coins).toBe(1_000);
     expect(editor.cancelExpansion().ok).toBe(true);
-    expect(editor.draft.construction.builtAreas.some((area) => area.expansionDefinitionId === 'expansion-small-4x4')).toBe(false);
-    expect(editor.previewExpansion('expansion-small-4x4', 'south').ok).toBe(true);
+    expect(editor.draft.construction.builtAreas.some((area) => area.expansionDefinitionId === 'restaurant-expansion-1')).toBe(false);
+    expect(editor.previewExpansion('restaurant-expansion-1', 'east').ok).toBe(true);
     expect(editor.confirmExpansion().ok).toBe(true);
-    expect(editor.draft.coins).toBe(820);
+    expect(editor.draft.coins).toBe(400);
   });
 
   it('mantém módulos 1×1 conectados e estoque reservado atomicamente sem negativo', () => {
@@ -187,5 +210,15 @@ describe('editor físico e loja da 0.0.5', () => {
     simulation.debugSeatGroupAtFirstTable(1); simulation.debugRunFor(10);
     expect(simulation.orders.length).toBeGreaterThan(0);
     expect(new Set(simulation.orders.map((order) => order.recipeId))).toEqual(new Set(['omelette']));
+  });
+
+  it('usa cadeiras como teto físico e reputação como limite de procura', () => {
+    const lowState = createDefaultState(0); lowState.reputation = 0;
+    const highState = createDefaultState(0); highState.reputation = 100;
+    const lowDemand = new RestaurantSimulation(lowState);
+    const highDemand = new RestaurantSimulation(highState);
+    expect(lowDemand.totalCapacity()).toBe(highDemand.totalCapacity());
+    expect(lowDemand.customerDemandCapacity()).toBeLessThan(highDemand.customerDemandCapacity());
+    expect(highDemand.customerDemandCapacity()).toBe(highDemand.totalCapacity());
   });
 });

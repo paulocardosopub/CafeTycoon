@@ -79,10 +79,12 @@ describe('pratos definitivos low-poly 0.0.7', () => {
     const scene = readFileSync(resolve(projectRoot, 'src/scenes/RestaurantScene.ts'), 'utf8');
     expect(scene).toContain('characterFloorPoint(actor.visual)');
     expect(scene).toContain('characterFloorPoint(customer.position)');
-    expect(scene).toContain('const dishPoint = tableDishPoint(seat.platePosition, seat.position)');
-    expect(scene).toContain('customerBase.y, proximity) - 50');
+    expect(scene).toContain('const dishPoint = tableDishPoint(table.position, seat.position)');
+    expect(scene).toContain('const tabletopCenter = { x: tableBase.x, y: tableBase.y - 50 }');
+    expect(scene).toContain('Math.sign(chairBase.x - tableBase.x) * 14');
+    expect(scene).toContain('Math.sign(chairBase.y - tableBase.y) * 7');
     expect(scene).toContain('carriedDishPoint(point, actor.direction)');
-    expect(scene).toContain("actor.direction === 'nw'");
+    expect(scene).toContain("actor.direction === 'nw' || actor.direction === 'ne'");
     expect(scene).toContain('standingCharacter - 2');
     expect(scene).toContain('standingCharacter + 8');
     expect(scene).toContain('Math.round(point.y - 56)');

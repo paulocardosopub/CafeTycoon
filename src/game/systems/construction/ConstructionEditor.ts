@@ -2,7 +2,7 @@ import type {
   ConstructionSaveState, Direction, ExpansionDefinition, FurnitureEditSession, GameState, PlacedFurniture, RecipeId, StaffStartPosition,
 } from '../../../core/types';
 import { createPersistentId } from '../../../core/id';
-import { EXPANSION_BY_ID } from '../../data/expansions';
+import { EXPANSION_BY_ID, RESTAURANT_EXPANSION_ORIGINS } from '../../data/expansions';
 import { FURNITURE_BY_ID } from '../../data/furniture/catalog';
 import { STAFF_BY_ID } from '../../data/staff';
 import { orientationTurns, orientedFootprint, resolvedWorkSlots, validateFurniturePlacement, validateLayout } from '../furniture/FurniturePlacement';
@@ -408,6 +408,8 @@ function isAdjacent(table: PlacedFurniture, chair: PlacedFurniture): boolean {
 }
 
 function expansionArea(definition: ExpansionDefinition, side: ExpansionDefinition['allowedSides'][number], areas: ConstructionSaveState['builtAreas']): ConstructionSaveState['builtAreas'][number] {
+  const fixedOrigin = RESTAURANT_EXPANSION_ORIGINS[definition.id];
+  if (fixedOrigin) return { id: createPersistentId('area'), ...fixedOrigin, width: definition.width, depth: definition.depth, kind: 'expansion', expansionDefinitionId: definition.id };
   const minX = Math.min(...areas.map((area) => area.x)); const minY = Math.min(...areas.map((area) => area.y));
   const maxX = Math.max(...areas.map((area) => area.x + area.width)); const maxY = Math.max(...areas.map((area) => area.y + area.depth));
   const horizontalCenter = Math.floor((minX + maxX - definition.width) / 2);
