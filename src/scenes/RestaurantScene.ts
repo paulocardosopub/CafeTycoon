@@ -541,16 +541,17 @@ export class RestaurantScene extends Phaser.Scene {
   private drawStation(station: StationRuntime): void {
     const base = footprintDepthPoint(station.position, { width: station.size.x, depth: station.size.y });
     const point = getFootprintFloorAnchorWorld(station.position, { width: station.size.x, depth: station.size.y });
-    const definition = WORLD_ASSETS[station.asset];
     const stationDepth = isoDepth(base, VISUAL_METRICS.depth.furnitureBase);
     // Balcões C1-C4 são sempre módulos 1x1. A antiga substituição visual por
     // pickup_counter_green reintroduzia um único sprite legado de 6x1.
-    const blenderId = station.renderedAssetId ?? WORLD_BLENDER_ASSET[station.asset];
-    const useBlender = Boolean(blenderId && this.textures.exists(`blender:${blenderId}`));
-    const rendered = blenderId ? blenderAsset(blenderId) : undefined;
+    const requestedBlenderId = station.renderedAssetId ?? WORLD_BLENDER_ASSET[station.asset];
+    // Never fall back to the generated legacy furniture atlas. A missing or
+    // migrated asset receives an approved 1x1 C3-BR counter until normalized.
+    const blenderId = requestedBlenderId && this.textures.exists(`blender:${requestedBlenderId}`) ? requestedBlenderId : 'b3_preparation_counter';
+    const rendered = blenderAsset(blenderId);
     const origin = station.anchor;
-    const sprite = this.add.image(Math.round(point.x), Math.round(point.y), useBlender ? `blender:${blenderId}` : 'world-atlas', useBlender ? worldRenderedFrame(station.orientation, 0, blenderId!) : definition.frame)
-      .setOrigin(origin.x, origin.y).setScale(useBlender ? (rendered?.nativeScale ?? 1) * (station.visualScale ?? 1) : 1).setDepth(stationDepth + station.depthOffset).setInteractive({ useHandCursor: true });
+    const sprite = this.add.image(Math.round(point.x), Math.round(point.y), `blender:${blenderId}`, worldRenderedFrame(station.orientation, 0, blenderId))
+      .setOrigin(origin.x, origin.y).setScale((rendered?.nativeScale ?? 1) * (station.visualScale ?? 1)).setDepth(stationDepth + station.depthOffset).setInteractive({ useHandCursor: true });
     sprite.on('pointerdown', (_pointer: Phaser.Input.Pointer, _x: number, _y: number, event: Phaser.Types.Input.EventData) => {
       event.stopPropagation();
       const ok = this.simulation.prioritizeWorldTarget('station', station.id);
@@ -559,7 +560,7 @@ export class RestaurantScene extends Phaser.Scene {
     const effect = this.add.sprite(Math.round(point.x), Math.round(point.y), 'world-atlas', effectFrame('steam', 0))
       .setOrigin(.5, 1).setDepth(station.id === 'pickup' ? stationDepth + 4 : isoDepth(base, 34)).setVisible(false);
     const progress = this.add.graphics().setDepth(isoDepth(base, 95));
-    const labelOffset = useBlender && rendered ? Math.round(rendered.frameSize[1] * .72 * (station.visualScale ?? 1)) : station.visualHeight + 16;
+    const labelOffset = rendered ? Math.round(rendered.frameSize[1] * .72 * (station.visualScale ?? 1)) : station.visualHeight + 16;
     const label = this.add.text(Math.round(point.x), Math.round(point.y - labelOffset), station.name, this.pixelTextStyle('#fff8e9', '#294b3ae6'))
       .setOrigin(.5).setDepth(isoDepth(base, 96)).setVisible(false);
     const isServiceCounter = station.id === 'pickup' || station.id.startsWith('pickup:');

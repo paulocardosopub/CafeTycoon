@@ -13,6 +13,7 @@ describe('mobile sem sprites antigas e tutorial acionável', () => {
     expect(scene).toContain('canonicalCharacterAsset(actor.assetId)');
     expect(scene).not.toContain("'character-atlas'");
     expect(scene).not.toContain('installPixelAtlases(this');
+    expect(scene).toContain("? requestedBlenderId : 'b3_preparation_counter'");
   });
 
   it('remove Receitas e Pedidos do menu e mantém notificações substituíveis em duas linhas', () => {
