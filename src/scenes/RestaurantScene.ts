@@ -70,6 +70,7 @@ const RENDERED_ASSETS = [
   ...STAGE_2B_FURNITURE_ASSETS,
   ...STAGE_2D_FOOD_ASSETS,
 ];
+const CHARACTER_RENDER_ASSET_IDS = new Set([...STAGE_2C_CHARACTER_ASSETS, ...C3_BR_VARIANT_ASSETS].map((asset) => asset.assetId));
 
 export class RestaurantScene extends Phaser.Scene {
   private actorVisuals = new Map<string, ActorVisual>();
@@ -96,7 +97,10 @@ export class RestaurantScene extends Phaser.Scene {
   constructor(private readonly simulation: RestaurantSimulation) { super('restaurant'); }
 
   preload(): void {
-    for (const asset of RENDERED_ASSETS) {
+    const sessionCharacterIds = new Set([...CUSTOMER_CHARACTER_ASSET_IDS, ...this.simulation.actors.map((actor) => actor.assetId)]);
+    const preloadAssets = RENDERED_ASSETS.filter((asset) => !CHARACTER_RENDER_ASSET_IDS.has(asset.assetId) || sessionCharacterIds.has(asset.assetId));
+    this.load.on('progress', (progress: number) => this.updateLoadingProgress(progress));
+    for (const asset of preloadAssets) {
       const source = `${asset.spriteSheet}?v=${encodeURIComponent(asset.renderVersion)}`;
       this.load.spritesheet(`blender:${asset.assetId}`, source, { frameWidth: asset.frameSize[0], frameHeight: asset.frameSize[1] });
     }
@@ -104,7 +108,7 @@ export class RestaurantScene extends Phaser.Scene {
 
   create(): void {
     installPixelAtlases(this, this.simulation.state.profile?.appearance);
-    for (const asset of RENDERED_ASSETS) this.textures.get(`blender:${asset.assetId}`).setFilter(Phaser.Textures.FilterMode.NEAREST);
+    for (const asset of RENDERED_ASSETS) if (this.textures.exists(`blender:${asset.assetId}`)) this.textures.get(`blender:${asset.assetId}`).setFilter(Phaser.Textures.FilterMode.NEAREST);
     this.cameras.main.setBackgroundColor('#294b3a');
     this.cameras.main.setBounds(-1500, -300, 3000, 2200);
     const builtAreas = this.simulation.state.construction.builtAreas;
@@ -135,6 +139,18 @@ export class RestaurantScene extends Phaser.Scene {
     gameEvents.on<{ construction: ConstructionSaveState; selectedItemId?: string; selectedStaffId?: string; interactionMode?: 'select' | 'place' | 'move' | 'staff'; editSession?: FurnitureEditSession }>('construction:preview', (payload) => this.renderConstructionPreview(payload));
     gameEvents.on('construction:preview-end', () => this.endConstructionPreview());
     gameEvents.emit('camera:zoom', this.cameras.main.zoom);
+    this.updateLoadingProgress(1);
+    document.querySelector<HTMLElement>('#restaurant-loading')?.classList.add('complete');
+  }
+
+  private updateLoadingProgress(progress: number): void {
+    const percent = Math.round(progress * 100);
+    const bar = document.querySelector<HTMLElement>('#restaurant-loading-progress');
+    const value = document.querySelector<HTMLElement>('#restaurant-loading-percent');
+    const label = document.querySelector<HTMLElement>('#restaurant-loading-label');
+    if (bar) bar.style.width = `${percent}%`;
+    if (value) value.textContent = `${percent}%`;
+    if (label) label.textContent = percent < 35 ? 'Carregando o salão…' : percent < 75 ? 'Preparando móveis e personagens…' : percent < 100 ? 'Finalizando os detalhes…' : 'Restaurante pronto!';
   }
 
   update(_time: number, deltaMs: number): void {

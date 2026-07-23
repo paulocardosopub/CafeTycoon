@@ -23,4 +23,16 @@ describe('controles móveis da câmera e construção', () => {
     expect(scene).toContain('Math.hypot(pointer.x - this.pendingFloorTap.startX');
     expect(styles).toContain('Mobile construction: keep most of the screen available for the floor.');
   });
+
+  it('mantém abertura do restaurante acessível no mobile vertical', () => {
+    expect(ui).toContain('data-action="toggle-restaurant"');
+    expect(styles).toContain('(orientation:portrait)');
+    expect(styles).toContain('.shift-card>button');
+  });
+
+  it('mostra progresso real e evita carregar personagens sem uso', () => {
+    expect(ui).toContain('restaurant-loading-progress');
+    expect(scene).toContain("this.load.on('progress'");
+    expect(scene).toContain('sessionCharacterIds');
+  });
 });

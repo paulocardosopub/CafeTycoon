@@ -94,6 +94,7 @@ export class GameUI {
         </header>
         <main class="game-stage">
           <div id="game-canvas" aria-label="Restaurante isométrico"></div>
+          <div class="restaurant-loading" id="restaurant-loading" role="status" aria-live="polite"><span>✿</span><strong>Preparando seu restaurante</strong><p id="restaurant-loading-label">Organizando móveis e personagens…</p><i><em id="restaurant-loading-progress"></em></i><b id="restaurant-loading-percent">0%</b></div>
           <div class="operation-alerts" id="operation-alerts" aria-live="polite"></div>
           <section class="owner-card" id="owner-card"></section>
           <div class="shift-card"><span class="live-dot"></span><div><small>${this.state.restaurantOpen ? 'RESTAURANTE ABERTO' : 'RESTAURANTE FECHADO'}</small><strong id="shift-customers">0 clientes no salão</strong><b id="shift-occupancy">OCUPAÇÃO: 0/10</b></div><button data-action="toggle-restaurant">${this.state.restaurantOpen ? 'Fechar' : 'Abrir restaurante'}</button></div>
