@@ -19,7 +19,7 @@ const root = resolve(import.meta.dirname, '../..');
 
 describe('Cafe Mania 0.0.8 · alpha de gameplay', () => {
   it('publica exatamente a versão e o schema novos', () => {
-    expect(GAME_VERSION).toBe('0.0.8');
+    expect(GAME_VERSION).toBe('0.0.9');
     expect(SAVE_SCHEMA_VERSION).toBe(6);
   });
 
@@ -152,7 +152,7 @@ describe('Cafe Mania 0.0.8 · alpha de gameplay', () => {
     const old = createDefaultState(1) as ReturnType<typeof createDefaultState>;
     old.schemaVersion = 5; old.gameVersion = '0.0.7'; old.coins = 777; old.restaurantLevel = 3; old.readyDishes.coffee = 9;
     const migrated = migrateAndSanitizeSave(old, 2);
-    expect(migrated).toMatchObject({ schemaVersion: 6, gameVersion: '0.0.8', coins: 777, restaurantLevel: 3 });
+    expect(migrated).toMatchObject({ schemaVersion: 6, gameVersion: '0.0.9', coins: 777, restaurantLevel: 3 });
     expect(migrated.readyDishes.coffee).toBe(9);
     expect(Object.keys(migrated.readyDishes)).toHaveLength(52);
   });

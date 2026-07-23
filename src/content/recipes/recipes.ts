@@ -1,68 +1,26 @@
 import type { RecipeDefinition, RecipeId, RecipeStep, StationId } from '../../core/types';
 
 type Profile = RecipeDefinition['durationProfile'];
-type RecipeRow = readonly [RecipeId, string, number, Profile, number, number, StationId, string];
+// Canonical 0.0.9 catalogue: each row owns its production and economy values.
+type RecipeRow = readonly [RecipeId, string, number, Profile, number, number, StationId, string, number, number, number];
 
-// Fonte única da progressão 0.0.8. A ordem também é a associação oficial com
-// as quatro pranchas de 13 pratos fornecidas para a versão.
 export const RECIPE_ROWS: readonly RecipeRow[] = [
-  ['coffee','Café preto',1,'express',30,12,'coffee_machine','Barista'],
-  ['chocolate-cookies','Cookies de chocolate',5,'quick',300,24,'oven','Forneiro'],
-  ['soup','Sopa de tomate',10,'quick',600,24,'cauldron','Chef de Sopas'],
-  ['omelette','Omelete de queijo e ervas',15,'express',45,8,'stove','Cozinheiro Geral'],
-  ['french-fries','Batata frita',20,'quick',240,20,'fryer','Fritureiro'],
-  ['cheese-bread','Pão de queijo',7,'medium',720,36,'oven','Forneiro'],
-  ['hot-dog','Cachorro-quente',25,'express',60,10,'grill','Chapeiro'],
-  ['cheese-tapioca','Tapioca de queijo',26,'express',75,10,'grill','Chapeiro'],
-  ['misto-quente','Misto-quente',27,'express',90,10,'grill','Chapeiro'],
-  ['burger','Hambúrguer clássico',28,'quick',300,16,'grill','Chapeiro'],
-  ['honey-pancakes','Panquecas com mel',29,'quick',360,18,'grill','Chapeiro'],
-  ['coxinha','Coxinha',21,'medium',900,30,'fryer','Fritureiro'],
-  ['caesar-salad','Salada Caesar',16,'quick',240,16,'cold_prep','Cozinheiro Geral'],
-  ['tomato-spaghetti','Espaguete ao molho de tomate',17,'medium',900,30,'stove','Cozinheiro Geral'],
-  ['cappuccino','Cappuccino',2,'express',45,12,'coffee_machine','Barista'],
-  ['mozzarella-pizza','Pizza de muçarela',8,'medium',900,30,'oven','Forneiro'],
-  ['grilled-chicken-rice','Frango grelhado com arroz',30,'medium',1200,30,'grill','Chapeiro'],
-  ['caldo-verde','Caldo verde',11,'medium',1200,36,'cauldron','Chef de Sopas'],
-  ['donuts','Donuts',22,'medium',1200,30,'fryer','Fritureiro'],
-  ['cheeseburger','Cheeseburger',31,'quick',420,18,'grill','Chapeiro'],
-  ['croissant','Croissant',9,'medium',1800,30,'oven','Forneiro'],
-  ['meat-pastel','Pastel de carne',23,'quick',480,24,'fryer','Fritureiro'],
-  ['bolognese-lasagna','Lasanha à bolonhesa',12,'medium',1800,24,'oven','Forneiro'],
-  ['mushroom-risotto','Risoto de cogumelos',18,'medium',1200,24,'stove','Cozinheiro Geral'],
-  ['fish-moqueca','Moqueca de peixe',19,'medium',1800,24,'stove','Cozinheiro Geral'],
-  ['hot-chocolate','Chocolate quente',3,'express',60,12,'coffee_machine','Barista'],
-  ['fish-and-chips','Fish and chips',24,'quick',600,22,'fryer','Fritureiro'],
-  ['feijoada','Feijoada',36,'overnight',28800,180,'cauldron','Chef de Sopas'],
-  ['roast-chicken-vegetables','Frango assado com legumes',38,'long',14400,80,'oven','Forneiro'],
-  ['mexican-tacos','Tacos mexicanos',40,'quick',480,24,'grill','Chapeiro'],
-  ['strawberry-milkshake','Milkshake de morango',42,'express',90,10,'beverage','Barista'],
-  ['chicken-stroganoff','Strogonoff de frango',44,'medium',2400,40,'stove','Cozinheiro Geral'],
-  ['ramen','Ramen',46,'medium',3000,36,'wok','Chef Oriental'],
-  ['barbecue-ribs','Costela barbecue',48,'overnight',28800,160,'smoker','Assador'],
-  ['bacon-cheese-quiche','Quiche de queijo e bacon',50,'long',10800,72,'oven','Forneiro'],
-  ['acai-bowl','Açaí na tigela',52,'express',120,12,'beverage','Barista'],
-  ['paella','Paella',54,'long',14400,72,'stove','Cozinheiro Geral'],
-  ['brownie-ice-cream','Brownie com sorvete',56,'quick',720,18,'pastry','Confeiteiro'],
-  ['onion-steak-fries','Bife acebolado com fritas',58,'quick',900,20,'grill','Chapeiro'],
-  ['gratin-onion-soup','Sopa de cebola gratinada',60,'medium',3600,48,'cauldron','Chef de Sopas + Forneiro'],
-  ['sushi-combo','Combinado de sushi',64,'quick',720,20,'cold_prep','Sushiman'],
-  ['grilled-salmon-asparagus','Salmão grelhado com aspargos',68,'medium',2700,28,'grill','Chapeiro'],
-  ['picanha','Picanha na chapa',72,'quick',900,18,'smoker','Assador'],
-  ['petit-gateau','Petit gâteau',76,'quick',600,16,'pastry','Confeiteiro'],
-  ['latte-art','Latte com arte',80,'express',120,10,'coffee_machine','Barista'],
-  ['roast-lamb-potatoes','Cordeiro assado com batatas',84,'overnight',28800,120,'oven','Assador'],
-  ['butter-lobster','Lagosta na manteiga',88,'premium',3600,20,'stove','Cozinheiro Geral'],
-  ['filet-mignon-madeira','Filé-mignon ao molho madeira',91,'premium',2700,24,'grill','Chapeiro + Cozinheiro Geral'],
-  ['shrimp-risotto','Risoto de camarão',94,'premium',3000,28,'stove','Cozinheiro Geral'],
-  ['berry-cheesecake','Cheesecake de frutas vermelhas',96,'premium',28800,100,'pastry','Confeiteiro'],
-  ['premium-seafood-board','Tábua premium de frutos do mar',98,'premium',14400,40,'cold_prep','Sushiman + Assador'],
-  ['truffle-medallion-puree','Medalhão trufado com purê',100,'legendary',3600,18,'smoker','Assador + Cozinheiro Geral'],
+  ['coffee','Café preto',1,'express',30,12,'coffee_machine','Barista',3,20,1], ['chocolate-cookies','Cookies de chocolate',5,'quick',300,120,'oven','Forneiro',3,205,1], ['soup','Sopa de tomate',10,'quick',600,140,'cauldron','Chef de Sopas',5,390,1], ['omelette','Omelete de queijo e ervas',15,'express',45,18,'stove','Cozinheiro Geral',8,82,2],
+  ['french-fries','Batata frita',20,'quick',240,100,'fryer','Fritureiro',7,385,1], ['cheese-bread','Pão de queijo',7,'medium',720,200,'oven','Forneiro',4,440,1], ['hot-dog','Cachorro-quente',25,'express',60,24,'grill','Chapeiro',12,174,2], ['cheese-tapioca','Tapioca de queijo',26,'express',75,30,'grill','Chapeiro',11,181,2],
+  ['misto-quente','Misto-quente',27,'express',90,36,'grill','Chapeiro',10,198,2], ['burger','Hambúrguer clássico',28,'quick',300,120,'grill','Chapeiro',13,530,2], ['honey-pancakes','Panquecas com mel',29,'quick',360,140,'grill','Chapeiro',11,535,2], ['coxinha','Coxinha',21,'medium',900,180,'fryer','Fritureiro',8,670,1],
+  ['caesar-salad','Salada Caesar',16,'quick',240,110,'cold_prep','Cozinheiro Geral',10,525,2], ['tomato-spaghetti','Espaguete ao molho de tomate',17,'medium',900,160,'stove','Cozinheiro Geral',12,835,2], ['cappuccino','Cappuccino',2,'express',45,18,'coffee_machine','Barista',4,42,1], ['mozzarella-pizza','Pizza de muçarela',8,'medium',900,300,'oven','Forneiro',9,1530,1],
+  ['grilled-chicken-rice','Frango grelhado com arroz',30,'medium',1200,220,'grill','Chapeiro',16,1935,2], ['caldo-verde','Caldo verde',11,'medium',1200,180,'cauldron','Chef de Sopas',7,700,1], ['donuts','Donuts',22,'medium',1200,200,'fryer','Fritureiro',9,950,1], ['cheeseburger','Cheeseburger',31,'quick',420,130,'grill','Chapeiro',15,975,2],
+  ['croissant','Croissant',9,'medium',1800,500,'oven','Forneiro',6,1650,1], ['meat-pastel','Pastel de carne',23,'quick',480,120,'fryer','Fritureiro',10,630,1], ['bolognese-lasagna','Lasanha à bolonhesa',12,'medium',1800,220,'oven','Forneiro',11,1330,1], ['mushroom-risotto','Risoto de cogumelos',18,'medium',1200,180,'stove','Cozinheiro Geral',14,1510,2],
+  ['fish-moqueca','Moqueca de peixe',19,'medium',1800,200,'stove','Cozinheiro Geral',15,1780,2], ['hot-chocolate','Chocolate quente',3,'express',60,16,'coffee_machine','Barista',6,53,1], ['fish-and-chips','Fish and chips',24,'quick',600,140,'fryer','Fritureiro',12,850,2], ['feijoada','Feijoada',36,'overnight',28800,1200,'cauldron','Chef de Sopas',18,12960,2],
+  ['roast-chicken-vegetables','Frango assado com legumes',38,'long',14400,700,'oven','Forneiro',22,10010,2], ['mexican-tacos','Tacos mexicanos',40,'quick',480,150,'grill','Chapeiro',18,1755,2], ['strawberry-milkshake','Milkshake de morango',42,'express',90,40,'beverage','Barista',20,560,3], ['chicken-stroganoff','Strogonoff de frango',44,'medium',2400,350,'stove','Cozinheiro Geral',24,5460,2],
+  ['ramen','Ramen',46,'medium',3000,400,'wok','Chef Oriental',25,6500,2], ['barbecue-ribs','Costela barbecue',48,'overnight',28800,1500,'smoker','Assador',24,21600,2], ['bacon-cheese-quiche','Quiche de queijo e bacon',50,'long',10800,600,'oven','Forneiro',26,10920,2], ['acai-bowl','Açaí na tigela',52,'express',120,60,'beverage','Barista',24,936,3],
+  ['paella','Paella',54,'long',14400,650,'stove','Cozinheiro Geral',30,12675,2], ['brownie-ice-cream','Brownie com sorvete',56,'quick',720,100,'pastry','Confeiteiro',34,2210,3], ['onion-steak-fries','Bife acebolado com fritas',58,'quick',900,120,'grill','Chapeiro',35,2730,3], ['gratin-onion-soup','Sopa de cebola gratinada',60,'medium',3600,450,'cauldron','Chef de Sopas + Forneiro',22,7920,2],
+  ['sushi-combo','Combinado de sushi',64,'quick',720,110,'cold_prep','Sushiman',45,3218,4], ['grilled-salmon-asparagus','Salmão grelhado com aspargos',68,'medium',2700,300,'grill','Chapeiro',42,8694,3], ['picanha','Picanha na chapa',72,'quick',900,100,'smoker','Assador',55,3850,4], ['petit-gateau','Petit gâteau',76,'quick',600,90,'pastry','Confeiteiro',60,3510,4],
+  ['latte-art','Latte com arte',80,'express',120,60,'coffee_machine','Barista',40,1440,4], ['roast-lamb-potatoes','Cordeiro assado com batatas',84,'overnight',28800,1100,'oven','Assador',48,31680,3], ['butter-lobster','Lagosta na manteiga',88,'premium',3600,80,'stove','Cozinheiro Geral',180,9216,8], ['filet-mignon-madeira','Filé-mignon ao molho madeira',91,'premium',2700,100,'grill','Chapeiro + Cozinheiro Geral',170,10200,8],
+  ['shrimp-risotto','Risoto de camarão',94,'premium',3000,120,'stove','Cozinheiro Geral',160,10560,7], ['berry-cheesecake','Cheesecake de frutas vermelhas',96,'premium',28800,100,'pastry','Confeiteiro',220,12980,8], ['premium-seafood-board','Tábua premium de frutos do mar',98,'premium',14400,120,'cold_prep','Sushiman + Assador',260,18720,10], ['truffle-medallion-puree','Medalhão trufado com purê',100,'legendary',3600,100,'smoker','Assador + Cozinheiro Geral',300,20400,12],
 ] as const;
 
-const aliases: Partial<Record<RecipeId, string[]>> = {
-  coffee: ['Café da Casa'], omelette: ['Omelete Solar'], soup: ['Sopa do Jardim'], burger: ['Brasa Bloom'],
-};
+const aliases: Partial<Record<RecipeId, string[]>> = { coffee: ['Café da Casa'], omelette: ['Omelete Solar'], soup: ['Sopa do Jardim'], burger: ['Brasa Bloom'] };
 
 function stepsFor(id: RecipeId, stationId: StationId, duration: number, batchYield: number): RecipeStep[] {
   const perPortion = duration / batchYield;
@@ -82,27 +40,9 @@ function categoryFor(name: string, profile: Profile): RecipeDefinition['category
   return 'main';
 }
 
-const COST_RATIO: Record<Profile, number> = { express:.64, quick:.56, medium:.5, long:.45, overnight:.42, premium:.59, legendary:.62 };
-const EARLY_DRINK_ECONOMY: Partial<Record<RecipeId, { salePrice: number; batchYield: number }>> = {
-  cappuccino: { salePrice: 4, batchYield: 10 },
-  'hot-chocolate': { salePrice: 6, batchYield: 8 },
-};
-
-export const RECIPES: RecipeDefinition[] = RECIPE_ROWS.map(([id,name,requiredLevel,durationProfile,baseDurationSeconds,batchYield,stationId,specialist], index) => {
-  const premiumMultiplier = durationProfile === 'premium' ? 1.28 : durationProfile === 'legendary' ? 1.5 : 1;
-  const economyOverride = EARLY_DRINK_ECONOMY[id];
-  batchYield = economyOverride?.batchYield ?? batchYield;
-  const salePrice = economyOverride?.salePrice ?? Math.max(3, Math.round(3 * Math.pow(1.055, requiredLevel - 1) * premiumMultiplier));
+export const RECIPES: RecipeDefinition[] = RECIPE_ROWS.map(([id,name,requiredLevel,durationProfile,baseDurationSeconds,batchYield,stationId,specialist,salePrice,batchCost,experience], index) => {
   const grossRevenue = salePrice * batchYield;
-  const batchCost = Math.round(grossRevenue * COST_RATIO[durationProfile]);
-  return {
-    id, name, aliases: aliases[id] ?? [], description: `${name}, preparado em lote no padrão Cafe Mania.`, icon: '', category: categoryFor(name, durationProfile),
-    ingredients: [], steps: stepsFor(id, stationId, baseDurationSeconds, batchYield), yield: 1, batchYield, salePrice,
-    experience: Math.max(1, Math.round((requiredLevel + 6) / batchYield)), requiredLevel, storageSpace: 1,
-    assetId: `food_v008_${String(index + 1).padStart(2,'0')}`, menuOrder: index + 1, durationProfile, baseDurationSeconds,
-    batchCost, grossRevenue, estimatedProfit: grossRevenue - batchCost, reputationReward: durationProfile === 'legendary' ? 8 : durationProfile === 'premium' ? 4 : 1,
-    requiredSpecialties: specialist.split(' + '), available: true,
-  };
+  return { id, name, aliases: aliases[id] ?? [], description: `${name}, preparado em lote no padrão Bistrô Bloom.`, icon: '', category: categoryFor(name, durationProfile), ingredients: [], steps: stepsFor(id, stationId, baseDurationSeconds, batchYield), yield: 1, batchYield, salePrice, experience, requiredLevel, storageSpace: 1, assetId: `food_v008_${String(index + 1).padStart(2,'0')}`, menuOrder: index + 1, durationProfile, baseDurationSeconds, batchCost, grossRevenue, estimatedProfit: grossRevenue - batchCost, reputationReward: durationProfile === 'legendary' ? 8 : durationProfile === 'premium' ? 4 : 1, requiredSpecialties: specialist.split(' + '), available: true };
 });
 
 export const RECIPE_BY_ID = Object.fromEntries(RECIPES.map((recipe) => [recipe.id, recipe])) as Record<RecipeId, RecipeDefinition>;

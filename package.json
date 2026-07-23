@@ -1,11 +1,12 @@
 {
   "name": "bistro-bloom",
   "private": true,
-  "version": "0.0.8",
+  "version": "0.0.9",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit -p tsconfig.json && vite build && node scripts/build-worker.mjs",
+    "audit:recipes": "node scripts/generate-recipe-balance.mjs",
+    "build": "npm run audit:recipes && tsc --noEmit -p tsconfig.json && vite build && node scripts/build-worker.mjs",
     "lint": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest"

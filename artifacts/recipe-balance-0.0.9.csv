@@ -1,0 +1,53 @@
+id,name,unlock_level,profile,station,professional,time_seconds,portions_per_batch,batch_cost,unit_price,gross_revenue,estimated_profit,profit_per_station_minute,batch_xp,asset_id
+coffee,"Café preto",1,express,coffee_machine,"Barista",30,12,20,3,36,16,32.00,12,food_v008_01
+chocolate-cookies,"Cookies de chocolate",5,quick,oven,"Forneiro",300,120,205,3,360,155,31.00,120,food_v008_02
+soup,"Sopa de tomate",10,quick,cauldron,"Chef de Sopas",600,140,390,5,700,310,31.00,140,food_v008_03
+omelette,"Omelete de queijo e ervas",15,express,stove,"Cozinheiro Geral",45,18,82,8,144,62,82.67,36,food_v008_04
+french-fries,"Batata frita",20,quick,fryer,"Fritureiro",240,100,385,7,700,315,78.75,100,food_v008_05
+cheese-bread,"Pão de queijo",7,medium,oven,"Forneiro",720,200,440,4,800,360,30.00,200,food_v008_06
+hot-dog,"Cachorro-quente",25,express,grill,"Chapeiro",60,24,174,12,288,114,114.00,48,food_v008_07
+cheese-tapioca,"Tapioca de queijo",26,express,grill,"Chapeiro",75,30,181,11,330,149,119.20,60,food_v008_08
+misto-quente,"Misto-quente",27,express,grill,"Chapeiro",90,36,198,10,360,162,108.00,72,food_v008_09
+burger,"Hambúrguer clássico",28,quick,grill,"Chapeiro",300,120,530,13,1560,1030,206.00,240,food_v008_10
+honey-pancakes,"Panquecas com mel",29,quick,grill,"Chapeiro",360,140,535,11,1540,1005,167.50,280,food_v008_11
+coxinha,"Coxinha",21,medium,fryer,"Fritureiro",900,180,670,8,1440,770,51.33,180,food_v008_12
+caesar-salad,"Salada Caesar",16,quick,cold_prep,"Cozinheiro Geral",240,110,525,10,1100,575,143.75,220,food_v008_13
+tomato-spaghetti,"Espaguete ao molho de tomate",17,medium,stove,"Cozinheiro Geral",900,160,835,12,1920,1085,72.33,320,food_v008_14
+cappuccino,"Cappuccino",2,express,coffee_machine,"Barista",45,18,42,4,72,30,40.00,18,food_v008_15
+mozzarella-pizza,"Pizza de muçarela",8,medium,oven,"Forneiro",900,300,1530,9,2700,1170,78.00,300,food_v008_16
+grilled-chicken-rice,"Frango grelhado com arroz",30,medium,grill,"Chapeiro",1200,220,1935,16,3520,1585,79.25,440,food_v008_17
+caldo-verde,"Caldo verde",11,medium,cauldron,"Chef de Sopas",1200,180,700,7,1260,560,28.00,180,food_v008_18
+donuts,"Donuts",22,medium,fryer,"Fritureiro",1200,200,950,9,1800,850,42.50,200,food_v008_19
+cheeseburger,"Cheeseburger",31,quick,grill,"Chapeiro",420,130,975,15,1950,975,139.29,260,food_v008_20
+croissant,"Croissant",9,medium,oven,"Forneiro",1800,500,1650,6,3000,1350,45.00,500,food_v008_21
+meat-pastel,"Pastel de carne",23,quick,fryer,"Fritureiro",480,120,630,10,1200,570,71.25,120,food_v008_22
+bolognese-lasagna,"Lasanha à bolonhesa",12,medium,oven,"Forneiro",1800,220,1330,11,2420,1090,36.33,220,food_v008_23
+mushroom-risotto,"Risoto de cogumelos",18,medium,stove,"Cozinheiro Geral",1200,180,1510,14,2520,1010,50.50,360,food_v008_24
+fish-moqueca,"Moqueca de peixe",19,medium,stove,"Cozinheiro Geral",1800,200,1780,15,3000,1220,40.67,400,food_v008_25
+hot-chocolate,"Chocolate quente",3,express,coffee_machine,"Barista",60,16,53,6,96,43,43.00,16,food_v008_26
+fish-and-chips,"Fish and chips",24,quick,fryer,"Fritureiro",600,140,850,12,1680,830,83.00,280,food_v008_27
+feijoada,"Feijoada",36,overnight,cauldron,"Chef de Sopas",28800,1200,12960,18,21600,8640,18.00,2400,food_v008_28
+roast-chicken-vegetables,"Frango assado com legumes",38,long,oven,"Forneiro",14400,700,10010,22,15400,5390,22.46,1400,food_v008_29
+mexican-tacos,"Tacos mexicanos",40,quick,grill,"Chapeiro",480,150,1755,18,2700,945,118.13,300,food_v008_30
+strawberry-milkshake,"Milkshake de morango",42,express,beverage,"Barista",90,40,560,20,800,240,160.00,120,food_v008_31
+chicken-stroganoff,"Strogonoff de frango",44,medium,stove,"Cozinheiro Geral",2400,350,5460,24,8400,2940,73.50,700,food_v008_32
+ramen,"Ramen",46,medium,wok,"Chef Oriental",3000,400,6500,25,10000,3500,70.00,800,food_v008_33
+barbecue-ribs,"Costela barbecue",48,overnight,smoker,"Assador",28800,1500,21600,24,36000,14400,30.00,3000,food_v008_34
+bacon-cheese-quiche,"Quiche de queijo e bacon",50,long,oven,"Forneiro",10800,600,10920,26,15600,4680,26.00,1200,food_v008_35
+acai-bowl,"Açaí na tigela",52,express,beverage,"Barista",120,60,936,24,1440,504,252.00,180,food_v008_36
+paella,"Paella",54,long,stove,"Cozinheiro Geral",14400,650,12675,30,19500,6825,28.44,1300,food_v008_37
+brownie-ice-cream,"Brownie com sorvete",56,quick,pastry,"Confeiteiro",720,100,2210,34,3400,1190,99.17,300,food_v008_38
+onion-steak-fries,"Bife acebolado com fritas",58,quick,grill,"Chapeiro",900,120,2730,35,4200,1470,98.00,360,food_v008_39
+gratin-onion-soup,"Sopa de cebola gratinada",60,medium,cauldron,"Chef de Sopas + Forneiro",3600,450,7920,22,9900,1980,33.00,900,food_v008_40
+sushi-combo,"Combinado de sushi",64,quick,cold_prep,"Sushiman",720,110,3218,45,4950,1732,144.33,440,food_v008_41
+grilled-salmon-asparagus,"Salmão grelhado com aspargos",68,medium,grill,"Chapeiro",2700,300,8694,42,12600,3906,86.80,900,food_v008_42
+picanha,"Picanha na chapa",72,quick,smoker,"Assador",900,100,3850,55,5500,1650,110.00,400,food_v008_43
+petit-gateau,"Petit gâteau",76,quick,pastry,"Confeiteiro",600,90,3510,60,5400,1890,189.00,360,food_v008_44
+latte-art,"Latte com arte",80,express,coffee_machine,"Barista",120,60,1440,40,2400,960,480.00,240,food_v008_45
+roast-lamb-potatoes,"Cordeiro assado com batatas",84,overnight,oven,"Assador",28800,1100,31680,48,52800,21120,44.00,3300,food_v008_46
+butter-lobster,"Lagosta na manteiga",88,premium,stove,"Cozinheiro Geral",3600,80,9216,180,14400,5184,86.40,640,food_v008_47
+filet-mignon-madeira,"Filé-mignon ao molho madeira",91,premium,grill,"Chapeiro + Cozinheiro Geral",2700,100,10200,170,17000,6800,151.11,800,food_v008_48
+shrimp-risotto,"Risoto de camarão",94,premium,stove,"Cozinheiro Geral",3000,120,10560,160,19200,8640,172.80,840,food_v008_49
+berry-cheesecake,"Cheesecake de frutas vermelhas",96,premium,pastry,"Confeiteiro",28800,100,12980,220,22000,9020,18.79,800,food_v008_50
+premium-seafood-board,"Tábua premium de frutos do mar",98,premium,cold_prep,"Sushiman + Assador",14400,120,18720,260,31200,12480,52.00,1200,food_v008_51
+truffle-medallion-puree,"Medalhão trufado com purê",100,legendary,smoker,"Assador + Cozinheiro Geral",3600,100,20400,300,30000,9600,160.00,1200,food_v008_52

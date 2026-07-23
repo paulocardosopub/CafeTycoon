@@ -42,7 +42,7 @@ describe('produção 0.0.8 sem ingredientes e sem limite de balcão', () => {
     state.construction.placedFurniture.push({ id: 'counter:later', definitionId: 'service.c1.isolated', gridX: 8, gridY: 6, orientation: 'sw', skinId: 'counter-forest', level: 1, state: {} });
     const counters = modulesFromFurniture(state.construction.placedFurniture);
     expect(transferWaitingProductionOutputs(state, counters, 5)).toEqual([prepared!.task.id]);
-    expect(counters[0]).toMatchObject({ assignedRecipeId: 'chocolate-cookies', currentQuantity: 24 });
+    expect(counters[0]).toMatchObject({ assignedRecipeId: 'chocolate-cookies', currentQuantity: RECIPE_BY_ID['chocolate-cookies'].batchYield });
     expect(prepared!.task.state).toBe('completed');
   });
 

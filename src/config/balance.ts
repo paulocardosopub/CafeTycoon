@@ -1,4 +1,4 @@
-export const GAME_VERSION = '0.0.8';
+export const GAME_VERSION = '0.0.9';
 export const SAVE_SCHEMA_VERSION = 6;
 
 export const BALANCE = {
