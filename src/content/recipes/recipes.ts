@@ -83,10 +83,16 @@ function categoryFor(name: string, profile: Profile): RecipeDefinition['category
 }
 
 const COST_RATIO: Record<Profile, number> = { express:.64, quick:.56, medium:.5, long:.45, overnight:.42, premium:.59, legendary:.62 };
+const EARLY_DRINK_ECONOMY: Partial<Record<RecipeId, { salePrice: number; batchYield: number }>> = {
+  cappuccino: { salePrice: 4, batchYield: 10 },
+  'hot-chocolate': { salePrice: 6, batchYield: 8 },
+};
 
 export const RECIPES: RecipeDefinition[] = RECIPE_ROWS.map(([id,name,requiredLevel,durationProfile,baseDurationSeconds,batchYield,stationId,specialist], index) => {
   const premiumMultiplier = durationProfile === 'premium' ? 1.28 : durationProfile === 'legendary' ? 1.5 : 1;
-  const salePrice = Math.max(3, Math.round(3 * Math.pow(1.055, requiredLevel - 1) * premiumMultiplier));
+  const economyOverride = EARLY_DRINK_ECONOMY[id];
+  batchYield = economyOverride?.batchYield ?? batchYield;
+  const salePrice = economyOverride?.salePrice ?? Math.max(3, Math.round(3 * Math.pow(1.055, requiredLevel - 1) * premiumMultiplier));
   const grossRevenue = salePrice * batchYield;
   const batchCost = Math.round(grossRevenue * COST_RATIO[durationProfile]);
   return {

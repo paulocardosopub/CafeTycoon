@@ -72,6 +72,10 @@ describe('mobile sem sprites antigas e tutorial acionável', () => {
     expect(ui).toContain('production-guide compact');
     expect(ui).toContain('class="production-meta"');
     expect(ui).toContain('class="production-requirement"');
+    expect(ui).not.toContain('>REQUISITOS<');
+    const css = source('../styles.css');
+    expect(css).toContain('.panel-workspace[data-panel="production"]{width:min(980px,100%)}');
+    expect(css).toContain('@media (max-width:560px)');
   });
 
   it('impõe o limite temporário de dez balcões de serviço', () => {
@@ -88,5 +92,13 @@ describe('mobile sem sprites antigas e tutorial acionável', () => {
     expect(css).toContain('.panel-host:empty{pointer-events:none');
     expect(css).toContain('.hud-pill.coin { display:flex');
     expect(css).toContain('.management-bar { position:relative; z-index:1200;');
+  });
+
+  it('centers panels and minimizes the tutorial while a panel is in use', () => {
+    const ui = source('../ui/GameUI.ts');
+    const css = source('../styles.css');
+    expect(css).toContain('margin-inline:auto');
+    expect(ui).toContain('this.state.tutorial008.minimized = true');
+    expect(ui).toContain('tutorialHost.innerHTML = this.tutorialWidget()');
   });
 });

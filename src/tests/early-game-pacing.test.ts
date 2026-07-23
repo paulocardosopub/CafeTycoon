@@ -36,4 +36,14 @@ describe('ritmo dos primeiros níveis', () => {
     applyProgressionThroughLevel(state, 4, { notify: false });
     expect(state.coins - before).toBe(600);
   });
+
+  it('differentiates the economy of the early drinks', () => {
+    const coffee = RECIPE_BY_ID.coffee;
+    const cappuccino = RECIPE_BY_ID.cappuccino;
+    const hotChocolate = RECIPE_BY_ID['hot-chocolate'];
+    expect([coffee.batchYield, cappuccino.batchYield, hotChocolate.batchYield]).toEqual([12, 10, 8]);
+    expect([coffee.salePrice, cappuccino.salePrice, hotChocolate.salePrice]).toEqual([3, 4, 6]);
+    expect(new Set([coffee.batchCost, cappuccino.batchCost, hotChocolate.batchCost]).size).toBe(3);
+    expect(new Set([coffee.estimatedProfit, cappuccino.estimatedProfit, hotChocolate.estimatedProfit]).size).toBe(3);
+  });
 });
