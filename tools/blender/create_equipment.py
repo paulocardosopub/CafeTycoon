@@ -240,7 +240,7 @@ def create_equipment(definition, collection, materials):
         ]
         for index, x in enumerate((-.255, .255)):
             parts += [
-                cube(f"{asset_id}:door:{index}", (x, -.535, .58), (.225, .020, .36), materials["wood_mid"], collection, .014),
+                cube(f"{asset_id}:door:{index}", (x, -.535, .58), (.225, .020, .36), materials["wood_light"], collection, .014),
                 cylinder(f"{asset_id}:door-handle:{index}", (x, -.585, .76), .023, .18, materials["steel_dark"], collection, 10),
             ]
         for index, x in enumerate((-.18, .18)):
@@ -276,7 +276,7 @@ def create_equipment(definition, collection, materials):
         root.scale.x = .52
     if family == "coffee_machine":
         # Match the 64 px isometric base of the existing 1x1 service counter.
-        root.scale = (.60, .60, .60)
+        root.scale = (.60, .60, 1.0)
     root["visualHeight"] = visual_height; root["qualityProfile"] = "bistro-bloom-character-bible-v2"; root["fillsFootprint"] = True
     add_markers(asset_id, collection, equipment=True); tag_collection(collection, definition)
     return root
