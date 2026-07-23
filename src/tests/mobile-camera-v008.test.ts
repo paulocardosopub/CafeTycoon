@@ -28,6 +28,19 @@ describe('controles móveis da câmera e construção', () => {
     expect(ui).toContain('data-action="toggle-restaurant"');
     expect(styles).toContain('(orientation:portrait)');
     expect(styles).toContain('.shift-card>button');
+    expect(styles).toContain('.shift-card.restaurant-open{display:none}');
+    expect(styles).toContain('.shift-card.restaurant-open>button{display:none}');
+    expect(ui).toContain("shiftCard?.classList.toggle('restaurant-open', this.state.restaurantOpen)");
+  });
+
+  it('abre o restaurante sem recriar o canvas nem a tela de loading', () => {
+    const toggleMethod = ui.slice(ui.indexOf('private toggleRestaurant()'), ui.indexOf('private openingRequirements()'));
+    expect(toggleMethod).not.toContain('this.renderShell()');
+    expect(toggleMethod).toContain('this.renderDynamic()');
+  });
+
+  it('fecha um painel quando o jogador toca novamente no mesmo menu', () => {
+    expect(ui).toContain('if (this.activePanel === panel) this.close(); else this.open(panel)');
   });
 
   it('mostra progresso real e evita carregar personagens sem uso', () => {

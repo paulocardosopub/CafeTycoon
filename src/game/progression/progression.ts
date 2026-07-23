@@ -22,5 +22,6 @@ export function awardPlayerTaskXp(state: GameState, task: TaskKind): void {
 export function updateRestaurantLevel(state: GameState): void {
   const nextLevel = levelFromXp(state.restaurantXp, BALANCE.restaurantLevels);
   if (nextLevel > state.restaurantLevel) applyProgressionThroughLevel(state, nextLevel, { notify:true });
-  state.restaurantLevel = nextLevel;
+  // Difficulty changes must never remove a level that an existing save already earned.
+  state.restaurantLevel = Math.max(state.restaurantLevel, nextLevel);
 }

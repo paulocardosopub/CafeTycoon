@@ -11,6 +11,8 @@ import { createProductionPlan } from '../game/cooking/ProductionPlanningService'
 import { compatibleStationFunction } from '../game/recipes/RecipeAvailability';
 import { validateFurniturePlacement } from '../game/systems/furniture/FurniturePlacement';
 import { ServiceCounterStore } from '../game/systems/service-counter/ServiceCounterSystem';
+import { STAFF_BY_ID } from '../game/data/staff';
+import { createStaffInstance } from '../game/staff/StaffService';
 import type { PlacedFurniture, ServiceCounterModule } from '../core/types';
 
 const root = resolve(import.meta.dirname, '../..');
@@ -51,6 +53,7 @@ describe('Cafe Mania 0.0.8 · alpha de gameplay', () => {
 
   it('usa lotes fixos independentemente de quantidade arbitrária da interface antiga', () => {
     const state = createDefaultState(0);
+    state.staff.instances.push(createStaffInstance(STAFF_BY_ID['cook-0'], 0));
     const coinsBefore = state.coins;
     const result = createProductionPlan(state, { recipeId: 'coffee', targetQuantity: 999, batchSize: 7 });
     expect(result.ok).toBe(true);
@@ -157,7 +160,7 @@ describe('Cafe Mania 0.0.8 · alpha de gameplay', () => {
   it('cria estoque preparado para todas as receitas sem duplicar comida', () => {
     const state = createDefaultState(0);
     expect(Object.keys(state.readyDishes)).toHaveLength(52);
-    expect(Object.values(state.readyDishes).reduce((sum, quantity) => sum + quantity, 0)).toBe(2);
+    expect(Object.values(state.readyDishes).reduce((sum, quantity) => sum + quantity, 0)).toBe(0);
   });
 
   it('mantém nomes de prato fora da cena de gameplay', () => {

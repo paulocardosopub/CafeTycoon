@@ -25,7 +25,7 @@ import { EXPANSIONS } from '../game/data/expansions';
 import { ConstructionEditor } from '../game/systems/construction/ConstructionEditor';
 import { LEVEL_REWARD_BY_LEVEL, LEVEL_REWARDS } from '../content/progression/levels';
 import { confirmProgressionNotification, pendingLevelReward } from '../game/progression/RewardService';
-import { acknowledgeTutorialStep, INITIAL_TUTORIAL_STEPS, JOURNEY_CHAPTER_LEVELS, reconcileTutorial } from '../game/tutorial/Tutorial008Service';
+import { acknowledgeJourneyChapter, acknowledgeTutorialStep, INITIAL_TUTORIAL_STEPS, JOURNEY_CHAPTER_LEVELS, pendingJourneyChapter, pendingTutorialStep, reconcileTutorial } from '../game/tutorial/Tutorial008Service';
 
 type PanelId = 'staff' | 'stock' | 'recipes' | 'production' | 'orders' | 'upgrades' | 'player' | 'roles' | 'professions' | 'offline' | 'settings' | 'tasks' | 'progression';
 
@@ -97,7 +97,7 @@ export class GameUI {
           <div class="restaurant-loading" id="restaurant-loading" role="status" aria-live="polite"><span>✿</span><strong>Preparando seu restaurante</strong><p id="restaurant-loading-label">Organizando móveis e personagens…</p><i><em id="restaurant-loading-progress"></em></i><b id="restaurant-loading-percent">0%</b></div>
           <div class="operation-alerts" id="operation-alerts" aria-live="polite"></div>
           <section class="owner-card" id="owner-card"></section>
-          <div class="shift-card"><span class="live-dot"></span><div><small>${this.state.restaurantOpen ? 'RESTAURANTE ABERTO' : 'RESTAURANTE FECHADO'}</small><strong id="shift-customers">0 clientes no salão</strong><b id="shift-occupancy">OCUPAÇÃO: 0/10</b></div><button data-action="toggle-restaurant">${this.state.restaurantOpen ? 'Fechar' : 'Abrir restaurante'}</button></div>
+          <div class="shift-card${this.state.restaurantOpen ? ' restaurant-open' : ''}"><span class="live-dot"></span><div><small id="shift-status">${this.state.restaurantOpen ? 'RESTAURANTE ABERTO' : 'RESTAURANTE FECHADO'}</small><strong id="shift-customers">0 clientes no salão</strong><b id="shift-occupancy">OCUPAÇÃO: 0/10</b></div><button data-action="toggle-restaurant">${this.state.restaurantOpen ? 'Fechar' : 'Abrir restaurante'}</button></div>
           <div class="camera-hint">Arraste para mover · Role para zoom${developmentMode() ? ' · D: modo técnico' : ''}</div>
           <aside class="panel-host" id="panel-host" aria-live="polite"></aside>
         </main>
@@ -117,7 +117,7 @@ export class GameUI {
       const target = (event.target as HTMLElement).closest<HTMLElement>('[data-open],[data-action]');
       if (!target) return;
       const panel = target.dataset.open as PanelId | undefined;
-      if (panel) { this.open(panel); return; }
+      if (panel) { if (this.activePanel === panel) this.close(); else this.open(panel); return; }
       const action = target.dataset.action;
       if (action === 'close-panel') this.close();
       else if (action === 'prepare-purchase') this.preparePurchase(target.dataset.id as IngredientId, target.dataset.mode as PurchaseMode);
@@ -164,6 +164,7 @@ export class GameUI {
       else if (action === 'toggle-technical-filter') this.toggleTechnicalFilter(target.dataset.id!);
       else if (action === 'open-construction') { const mode = target.dataset.mode === 'organize' ? 'organize' : 'shop'; if (mode === 'organize') acknowledgeTutorialStep(this.state, 'open-editor'); this.close(); this.constructionShop.open(mode); }
       else if (action === 'tutorial-ack') { const step = INITIAL_TUTORIAL_STEPS[this.state.tutorial008.currentStep]; if (step) acknowledgeTutorialStep(this.state, step.id); this.renderDynamic(); }
+      else if (action === 'tutorial-chapter-ack') { const level = Number(target.dataset.level); acknowledgeJourneyChapter(this.state, level); this.open('progression'); this.renderDynamic(); }
       else if (action === 'tutorial-minimize') { this.state.tutorial008.minimized = true; this.renderDynamic(); }
       else if (action === 'tutorial-show') this.showTutorialTarget();
       else if (action === 'toggle-restaurant') this.toggleRestaurant();
@@ -213,7 +214,7 @@ export class GameUI {
     if (tutorialHost) tutorialHost.innerHTML = this.tutorialWidget();
     const xpStart = BALANCE.restaurantLevels[this.state.restaurantLevel - 1] ?? 0;
     const xpEnd = BALANCE.restaurantLevels[this.state.restaurantLevel] ?? BALANCE.restaurantLevels.at(-1)!;
-    const xpRatio = this.state.restaurantLevel >= 100 ? 1 : (this.state.restaurantXp - xpStart) / Math.max(1, xpEnd - xpStart);
+    const xpRatio = this.state.restaurantLevel >= 100 ? 1 : Math.max(0, (this.state.restaurantXp - xpStart) / Math.max(1, xpEnd - xpStart));
     const readyPortions = RECIPES.reduce((sum, recipe) => sum + preparedQuantity(this.simulation.counterModules, recipe.id) + this.state.readyDishes[recipe.id], 0);
     this.root.querySelector<HTMLElement>('#hud-stats')!.innerHTML = `
       ${hudPill('coin', '●', this.state.coins.toLocaleString('pt-BR'), 'Moedas')}
@@ -240,6 +241,12 @@ export class GameUI {
         <div class="mini-progress"><i style="width:${professionProgress(profession.xp, profession.level)}%"></i></div>
       </div><button class="help-button" data-open="roles">Onde ajudar?</button>`;
     const count = this.simulation.activeCustomerCount();
+    const shiftCard = this.root.querySelector<HTMLElement>('.shift-card');
+    shiftCard?.classList.toggle('restaurant-open', this.state.restaurantOpen);
+    const shiftStatus = this.root.querySelector<HTMLElement>('#shift-status');
+    if (shiftStatus) shiftStatus.textContent = this.state.restaurantOpen ? 'RESTAURANTE ABERTO' : 'RESTAURANTE FECHADO';
+    const restaurantButton = this.root.querySelector<HTMLButtonElement>('[data-action="toggle-restaurant"]');
+    if (restaurantButton) restaurantButton.textContent = this.state.restaurantOpen ? 'Fechar' : 'Abrir restaurante';
     this.root.querySelector<HTMLElement>('#shift-customers')!.textContent = `${count} ${count === 1 ? 'cliente' : 'clientes'} no salão`;
     this.root.querySelector<HTMLElement>('#shift-occupancy')!.textContent = `OCUPAÇÃO: ${this.simulation.seatedCustomerCount()}/${this.simulation.totalCapacity()}`;
     this.root.querySelectorAll<HTMLButtonElement>('[data-action="set-speed"]').forEach((button) => button.classList.toggle('active', Number(button.dataset.speed) === this.simulation.timeScale()));
@@ -280,8 +287,14 @@ export class GameUI {
 
   private tutorialWidget(): string {
     if (!this.state.tutorial008.started) return '';
+    const step = pendingTutorialStep(this.state);
+    const journeyLevel = step ? undefined : pendingJourneyChapter(this.state);
+    if (!step && !journeyLevel) return '';
     if (this.state.tutorial008.minimized) return '<button class="tutorial-reopen" data-action="tutorial-show">Jornada · objetivo atual</button>';
-    const step = INITIAL_TUTORIAL_STEPS[this.state.tutorial008.currentStep];
+    if (journeyLevel) {
+      const rewards = LEVEL_REWARD_BY_LEVEL[journeyLevel]?.rewards.map((reward) => `${reward.icon} ${reward.title}`).join(' · ') ?? 'Novas possibilidades foram liberadas.';
+      return `<aside class="tutorial-008 tutorial-level" aria-live="polite"><header><small>NOVO TUTORIAL · NÍVEL ${journeyLevel}</small><button data-action="tutorial-minimize" aria-label="Minimizar">—</button></header><strong>Novidade desbloqueada!</strong><p>${escapeHtml(rewards)}</p><button data-action="tutorial-chapter-ack" data-level="${journeyLevel}">Ver novidades</button></aside>`;
+    }
     if (!step) return '';
     const done = this.state.tutorial008.completedSteps.includes(step.id);
     const manualAcknowledgement = 'manual' in step && step.manual && !done && step.id !== 'open-editor';
@@ -291,8 +304,8 @@ export class GameUI {
 
   private showTutorialTarget(): void {
     this.state.tutorial008.minimized = false;
-    const step = INITIAL_TUTORIAL_STEPS[this.state.tutorial008.currentStep];
-    if (!step) { this.renderDynamic(); return; }
+    const step = pendingTutorialStep(this.state);
+    if (!step) { if (pendingJourneyChapter(this.state)) this.open('progression'); else this.renderDynamic(); return; }
     const owned = [...this.state.construction.placedFurniture, ...this.state.construction.storedFurniture];
     const ownedCount = (functionId: string) => owned.filter((item) => FURNITURE_BY_ID[item.definitionId]?.functionId === functionId).length;
     const shopTarget: Partial<Record<typeof step.id, string>> = {
@@ -390,7 +403,7 @@ export class GameUI {
     return `<p class="panel-intro">Catálogo oficial 0.0.8 · 52 receitas em ordem de desbloqueio.</p><div class="recipe-grid">${RECIPES.map((recipe) => {
       const locked=recipe.requiredLevel>this.state.restaurantLevel; const serving=this.state.enabledRecipeIds.includes(recipe.id);
       const requirements=recipeRequirements(this.state,recipe); const operational=requirements.every(item=>item.satisfied); const durationName=recipe.durationProfile;
-      return `<article class="recipe-card ${locked?'locked':''} ${serving?'serving':'manually-blocked'}"><div class="recipe-icon">${recipeVisual(recipe.id)}</div><div><strong>${recipe.menuOrder}. ${recipe.name}</strong><small>Nível ${recipe.requiredLevel} · ${durationName}</small></div><span>${recipe.salePrice} ●/porção · lote ${recipe.batchYield}</span><div class="recipe-requirements"><small>${formatDuration(recipe.baseDurationSeconds)} · custo ${recipe.batchCost} ● · lucro ${recipe.estimatedProfit} ●</small><i>${recipe.requiredSpecialties.join(' + ')}</i>${requirements.map(item=>`<i class="${item.satisfied?'ready':'missing'}">${item.satisfied?'✓':'✕'} ${escapeHtml(item.label)}</i>`).join('')}</div>${locked?`<b class="lock-note">Nível ${recipe.requiredLevel}</b>`:`<button class="recipe-serving-toggle" data-action="toggle-recipe-serving" data-id="${recipe.id}" ${!operational?'disabled':''}>${!operational?'Instale a estação necessária':serving?'✓ Disponível no cardápio':'Fora do cardápio'}</button>`}</article>`;
+      return `<article class="recipe-card ${locked?'locked':''} ${serving?'serving':'manually-blocked'}"><div class="recipe-icon">${recipeVisual(recipe.id)}</div><div class="recipe-title"><strong>${recipe.menuOrder}. ${recipe.name}</strong><small>Nível ${recipe.requiredLevel} · ${durationName}</small></div><div class="mobile-recipe-metrics"><span title="Porções por lote">×${recipe.batchYield}</span><span title="Tempo">◷ ${formatDuration(recipe.baseDurationSeconds)}</span><span title="Custo e venda">● ${recipe.batchCost}→${recipe.salePrice}</span></div><div class="recipe-requirements"><small>Venda ${recipe.salePrice} ●/porção · lucro ${recipe.estimatedProfit} ●</small><i>${recipe.requiredSpecialties.join(' + ')}</i>${requirements.map(item=>`<i class="${item.satisfied?'ready':'missing'}">${item.satisfied?'✓':'✕'} ${escapeHtml(item.label)}</i>`).join('')}</div>${locked?`<b class="lock-note">Nível ${recipe.requiredLevel}</b>`:`<button class="recipe-serving-toggle" data-action="toggle-recipe-serving" data-id="${recipe.id}" ${!operational?'disabled':''}>${!operational?'Instale a estação necessária':serving?'✓ Disponível no cardápio':'Fora do cardápio'}</button>`}</article>`;
     }).join('')}</div>`;
   }
 
@@ -653,10 +666,10 @@ export class GameUI {
 
   private chooseRole(role: HelpRole): void { this.simulation.setPlayerRole(role); this.open('tasks'); }
   private toggleRestaurant(): void {
-    if (this.state.restaurantOpen) { this.simulation.setRestaurantOpen(false); this.toast('Restaurante fechado para novos clientes.', 'info'); this.renderShell(); return; }
+    if (this.state.restaurantOpen) { this.simulation.setRestaurantOpen(false); this.toast('Restaurante fechado para novos clientes.', 'info'); this.renderDynamic(); return; }
     const missing = this.openingRequirements();
     if (missing.length) { this.toast(`Ainda falta: ${missing.join('; ')}.`, 'warning'); return; }
-    this.simulation.setRestaurantOpen(true); this.toast('Restaurante aberto!', 'success'); this.renderShell();
+    this.simulation.setRestaurantOpen(true); this.toast('Restaurante aberto!', 'success'); this.renderDynamic();
   }
 
   private openingRequirements(): string[] {

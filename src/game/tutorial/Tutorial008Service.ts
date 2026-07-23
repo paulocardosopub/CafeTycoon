@@ -33,6 +33,24 @@ export function acknowledgeTutorialStep(state: GameState, id: string): void {
   reconcileTutorial(state);
 }
 
+export function pendingTutorialStep(state: GameState): (typeof INITIAL_TUTORIAL_STEPS)[number] | undefined {
+  const completed = new Set(state.tutorial008.completedSteps);
+  return INITIAL_TUTORIAL_STEPS.find((step) => !completed.has(step.id));
+}
+
+export function pendingJourneyChapter(state: GameState): number | undefined {
+  return JOURNEY_CHAPTER_LEVELS.find((level) => {
+    if (level === 1) return false;
+    const id = `level-${level}`;
+    return state.tutorial008.availableChapters.includes(id) && !state.tutorial008.completedChapters.includes(id);
+  });
+}
+
+export function acknowledgeJourneyChapter(state: GameState, level: number): void {
+  const id = `level-${level}`;
+  if (!state.tutorial008.completedChapters.includes(id)) state.tutorial008.completedChapters.push(id);
+}
+
 export function reconcileTutorial(state: GameState): void {
   const completed = new Set(state.tutorial008.completedSteps);
   const owned = [...state.construction.placedFurniture, ...state.construction.storedFurniture].map((item) => FURNITURE_BY_ID[item.definitionId]);
@@ -52,10 +70,14 @@ export function reconcileTutorial(state: GameState): void {
   if (state.stats.customersServed > 0) completed.add('first-customer');
   if (completed.has('first-customer')) completed.add('chapter-complete');
   state.tutorial008.completedSteps = [...completed];
-  state.tutorial008.currentStep = Math.min(INITIAL_TUTORIAL_STEPS.length - 1, INITIAL_TUTORIAL_STEPS.findIndex((step) => !completed.has(step.id)) < 0 ? INITIAL_TUTORIAL_STEPS.length - 1 : INITIAL_TUTORIAL_STEPS.findIndex((step) => !completed.has(step.id)));
+  const pendingStepIndex = INITIAL_TUTORIAL_STEPS.findIndex((step) => !completed.has(step.id));
+  state.tutorial008.currentStep = pendingStepIndex < 0 ? INITIAL_TUTORIAL_STEPS.length : pendingStepIndex;
   if (completed.has('chapter-complete') && !state.tutorial008.completedChapters.includes('level-1-first-service')) state.tutorial008.completedChapters.push('level-1-first-service');
   for (const level of JOURNEY_CHAPTER_LEVELS) {
     const id = level === 1 ? 'level-1-first-service' : `level-${level}`;
-    if (level <= state.restaurantLevel && !state.tutorial008.availableChapters.includes(id)) state.tutorial008.availableChapters.push(id);
+    if (level <= state.restaurantLevel && !state.tutorial008.availableChapters.includes(id)) {
+      state.tutorial008.availableChapters.push(id);
+      if (level > 1) state.tutorial008.minimized = false;
+    }
   }
 }

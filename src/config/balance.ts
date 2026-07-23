@@ -65,7 +65,7 @@ export const BALANCE = {
     maxSeconds: 8 * 60 * 60,
     saleIntervalSeconds: 150,
   },
-  restaurantLevels: Array.from({ length: 100 }, (_, index) => index === 0 ? 0 : Math.round(52 * Math.pow(index, 1.72))),
+  restaurantLevels: Array.from({ length: 100 }, (_, index) => index === 0 ? 0 : Math.round(140 * Math.pow(index, 1.85))),
   playerLevels: [0, 40, 120],
   professionLevels: [0, 25, 80],
   professionSpeedPerLevel: 0.08,
