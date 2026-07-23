@@ -62,6 +62,24 @@ describe('editor físico e loja da 0.0.5', () => {
     expect(occupiedCells(item('a1', stove.id, 5, 5, 'se'))).toEqual([{ x: 5, y: 5 }]);
   });
 
+  it('mantém o WorkSlot na frente visual do móvel em todas as rotações', () => {
+    const sink = FURNITURE_BY_ID['washing.b5.sink'];
+    const workPoint = (orientation: PlacedFurniture['orientation']) =>
+      resolvedWorkSlots(item(`sink:${orientation}`, sink.id, 5, 5, orientation), sink)[0].point;
+    expect(workPoint('sw')).toEqual({ x: 5, y: 6 });
+    expect(workPoint('se')).toEqual({ x: 6, y: 5 });
+    expect(workPoint('ne')).toEqual({ x: 5, y: 4 });
+    expect(workPoint('nw')).toEqual({ x: 4, y: 5 });
+  });
+
+  it('aceita a pia com as costas encostadas nas duas paredes laterais', () => {
+    const room = [{ id: 'test-room', x: 0, y: 0, width: 5, depth: 5, kind: 'base' as const }];
+    const againstLeftWall = item('sink:left', 'washing.b5.sink', 0, 2, 'se');
+    const againstTopWall = item('sink:top', 'washing.b5.sink', 2, 0, 'sw');
+    expect(validateFurniturePlacement(againstLeftWall, [], room, { x: 4, y: 4 }).valid).toBe(true);
+    expect(validateFurniturePlacement(againstTopWall, [], room, { x: 4, y: 4 }).valid).toBe(true);
+  });
+
   it('rejeita colisão e preserva entrada, saída e workSlots', () => {
     const state = createDefaultState(0);
     const table = item('table:new', 'dining.table.basic', 8, 11);

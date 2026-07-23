@@ -95,9 +95,12 @@ export function getDepthOrder(item: PlacedFurniture, definition: FurnitureDefini
 
 export function rotateOffset(point: GridPoint, width: number, depth: number, orientation: Direction): GridPoint {
   const turns = orientationTurns(orientation);
-  if (turns === 1) return { x: depth - 1 - point.y, y: point.x };
+  // Visual clockwise rotation SW -> SE moves the front from +Y to +X in
+  // isometric grid coordinates. These formulas therefore mirror the usual
+  // Cartesian turn so WorkSlots remain on the rendered front of the asset.
+  if (turns === 1) return { x: point.y, y: width - 1 - point.x };
   if (turns === 2) return { x: width - 1 - point.x, y: depth - 1 - point.y };
-  if (turns === 3) return { x: point.y, y: width - 1 - point.x };
+  if (turns === 3) return { x: depth - 1 - point.y, y: point.x };
   return { ...point };
 }
 

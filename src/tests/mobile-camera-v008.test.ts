@@ -43,6 +43,13 @@ describe('controles móveis da câmera e construção', () => {
     expect(ui).toContain('if (this.activePanel === panel) this.close(); else this.open(panel)');
   });
 
+  it('bloqueia cliques na cena enquanto uma janela de gestão está aberta', () => {
+    expect(scene).toContain('this.input.enabled = !this.sceneInputBlocked()');
+    expect(scene).toContain('.panel-host:not(:empty)');
+    expect(scene).toContain('.level-modal-backdrop');
+    expect(scene).toContain('.shop-only-overlay');
+  });
+
   it('mostra progresso real e evita carregar personagens sem uso', () => {
     expect(ui).toContain('restaurant-loading-progress');
     expect(scene).toContain("this.load.on('progress'");

@@ -275,9 +275,9 @@ def create_equipment(definition, collection, materials):
     if asset_id in ("b1_industrial_fridge", "b2_industrial_freezer"):
         root.scale.x = .52
     if family == "coffee_machine":
-        # Keep the exact 1x1 counter proportions used by the sink.  Scaling X/Y
-        # independently made this body read as a narrow, tall cabinet.
-        root.scale = (1.0, 1.0, 1.0)
+        # The approved sink/oven sprites use this uniform world scale. Keeping
+        # Z larger than X/Y made the coffee base read as a tall cabinet.
+        root.scale = (.60, .60, .60)
     root["visualHeight"] = visual_height; root["qualityProfile"] = "bistro-bloom-character-bible-v2"; root["fillsFootprint"] = True
     add_markers(asset_id, collection, equipment=True); tag_collection(collection, definition)
     return root

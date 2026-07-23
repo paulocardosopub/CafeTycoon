@@ -259,6 +259,7 @@ export class RestaurantSimulation {
     }
     this.retryBlockedOrders();
     this.retryCounterOrders();
+    this.retryWaitingCustomerOrders();
     this.blockedTaskRetry -= delta;
     if (this.blockedTaskRetry <= 0) { this.tasks.retryBlocked(); this.blockedTaskRetry = BALANCE.movementRecovery.retrySeconds; }
     this.updateCustomers(delta);
@@ -840,8 +841,9 @@ export class RestaurantSimulation {
 
   private placeOrder(customer: CustomerRuntime, table: TableRuntime, seat: ChairRuntime): void {
     if (customer.orderId) return;
-    const enabledRecipes = new Set(this.state.enabledRecipeIds);
-    const available = RECIPES.filter((recipe) => enabledRecipes.has(recipe.id) && recipe.requiredLevel <= this.state.restaurantLevel
+    // O que está exposto no balcão forma o cardápio real do restaurante.
+    // Uma lista antiga de receitas habilitadas não pode esconder comida pronta.
+    const available = RECIPES.filter((recipe) => recipe.requiredLevel <= this.state.restaurantLevel
       && this.counterModules.some((module) => module.assignedRecipeId === recipe.id && module.currentQuantity - module.reservedQuantity > 0));
     if (!available.length) {
       gameEvents.emit('toast', { message: 'Nenhum prato pronto disponível. Produza um lote antes de receber novos pedidos.', tone: 'warning' });
@@ -1026,6 +1028,24 @@ export class RestaurantSimulation {
   customerDemandCapacity(): number {
     const physicalCapacity = this.totalCapacity();
     return physicalCapacity > 0 ? Math.max(1, Math.ceil(physicalCapacity * this.reputationDemandFactor())) : 0;
+  }
+
+  private retryWaitingCustomerOrders(): void {
+    const hasPreparedFood = this.counterModules.some((module) => module.assignedRecipeId
+      && RECIPE_BY_ID[module.assignedRecipeId]?.requiredLevel <= this.state.restaurantLevel
+      && module.currentQuantity - module.reservedQuantity > 0);
+    if (!hasPreparedFood) return;
+    const activeCustomers = new Set(this.tasks.list().filter((task) => task.kind === 'take_order').map((task) => String(task.payload.customerId)));
+    for (const customer of this.customers.filter((item) => item.state === 'waiting_order' && !item.orderId && !activeCustomers.has(item.id))) {
+      const seat = this.seatFor(customer.seatId);
+      if (!seat || seat.customerId !== customer.id) continue;
+      this.tasks.add({
+        key: `order:${customer.id}`, kind: 'take_order', role: 'service', target: seat.servicePoint,
+        duration: BALANCE.actionSeconds.takeOrder, priority: 85,
+        payload: { customerId: customer.id, tableId: seat.tableId, seatId: seat.seatId },
+        reservations: [{ type: 'seat', id: seat.seatId }],
+      }, this.simulationTime);
+    }
   }
   dishesAwaitingPickup(): number { return this.counterSlots.filter((slot) => slot.state === 'occupied').length; }
   activeOrderCount(): number { return this.orders.filter((order) => !TERMINAL_ORDER_STATES.has(order.state)).length; }

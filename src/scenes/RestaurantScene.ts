@@ -154,6 +154,10 @@ export class RestaurantScene extends Phaser.Scene {
   }
 
   update(_time: number, deltaMs: number): void {
+    // DOM management windows are modal over the Phaser canvas. Keeping the
+    // scene input plugin disabled prevents touch/click-through to actors and
+    // furniture while any of those windows is open.
+    this.input.enabled = !this.sceneInputBlocked();
     this.simulation.update(deltaMs / 1000);
     this.simulation.actors.forEach((actor) => { if (!this.actorVisuals.has(actor.id)) this.createActor(actor); this.syncActor(actor); });
     const activeActorIds = new Set(this.simulation.actors.map((actor) => actor.id));
@@ -173,6 +177,12 @@ export class RestaurantScene extends Phaser.Scene {
       this.simulation.tables.forEach((table) => this.syncTable(table));
     }
     if (this.technicalMode) this.drawTechnicalOverlay();
+  }
+
+  private sceneInputBlocked(): boolean {
+    return Boolean(document.querySelector(
+      '.panel-host:not(:empty), .level-modal-backdrop, .construction-save-prompt, .shop-only-overlay',
+    ));
   }
 
   private bindCameraControls(): void {

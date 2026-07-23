@@ -3,6 +3,7 @@ import { INGREDIENTS } from '../content/ingredients/ingredients';
 import { createDefaultState } from '../game/save/defaultState';
 import { RestaurantSimulation } from '../game/simulation/RestaurantSimulation';
 import type { Direction, PlacedFurniture } from '../core/types';
+import { modulesFromFurniture } from '../game/systems/service-counter/ServiceCounterSystem';
 
 function diningItem(id: string, definitionId: string, x: number, y: number, orientation: Direction = 'sw', linkedTableId?: string): PlacedFurniture {
   return { id, definitionId, gridX: x, gridY: y, orientation, skinId: definitionId.includes('chair') ? 'chair-wood' : 'table-oak', level: 1, state: linkedTableId ? { linkedTableId } : {} };
@@ -60,9 +61,14 @@ describe('capacidade e assentos individuais', () => {
     expect(simulation.actors.map((actor) => actor.position)).toEqual(actorPositions);
   });
 
-  it('aceita apenas receitas liberadas manualmente para novos pedidos', () => {
-    const simulation = stockedSimulation();
-    simulation.state.enabledRecipeIds = ['omelette'];
+  it('aceita receitas expostas no balcão mesmo sem lista manual', () => {
+    const state = createDefaultState(0); state.restaurantLevel = 15; installSixSeatLayout(state);
+    state.construction.placedFurniture.push({ id: 'counter:menu', definitionId: 'service.c1.isolated', gridX: 8, gridY: 6, orientation: 'sw', skinId: 'counter-forest', level: 1, state: {} });
+    state.construction.serviceCounters = modulesFromFurniture(state.construction.placedFurniture);
+    const simulation = new RestaurantSimulation(state); simulation.debugSetAutoSpawn(false);
+    simulation.state.enabledRecipeIds = [];
+    const counter = simulation.counterModules[0];
+    counter.assignedRecipeId = 'omelette'; counter.currentQuantity = 2; counter.reservedQuantity = 0;
     simulation.debugSeatGroupAtFirstTable(1);
     expect(simulation.debugSimulateOrder()).toBe(true);
     expect(simulation.orders.at(-1)?.recipeId).toBe('omelette');
