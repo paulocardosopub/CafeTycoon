@@ -89,6 +89,9 @@ export class RestaurantScene extends Phaser.Scene {
   private dragOrigin = { x: 0, y: 0, scrollX: 0, scrollY: 0 };
   private draggedFurnitureId?: string;
   private lastFurnitureDragCell?: string;
+  private activeCameraPointers = new Map<number, { x: number; y: number }>();
+  private pinchGesture?: { distance: number; midpoint: { x: number; y: number } };
+  private pendingFloorTap?: { pointerId: number; cell: GridPoint; startX: number; startY: number };
 
   constructor(private readonly simulation: RestaurantSimulation) { super('restaurant'); }
 
@@ -157,15 +160,19 @@ export class RestaurantScene extends Phaser.Scene {
   }
 
   private bindCameraControls(): void {
+    this.input.addPointer(2);
     this.input.on('wheel', (_pointer: Phaser.Input.Pointer, _objects: unknown, _dx: number, dy: number) => this.setZoomIndex(this.zoomIndex + (dy > 0 ? -1 : 1)));
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
       // Furniture and floor hit areas stop propagation themselves. Empty
       // restaurant space remains available for camera panning in edit mode.
-      if (this.draggedFurnitureId) return;
-      this.dragging = true;
-      this.dragOrigin = { x: pointer.x, y: pointer.y, scrollX: this.cameras.main.scrollX, scrollY: this.cameras.main.scrollY };
+      this.beginCameraPointer(pointer);
     });
     this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
+      if (this.activeCameraPointers.has(pointer.id)) this.activeCameraPointers.set(pointer.id, { x: pointer.x, y: pointer.y });
+      if (this.activeCameraPointers.size >= 2) {
+        this.updatePinchGesture();
+        return;
+      }
       if (this.draggedFurnitureId && pointer.isDown) {
         const world = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
         const cell = worldToGrid(world); const key = `${cell.x},${cell.y}`;
@@ -176,12 +183,64 @@ export class RestaurantScene extends Phaser.Scene {
         return;
       }
       if (!this.dragging || !pointer.isDown) return;
+      if (this.pendingFloorTap && Math.hypot(pointer.x - this.pendingFloorTap.startX, pointer.y - this.pendingFloorTap.startY) > 10) this.pendingFloorTap = undefined;
       const camera = this.cameras.main;
       camera.scrollX = Math.round(this.dragOrigin.scrollX - (pointer.x - this.dragOrigin.x) / camera.zoom);
       camera.scrollY = Math.round(this.dragOrigin.scrollY - (pointer.y - this.dragOrigin.y) / camera.zoom);
     });
-    this.input.on('pointerup', () => { this.dragging = false; this.draggedFurnitureId = undefined; this.lastFurnitureDragCell = undefined; });
-    this.input.on('pointerupoutside', () => { this.dragging = false; this.draggedFurnitureId = undefined; this.lastFurnitureDragCell = undefined; });
+    this.input.on('pointerup', (pointer: Phaser.Input.Pointer) => this.endCameraPointer(pointer));
+    this.input.on('pointerupoutside', (pointer: Phaser.Input.Pointer) => this.endCameraPointer(pointer));
+  }
+
+  private beginCameraPointer(pointer: Phaser.Input.Pointer): void {
+    this.activeCameraPointers.set(pointer.id, { x: pointer.x, y: pointer.y });
+    if (this.activeCameraPointers.size >= 2) {
+      const [a, b] = [...this.activeCameraPointers.values()].slice(0, 2);
+      this.pinchGesture = { distance: Math.max(1, Math.hypot(b.x - a.x, b.y - a.y)), midpoint: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 } };
+      this.dragging = false;
+      this.pendingFloorTap = undefined;
+      return;
+    }
+    if (this.draggedFurnitureId) return;
+    this.dragging = true;
+    this.dragOrigin = { x: pointer.x, y: pointer.y, scrollX: this.cameras.main.scrollX, scrollY: this.cameras.main.scrollY };
+  }
+
+  private updatePinchGesture(): void {
+    const [a, b] = [...this.activeCameraPointers.values()].slice(0, 2);
+    if (!a || !b) return;
+    const distance = Math.max(1, Math.hypot(b.x - a.x, b.y - a.y));
+    const midpoint = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+    if (!this.pinchGesture) {
+      this.pinchGesture = { distance, midpoint };
+      return;
+    }
+    const camera = this.cameras.main;
+    const worldAnchor = camera.getWorldPoint(this.pinchGesture.midpoint.x, this.pinchGesture.midpoint.y);
+    const zoom = Phaser.Math.Clamp(camera.zoom * distance / this.pinchGesture.distance, ZOOM_LEVELS[0], ZOOM_LEVELS[ZOOM_LEVELS.length - 1]);
+    camera.setZoom(zoom);
+    const shiftedAnchor = camera.getWorldPoint(midpoint.x, midpoint.y);
+    camera.scrollX += worldAnchor.x - shiftedAnchor.x;
+    camera.scrollY += worldAnchor.y - shiftedAnchor.y;
+    this.pinchGesture = { distance, midpoint };
+    gameEvents.emit('camera:zoom', camera.zoom);
+  }
+
+  private endCameraPointer(pointer: Phaser.Input.Pointer): void {
+    const floorTap = this.pendingFloorTap?.pointerId === pointer.id ? this.pendingFloorTap : undefined;
+    const wasPinching = Boolean(this.pinchGesture) || this.activeCameraPointers.size > 1;
+    this.activeCameraPointers.delete(pointer.id);
+    if (floorTap && !wasPinching) gameEvents.emit('construction:world-cell', floorTap.cell);
+    if (this.pendingFloorTap?.pointerId === pointer.id) this.pendingFloorTap = undefined;
+    if (this.activeCameraPointers.size < 2) this.pinchGesture = undefined;
+    if (this.activeCameraPointers.size === 1) {
+      const remaining = [...this.activeCameraPointers.values()][0];
+      this.dragging = true;
+      this.dragOrigin = { x: remaining.x, y: remaining.y, scrollX: this.cameras.main.scrollX, scrollY: this.cameras.main.scrollY };
+    } else if (this.activeCameraPointers.size === 0) this.dragging = false;
+    this.zoomIndex = ZOOM_LEVELS.reduce((best, value, index) => Math.abs(value - this.cameras.main.zoom) < Math.abs(ZOOM_LEVELS[best] - this.cameras.main.zoom) ? index : best, 0);
+    this.draggedFurnitureId = undefined;
+    this.lastFurnitureDragCell = undefined;
   }
 
   private setZoomIndex(index: number): void {
@@ -232,9 +291,10 @@ export class RestaurantScene extends Phaser.Scene {
       this.drawDebugDiamond(grid, point);
       const zone = this.add.zone(Math.round(point.x), Math.round(point.y), 64, 32).setOrigin(.5).setDepth(-8_900)
         .setInteractive(new Phaser.Geom.Polygon([{ x: 32, y: 0 }, { x: 64, y: 16 }, { x: 32, y: 32 }, { x: 0, y: 16 }]), Phaser.Geom.Polygon.Contains);
-      zone.on('pointerdown', (_pointer: Phaser.Input.Pointer, _localX: number, _localY: number, event: Phaser.Types.Input.EventData) => {
+      zone.on('pointerdown', (pointer: Phaser.Input.Pointer, _localX: number, _localY: number, event: Phaser.Types.Input.EventData) => {
         event.stopPropagation();
-        gameEvents.emit('construction:world-cell', { x: cell.x, y: cell.y });
+        this.beginCameraPointer(pointer);
+        if (this.activeCameraPointers.size === 1) this.pendingFloorTap = { pointerId: pointer.id, cell: { x: cell.x, y: cell.y }, startX: pointer.x, startY: pointer.y };
       });
       this.constructionPreviewObjects.push(zone);
     }

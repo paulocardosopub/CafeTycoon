@@ -163,9 +163,6 @@ fieldset { margin: 0; padding: 0; border: 0; }.choice-pills { display: flex; gap
 .help-button { align-self: stretch; width: 70px; border-radius: 10px; background: #236a61; color: #fff; font-size: 9px; font-weight: 700; line-height: 1.2; }
 .shift-card { position: absolute; z-index: 550; right: 18px; top: 18px; display: flex; align-items: center; gap: 9px; padding: 9px 14px; border-radius: 11px; color: #fff; background: #173f3ad9; border: 1px solid #ffffff20; box-shadow: 0 8px 24px #0c2b2860; }.shift-card div { display: grid; }.shift-card small { font-size: 8px; letter-spacing: .12em; opacity: .65; }.shift-card strong { font-size: 11px; }.live-dot { width: 8px; height: 8px; border-radius: 50%; background: #7dd887; box-shadow: 0 0 0 4px #7dd88724; animation: live 1.6s infinite; }@keyframes live { 50% { box-shadow: 0 0 0 7px #7dd88700; } }
 .camera-hint { position: absolute; z-index: 500; left: 50%; bottom: 14px; transform: translateX(-50%); padding: 6px 12px; border-radius: 20px; color: #fff9e7aa; background: #123a3688; font-size: 9px; pointer-events: none; }
-.mobile-camera-controls { display:none; position:absolute; z-index:610; right:8px; bottom:8px; align-items:center; gap:3px; padding:4px; border:1px solid #ffffff30; border-radius:12px; color:#fff9e9; background:#123a36e8; box-shadow:0 6px 18px #09272255; }
-.mobile-camera-controls button { width:42px; height:42px; border-radius:9px; color:#173f3a; background:#f1c45b; font-size:23px; font-weight:800; }
-.mobile-camera-controls span { min-width:46px; text-align:center; font-size:10px; font-weight:800; }
 .operation-alerts { position:absolute; z-index:510; top:10px; left:50%; transform:translateX(-50%); display:flex; flex-wrap:wrap; justify-content:center; gap:5px; max-width:540px; pointer-events:none; }
 .operation-alerts span { padding:5px 8px; border:1px solid #fff4d4; border-radius:14px; color:#fff8e9; background:#9a443be8; box-shadow:0 2px 6px #173f3a40; font-size:8px; font-weight:800; }
 .management-bar { z-index: 1000; display: flex; justify-content: center; gap: 5px; padding: 7px 12px 8px; background: linear-gradient(#fff9e9, #efe2c7); border-top: 1px solid #fff; box-shadow: 0 -5px 24px #0a29255c; scrollbar-width: none; }
@@ -198,7 +195,7 @@ fieldset { margin: 0; padding: 0; border: 0; }.choice-pills { display: flex; gap
   .creator-screen { grid-template-columns: 1fr; }.creator-story { min-height: 700px; }.creator-form-wrap { min-height: auto; }
 }
 @media (max-width: 720px) {
-  .game-shell { grid-template-rows: 58px minmax(0,1fr) calc(65px + env(safe-area-inset-bottom)); }.topbar { padding: 6px 9px; gap: 6px; }.game-brand { min-width: 116px; }.game-brand strong { font-size: 14px; }.hud-pill.rep { display:none; }.hud-pill { min-width: 72px; padding: 4px 7px; }.hud-pill.level-pill { min-width: 105px; }.hud-pill > span { width: 22px; height:22px; }.level-pill i { width:55px; }.owner-card { left:8px; top:8px; width:290px; }.shift-card { display:none; }.management-bar { justify-content:flex-start; overflow-x:auto; padding-bottom:calc(8px + env(safe-area-inset-bottom)); scroll-snap-type:x proximity; -webkit-overflow-scrolling:touch; }.management-bar button { min-width:76px; height:52px; scroll-snap-align:start; }.panel-host { top:8px; right:7px; bottom:7px; width:calc(100% - 14px); }.recipe-grid { grid-template-columns:1fr; }.camera-hint { display:none; }.mobile-camera-controls { display:flex; }
+  .game-shell { grid-template-rows: 58px minmax(0,1fr) calc(65px + env(safe-area-inset-bottom)); }.topbar { padding: 6px 9px; gap: 6px; }.game-brand { min-width: 116px; }.game-brand strong { font-size: 14px; }.hud-pill.rep { display:none; }.hud-pill { min-width: 72px; padding: 4px 7px; }.hud-pill.level-pill { min-width: 105px; }.hud-pill > span { width: 22px; height:22px; }.level-pill i { width:55px; }.owner-card { left:8px; top:8px; width:290px; }.shift-card { display:none; }.management-bar { justify-content:flex-start; overflow-x:auto; padding-bottom:calc(8px + env(safe-area-inset-bottom)); scroll-snap-type:x proximity; -webkit-overflow-scrolling:touch; }.management-bar button { min-width:76px; height:52px; scroll-snap-align:start; }.panel-host { top:8px; right:7px; bottom:7px; width:calc(100% - 14px); }.recipe-grid { grid-template-columns:1fr; }.camera-hint { display:none; }
 }
 @media (max-width: 520px) {
   .creator-story { min-height: 100dvh; padding: 28px 22px; }.creator-copy { margin-top:42px; }.creator-copy h1 { font-size: 39px; }.creator-form-wrap { padding: 30px 20px calc(30px + env(safe-area-inset-bottom)); }.creator-form { grid-template-columns:1fr; }.creator-form > .field { grid-column:1/-1; }.player-skin-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -206,7 +203,7 @@ fieldset { margin: 0; padding: 0; border: 0; }.choice-pills { display: flex; gap
 }
 
 @media (max-height: 560px) and (max-width: 920px) {
-  .game-shell { grid-template-rows:50px minmax(0,1fr) 54px; }.owner-card { transform:scale(.82); transform-origin:top left; }.management-bar button { height:44px; }.management-bar button span { font-size:18px; }.operation-alerts { top:6px; }.mobile-camera-controls { bottom:5px; }
+  .game-shell { grid-template-rows:50px minmax(0,1fr) 54px; }.owner-card { transform:scale(.82); transform-origin:top left; }.management-bar button { height:44px; }.management-bar button span { font-size:18px; }.operation-alerts { top:6px; }
 }
 
 @media (pointer: coarse) {
@@ -386,3 +383,22 @@ fieldset { margin: 0; padding: 0; border: 0; }.choice-pills { display: flex; gap
 .shop-only-overlay{background:#173a36;pointer-events:auto}.shop-only-overlay .construction-live-workspace{display:block;overflow:auto;pointer-events:auto}.shop-only-overlay .construction-catalog{width:100%;max-height:none;overflow:visible;position:relative}.shop-only-overlay .catalog-items{grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}.shop-only-overlay .shop-card{min-height:178px;padding:7px}.shop-only-overlay .shop-card-info{min-height:58px;gap:4px}.shop-only-overlay .shop-card-info img{width:46px;height:46px}.shop-only-overlay .shop-card p{min-height:30px;margin:4px 2px;font-size:10px;line-height:1.3}.shop-only-overlay .shop-buy{margin-top:3px;padding:7px;font-size:10px}#app:has(.construction-overlay) #tutorial-008-host{display:none}@media(max-width:1000px){.shop-only-overlay .catalog-items{grid-template-columns:repeat(4,minmax(0,1fr))}}@media(max-width:700px){.shop-only-overlay .construction-live-workspace{inset:149px 0 54px;display:block;padding:0 5px}.shop-only-overlay .construction-catalog{max-height:100%;overflow:auto}.shop-only-overlay .catalog-items{grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}.shop-only-overlay .shop-card{min-height:170px}.shop-only-overlay .shop-card-info{min-height:54px}.shop-only-overlay .shop-card-info img{width:40px;height:40px}.shop-only-overlay .shop-card p{display:-webkit-box;min-height:31px;overflow:hidden;-webkit-line-clamp:2;-webkit-box-orient:vertical}.shop-only-overlay .construction-toolbar{min-height:76px}.shop-purchase-confirm{padding-top:max(8px,env(safe-area-inset-top))}.shop-purchase-confirm section{padding:12px 14px}.shop-purchase-confirm img{width:72px;height:72px}}
 .level-modal{width:min(480px,calc(100vw - 32px))}
 .tutorial-target{position:relative;z-index:5;outline:4px solid #ffd35c!important;box-shadow:0 0 0 7px #1b6f61,0 0 24px #ffd35ccc!important;animation:tutorial-target-pulse 1s ease-in-out infinite alternate}@keyframes tutorial-target-pulse{from{outline-offset:1px}to{outline-offset:7px}}
+
+/* Mobile construction: keep most of the screen available for the floor. */
+@media (max-width:700px) {
+  .editor-only-overlay .construction-header { min-height:50px; }
+  .editor-only-overlay .construction-toolbar { inset:61px 5px auto; min-height:62px; }
+  .editor-only-overlay .construction-live-workspace { inset:129px 0 54px; grid-template-rows:minmax(245px,1fr) minmax(118px,22vh); }
+  .editor-only-overlay .construction-live-hint { max-width:calc(100% - 8px); }
+  .editor-only-overlay .construction-live-hint span { display:block; font-size:9px; line-height:1.3; }
+  .editor-only-overlay .construction-catalog,
+  .editor-only-overlay .construction-options { border-radius:9px; }
+  .editor-only-overlay .catalog-items { grid-template-columns:repeat(2,minmax(0,1fr)); gap:4px; padding:5px; }
+  .editor-only-overlay .catalog-card,
+  .editor-only-overlay .stored-card { min-height:48px; gap:4px; padding:4px; }
+  .editor-only-overlay .catalog-card img,
+  .editor-only-overlay .stored-card img { width:36px; height:36px; }
+  .editor-only-overlay .catalog-card b,
+  .editor-only-overlay .stored-card b { font-size:10px; }
+  .editor-only-overlay .construction-selected { max-height:116px; }
+}

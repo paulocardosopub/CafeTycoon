@@ -98,11 +98,6 @@ export class GameUI {
           <section class="owner-card" id="owner-card"></section>
           <div class="shift-card"><span class="live-dot"></span><div><small>${this.state.restaurantOpen ? 'RESTAURANTE ABERTO' : 'RESTAURANTE FECHADO'}</small><strong id="shift-customers">0 clientes no salão</strong><b id="shift-occupancy">OCUPAÇÃO: 0/10</b></div><button data-action="toggle-restaurant">${this.state.restaurantOpen ? 'Fechar' : 'Abrir restaurante'}</button></div>
           <div class="camera-hint">Arraste para mover · Role para zoom${developmentMode() ? ' · D: modo técnico' : ''}</div>
-          <div class="mobile-camera-controls" aria-label="Zoom do restaurante">
-            <button data-action="camera-zoom-out" aria-label="Diminuir zoom">−</button>
-            <span id="mobile-zoom">100%</span>
-            <button data-action="camera-zoom-in" aria-label="Aumentar zoom">+</button>
-          </div>
           <aside class="panel-host" id="panel-host" aria-live="polite"></aside>
         </main>
         <nav class="management-bar" aria-label="Gestão do restaurante">
@@ -172,8 +167,6 @@ export class GameUI {
       else if (action === 'tutorial-show') this.showTutorialTarget();
       else if (action === 'toggle-restaurant') this.toggleRestaurant();
       else if (action === 'set-speed') { this.simulation.setTimeScale(Number(target.dataset.speed)); this.renderDynamic(); }
-      else if (action === 'camera-zoom-out') gameEvents.emit('camera:zoom-step', -1);
-      else if (action === 'camera-zoom-in') gameEvents.emit('camera:zoom-step', 1);
       else if (action === 'dev-add-customer') this.simulation.debugAddCustomer();
       else if (action === 'dev-add-group') this.simulation.debugAddGroup(4);
       else if (action === 'dev-simulate-order') this.toast(this.simulation.debugSimulateOrder() ? 'Pedido de teste criado.' : 'Não foi possível criar o pedido.', 'info');
@@ -248,7 +241,6 @@ export class GameUI {
     const count = this.simulation.activeCustomerCount();
     this.root.querySelector<HTMLElement>('#shift-customers')!.textContent = `${count} ${count === 1 ? 'cliente' : 'clientes'} no salão`;
     this.root.querySelector<HTMLElement>('#shift-occupancy')!.textContent = `OCUPAÇÃO: ${this.simulation.seatedCustomerCount()}/${this.simulation.totalCapacity()}`;
-    this.root.querySelector<HTMLElement>('#mobile-zoom')!.textContent = `${Math.round(this.zoom * 100)}%`;
     this.root.querySelectorAll<HTMLButtonElement>('[data-action="set-speed"]').forEach((button) => button.classList.toggle('active', Number(button.dataset.speed) === this.simulation.timeScale()));
     this.renderProgressionModal();
   }

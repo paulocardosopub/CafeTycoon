@@ -445,7 +445,7 @@ export class ConstructionShop {
             ${this.mode === 'shop' ? shopCatalog : `${organizeCatalog}<section class="organize-paint-hint"><strong>Pintar o restaurante</strong><p>Use Revestimentos ao lado para aplicar uma única cor de piso em todo o espaço construído e trocar as paredes.</p></section>`}
           </aside>
           ${this.mode === 'organize' ? `<main class="construction-live-stage" aria-label="Edição diretamente no restaurante">
-            <div class="construction-live-hint"><strong>Editando no próprio salão</strong><span>Toque em um móvel e depois no quadrado de destino. A prévia aparece imediatamente.</span></div>
+            <div class="construction-live-hint"><strong>Editando no próprio salão</strong><span>Toque para colocar. Arraste o fundo para mover a tela e use dois dedos para aproximar ou afastar.</span></div>
             ${selectedPanel}
           </main>` : ''}
           <aside class="construction-options ${this.mode === 'shop' ? 'shop-hidden-options' : ''}">
