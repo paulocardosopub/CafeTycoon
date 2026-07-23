@@ -66,7 +66,9 @@ const doubleWork = (purpose: FurnitureWorkSlot['purpose'] = 'work'): FurnitureWo
   work('work-right', { x: 1, y: 1 }, 'any', purpose),
 ];
 const serviceSlots = (): FurnitureWorkSlot[] => [
-  work('kitchen-drop', { x: 0, y: -1 }, 'cook', 'kitchen-drop', 'sw'),
+  // Both flows share the accessible restaurant side, so the counter can sit
+  // flush against a wall like every other modular counter.
+  work('kitchen-drop', { x: 0, y: 1 }, 'cook', 'kitchen-drop', 'ne'),
   work('waiter-pickup', { x: 0, y: 1 }, 'waiter', 'waiter-pickup', 'ne'),
 ];
 

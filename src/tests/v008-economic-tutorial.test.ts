@@ -39,7 +39,7 @@ describe('0.0.8 econômica sem ingredientes', () => {
   it('tutorial desaparece quando não há uma nova etapa pendente', () => {
     const state=createDefaultState(0); state.tutorial008.completedSteps=INITIAL_TUTORIAL_STEPS.map((step)=>step.id); reconcileTutorial(state); expect(pendingTutorialStep(state)).toBeUndefined(); expect(state.tutorial008.currentStep).toBe(INITIAL_TUTORIAL_STEPS.length);
   });
-  it('Jornada contém todos os níveis contextuais obrigatórios', () => { for (const level of [1,2,3,4,5,7,10,20,25,30,82,89,92,100]) expect(JOURNEY_CHAPTER_LEVELS).toContain(level); });
+  it('Jornada contém apenas níveis com mudança real', () => { for (const level of [1,2,3,5,7,10,20,25,30,82,89,92,100]) expect(JOURNEY_CHAPTER_LEVELS).toContain(level); expect(JOURNEY_CHAPTER_LEVELS).not.toContain(4); });
   it('dinheiro inicial cobre móveis, Barista e dois lotes de café', () => {
     const ids=['service.c1.isolated','washing.b5.sink','cooking.a8.coffee','dining.table.basic','dining.chair.basic','dining.chair.basic']; const total=ids.reduce((sum,id)=>sum+FURNITURE_BY_ID[id].price,0)+STAFF_BY_ID['cook-0'].hireCost+RECIPE_BY_ID.coffee.batchCost*2; expect(createDefaultState(0).coins).toBeGreaterThanOrEqual(total);
   });

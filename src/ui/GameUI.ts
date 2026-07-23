@@ -4,7 +4,7 @@ import { RECIPES, RECIPE_BY_ID } from '../content/recipes/recipes';
 import { EQUIPMENT_ASSETS } from '../content/equipment/equipment';
 import { gameEvents } from '../core/events';
 import type { CharacterAppearance, GameState, HelpRole, IngredientId, OfflineReport, ProfessionId, RecipeId } from '../core/types';
-import { enqueueProduction, readyDishCapacity, readyDishUsed } from '../game/cooking/ProductionService';
+import { enqueueProduction, productionBatchDuration, readyDishCapacity, readyDishUsed } from '../game/cooking/ProductionService';
 import { canConsumeRecipe, inventoryCapacity, inventoryUsed, quotePurchase, type PurchaseMode, type PurchaseQuote } from '../game/inventory/InventoryService';
 import { calculateOfflineProgress } from '../game/offline/OfflineService';
 import { SAVE_RESET_SESSION_KEY, type SaveRepository } from '../game/save/SaveRepository';
@@ -27,7 +27,7 @@ import { LEVEL_REWARD_BY_LEVEL, LEVEL_REWARDS } from '../content/progression/lev
 import { confirmProgressionNotification, pendingLevelReward } from '../game/progression/RewardService';
 import { acknowledgeJourneyChapter, acknowledgeTutorialStep, INITIAL_TUTORIAL_STEPS, JOURNEY_CHAPTER_LEVELS, pendingJourneyChapter, pendingTutorialStep, reconcileTutorial } from '../game/tutorial/Tutorial008Service';
 
-type PanelId = 'staff' | 'stock' | 'recipes' | 'production' | 'orders' | 'upgrades' | 'player' | 'roles' | 'professions' | 'offline' | 'settings' | 'tasks' | 'progression';
+type PanelId = 'staff' | 'stock' | 'recipes' | 'production' | 'orders' | 'upgrades' | 'player' | 'professions' | 'offline' | 'settings' | 'tasks' | 'progression';
 
 function playerSpriteThumb(appearance: CharacterAppearance | string, presentation?: CharacterAppearance['presentation']): string {
   const assetId = typeof appearance === 'string' ? playerSkinAsset({ presentation: presentation ?? 'feminina' }) : playerSkinAsset(appearance);
@@ -38,13 +38,15 @@ function recipeVisual(recipeId: RecipeId): string {
   return `<img class="recipe-food-thumb" src="${recipeFoodThumbnail(recipeId)}" alt="" aria-hidden="true"/>`;
 }
 
-const ROLE_INFO: Record<HelpRole, { name: string; icon: string; profession: ProfessionId; text: string }> = {
+const ROLE_INFO: Record<HelpRole, { name: string; icon: string; profession?: ProfessionId; text: string }> = {
+  manager: { name: 'Gerente', icon: '★', text: 'Ajuda automaticamente em qualquer tarefa disponível, começando pela mais prioritária.' },
   kitchen: { name: 'Cozinha', icon: '🍳', profession: 'cook', text: 'Ajuda no preparo e reduz a fila da cozinha.' },
   service: { name: 'Atendimento', icon: '🔔', profession: 'waiter', text: 'Anota pedidos, serve e recebe pagamentos.' },
   cleaning: { name: 'Limpeza', icon: '✨', profession: 'cleaner', text: 'Libera mesas para os próximos clientes.' },
   stock: { name: 'Estoque e apoio', icon: '📦', profession: 'stocker', text: 'Organiza insumos e apoia a operação.' },
 };
-const PLAYER_HELP_ROLES: readonly HelpRole[] = ['kitchen', 'cleaning'];
+const PLAYER_TASK_ROLES: readonly HelpRole[] = ['manager', 'kitchen', 'service', 'cleaning'];
+const PLAYER_PROFESSION_ROLES: readonly HelpRole[] = ['kitchen', 'service', 'cleaning'];
 
 export class GameUI {
   private activePanel?: PanelId;
@@ -254,13 +256,15 @@ export class GameUI {
     this.root.querySelector<HTMLElement>('#operation-alerts')!.innerHTML = alerts.map((alert) => `<span>! ${alert}</span>`).join('');
 
     const profile = this.state.profile!;
-    const role = ROLE_INFO[PLAYER_HELP_ROLES.includes(profile.helpRole) ? profile.helpRole : 'kitchen'];
-    const profession = profile.professions[role.profession];
+    const roleId = PLAYER_TASK_ROLES.includes(profile.helpRole) ? profile.helpRole : 'manager';
+    const role = ROLE_INFO[roleId];
+    const profession = role.profession ? profile.professions[role.profession] : undefined;
+    const ownerProgress = profession ? professionProgress(profession.xp, profession.level) : professionProgress(profile.xp, profile.level);
     this.root.querySelector<HTMLElement>('#owner-card')!.innerHTML = `
       <button class="owner-portrait" data-open="player" aria-label="Abrir perfil"><img src="${playerSpriteThumb(profile.appearance)}" alt="" /><i>✦</i></button>
       <div class="owner-copy"><small>PROPRIETÁRIO · NÍVEL ${profile.level}</small><strong>${escapeHtml(profile.name)}</strong><span>${role.icon} ${role.name} · ${this.simulation.playerTaskLabel()}</span><em>Destino ${this.simulation.playerDestinationLabel()} · ${this.simulation.playerIdleReason()}</em>
-        <div class="mini-progress"><i style="width:${professionProgress(profession.xp, profession.level)}%"></i></div>
-      </div><button class="help-button" data-open="roles">Onde ajudar?</button>`;
+        <div class="mini-progress"><i style="width:${ownerProgress}%"></i></div>
+      </div>`;
     const count = this.simulation.activeCustomerCount();
     const shiftCard = this.root.querySelector<HTMLElement>('.shift-card');
     shiftCard?.classList.toggle('restaurant-open', this.state.restaurantOpen);
@@ -309,7 +313,6 @@ export class GameUI {
     if (panel === 'production') return { title: 'Produção programada', body: this.productionPanel() };
     if (panel === 'orders') return { title: 'Pedidos do salão', body: this.ordersPanel() };
     if (panel === 'upgrades') return { title: 'Melhorias', body: this.upgradesPanel() };
-    if (panel === 'roles') return { title: 'Onde ajudar?', body: this.rolesPanel() };
     if (panel === 'professions') return { title: 'Profissões', body: this.professionsPanel() };
     if (panel === 'player') return { title: this.state.profile!.name, body: this.playerPanel() };
     if (panel === 'offline') return { title: 'Enquanto você esteve fora', body: this.offlinePanel() };
@@ -488,7 +491,7 @@ export class GameUI {
     return `<p class="panel-intro">Catálogo oficial 0.0.8 · 52 receitas em ordem de desbloqueio.</p><div class="recipe-grid">${RECIPES.map((recipe) => {
       const locked=recipe.requiredLevel>this.state.restaurantLevel; const serving=this.state.enabledRecipeIds.includes(recipe.id);
       const requirements=recipeRequirements(this.state,recipe); const operational=requirements.every(item=>item.satisfied); const durationName=recipe.durationProfile;
-      return `<article class="recipe-card ${locked?'locked':''} ${serving?'serving':'manually-blocked'}"><div class="recipe-icon">${recipeVisual(recipe.id)}</div><div class="recipe-title"><strong>${recipe.menuOrder}. ${recipe.name}</strong><small>Nível ${recipe.requiredLevel} · ${durationName}</small></div><div class="mobile-recipe-metrics"><span title="Porções por lote">×${recipe.batchYield}</span><span title="Tempo">◷ ${formatDuration(recipe.baseDurationSeconds)}</span><span title="Custo e venda">● ${recipe.batchCost}→${recipe.salePrice}</span></div><div class="recipe-requirements"><small>Venda ${recipe.salePrice} ●/porção · lucro ${recipe.estimatedProfit} ●</small><i>${recipe.requiredSpecialties.join(' + ')}</i>${requirements.map(item=>`<i class="${item.satisfied?'ready':'missing'}">${item.satisfied?'✓':'✕'} ${escapeHtml(item.label)}</i>`).join('')}</div>${locked?`<b class="lock-note">Nível ${recipe.requiredLevel}</b>`:`<button class="recipe-serving-toggle" data-action="toggle-recipe-serving" data-id="${recipe.id}" ${!operational?'disabled':''}>${!operational?'Instale a estação necessária':serving?'✓ Disponível no cardápio':'Fora do cardápio'}</button>`}</article>`;
+      return `<article class="recipe-card ${locked?'locked':''} ${serving?'serving':'manually-blocked'}"><div class="recipe-icon">${recipeVisual(recipe.id)}</div><div class="recipe-title"><strong>${recipe.menuOrder}. ${recipe.name}</strong><small>Nível ${recipe.requiredLevel} · ${durationName}</small></div><div class="mobile-recipe-metrics"><span title="Porções por lote">×${recipe.batchYield}</span><span title="Tempo">◷ ${formatDuration(productionBatchDuration(this.state, recipe.id))}</span><span title="Custo e venda">● ${recipe.batchCost}→${recipe.salePrice}</span></div><div class="recipe-requirements"><small>Venda ${recipe.salePrice} ●/porção · lucro ${recipe.estimatedProfit} ●</small><i>${recipe.requiredSpecialties.join(' + ')}</i>${requirements.map(item=>`<i class="${item.satisfied?'ready':'missing'}">${item.satisfied?'✓':'✕'} ${escapeHtml(item.label)}</i>`).join('')}</div>${locked?`<b class="lock-note">Nível ${recipe.requiredLevel}</b>`:`<button class="recipe-serving-toggle" data-action="toggle-recipe-serving" data-id="${recipe.id}" ${!operational?'disabled':''}>${!operational?'Instale a estação necessária':serving?'✓ Disponível no cardápio':'Fora do cardápio'}</button>`}</article>`;
     }).join('')}</div>`;
   }
 
@@ -517,7 +520,7 @@ export class GameUI {
         ? `<article class="production-locked"><header><span>${recipeVisual(recipe.id)}</span><div><strong>${recipe.name}</strong><small>Bloqueada · ${escapeHtml(missing.join(' + '))}</small></div></header></article>`
         : (() => {
           const repeating = this.state.production.plans.some((plan) => plan.recipeId === recipe.id && plan.repeat && plan.enabled);
-          return `<article><header><span>${recipeVisual(recipe.id)}</span><div><strong>${recipe.name}</strong></div></header><div class="production-meta"><span><b>×${recipe.batchYield}</b><small>Porções</small></span><span><b>◷ ${formatDuration(recipe.baseDurationSeconds)}</b><small>Tempo</small></span></div><div class="production-requirement" aria-label="Profissional e estação necessários"><strong>${escapeHtml(recipe.requiredSpecialties.join(' + '))}</strong><span>${escapeHtml(stationNames.join(' + '))}</span></div><div class="plan-options"><label>Custo<strong>${recipe.batchCost} ●</strong></label><label>Faturamento<strong>${recipe.grossRevenue} ●</strong></label><label>Lucro<strong>${recipe.estimatedProfit} ●</strong></label></div><input id="qty-${recipe.id}" type="hidden" value="${recipe.batchYield}"/><input id="batch-${recipe.id}" type="hidden" value="${recipe.batchYield}"/><input id="priority-${recipe.id}" type="hidden" value="50"/><select id="mode-${recipe.id}" hidden><option value="singleBatch">Lote único</option></select><div class="production-actions"><button class="primary-button" data-action="create-production-plan" data-id="${recipe.id}">Produzir lote</button><button class="repeat-recipe ${repeating ? 'active' : ''}" data-action="toggle-recipe-repeat" data-id="${recipe.id}" data-enabled="${!repeating}" title="${repeating ? 'Parar repetição' : 'Repetir continuamente'}" aria-label="${repeating ? 'Parar repetição de ' : 'Repetir continuamente '}${escapeHtml(recipe.name)}">↻</button></div>${repeating ? '<small class="repeat-status">↻ Repetição contínua ativa</small>' : ''}</article>`;
+          return `<article><header><span>${recipeVisual(recipe.id)}</span><div><strong>${recipe.name}</strong></div></header><div class="production-meta"><span><b>×${recipe.batchYield}</b><small>Porções</small></span><span><b>◷ ${formatDuration(productionBatchDuration(this.state, recipe.id))}</b><small>Tempo</small></span></div><div class="production-requirement" aria-label="Profissional e estação necessários"><strong>${escapeHtml(recipe.requiredSpecialties.join(' + '))}</strong><span>${escapeHtml(stationNames.join(' + '))}</span></div><div class="plan-options"><label>Custo<strong>${recipe.batchCost} ●</strong></label><label>Faturamento<strong>${recipe.grossRevenue} ●</strong></label><label>Lucro<strong>${recipe.estimatedProfit} ●</strong></label></div><input id="qty-${recipe.id}" type="hidden" value="${recipe.batchYield}"/><input id="batch-${recipe.id}" type="hidden" value="${recipe.batchYield}"/><input id="priority-${recipe.id}" type="hidden" value="50"/><select id="mode-${recipe.id}" hidden><option value="singleBatch">Lote único</option></select><div class="production-actions"><button class="primary-button" data-action="create-production-plan" data-id="${recipe.id}">Produzir lote</button><button class="repeat-recipe ${repeating ? 'active' : ''}" data-action="toggle-recipe-repeat" data-id="${recipe.id}" data-enabled="${!repeating}" title="${repeating ? 'Parar repetição' : 'Repetir continuamente'}" aria-label="${repeating ? 'Parar repetição de ' : 'Repetir continuamente '}${escapeHtml(recipe.name)}">↻</button></div>${repeating ? '<small class="repeat-status">↻ Repetição contínua ativa</small>' : ''}</article>`;
         })();
       return { html, locked:Boolean(missing.length), level:recipe.requiredLevel };
     }).sort((a,b)=>Number(a.locked)-Number(b.locked)||a.level-b.level).map((entry)=>entry.html).join('');
@@ -572,22 +575,17 @@ export class GameUI {
     return `<p class="panel-intro">Melhorias permanentes para este restaurante.</p><div class="upgrade-list">${expansionCard}${items.map((item) => { const level = this.state.upgrades[item.id]; const config = BALANCE.upgrades[item.id]; const cost = config.baseCost * (level + 1); return `<article><span>${item.icon}</span><div><strong>${item.name}</strong><small>${item.text}</small><em>Nível ${level}</em></div><button data-action="buy-upgrade" data-id="${item.id}" ${this.state.coins < cost || level >= 3 ? 'disabled' : ''}>${level >= 3 ? 'Máximo' : `${cost} ●`}</button></article>`; }).join('')}</div><h3>Equipamentos instalados</h3><p class="panel-intro">Visuais Blender ativos nesta versão. Os próximos níveis ainda não estão disponíveis.</p><div class="equipment-catalog">${equipment}</div>`;
   }
 
-  private rolesPanel(): string {
-    const current = this.state.profile!.helpRole;
-    return `<p class="panel-intro">Seu personagem conclui uma tarefa por vez dentro da prioridade escolhida.</p><div class="role-list">${PLAYER_HELP_ROLES.map((id) => { const role = ROLE_INFO[id]; return `<button data-action="choose-role" data-id="${id}" class="role-card ${current === id ? 'selected' : ''}"><span>${role.icon}</span><div><strong>${role.name}</strong><small>${role.text}</small></div>${current === id ? '<b>ATUAL</b>' : '<i>Escolher</i>'}</button>`; }).join('')}</div>`;
-  }
-
   private professionsPanel(): string {
     const profile = this.state.profile!;
-    return `<div class="profession-list">${PLAYER_HELP_ROLES.map((id) => ROLE_INFO[id]).map((role) => { const progress = profile.professions[role.profession]; return `<article><span>${role.icon}</span><div><strong>${role.name} · Nível ${progress.level}</strong><small>${progress.tasksCompleted} tarefas concluídas · ${progress.xp} XP</small><i><em style="width:${professionProgress(progress.xp, progress.level)}%"></em></i><p>Bônus atual: +${(progress.level - 1) * 8}% de velocidade</p></div></article>`; }).join('')}</div>`;
+    return `<div class="profession-list">${PLAYER_PROFESSION_ROLES.map((id) => ROLE_INFO[id]).map((role) => { const progress = profile.professions[role.profession!]; return `<article><span>${role.icon}</span><div><strong>${role.name} · Nível ${progress.level}</strong><small>${progress.tasksCompleted} tarefas concluídas · ${progress.xp} XP</small><i><em style="width:${professionProgress(progress.xp, progress.level)}%"></em></i><p>Bônus atual: +${(progress.level - 1) * 8}% de velocidade</p></div></article>`; }).join('')}</div>`;
   }
 
   private playerPanel(): string {
-    const profile = this.state.profile!; const role = ROLE_INFO[PLAYER_HELP_ROLES.includes(profile.helpRole) ? profile.helpRole : 'kitchen'];
+    const profile = this.state.profile!; const role = ROLE_INFO[PLAYER_TASK_ROLES.includes(profile.helpRole) ? profile.helpRole : 'manager'];
     const totalTasks = Object.values(profile.taskHistory).reduce((sum, value) => sum + value, 0);
     return `<div class="profile-hero"><div class="large-portrait"><img src="${playerSpriteThumb(profile.appearance.hairStyle, profile.appearance.presentation)}" alt="Sprite de ${escapeHtml(profile.name)}" /></div><div><small>PROPRIETÁRIO DO BISTRÔ</small><h3>${escapeHtml(profile.name)}</h3><p>Nível geral ${profile.level} · ${profile.xp} XP</p></div></div>
       <div class="profile-stats"><span><small>Função atual</small><b>${role.icon} ${role.name}</b></span><span><small>Tarefa atual</small><b>${this.simulation.playerTaskLabel()}</b></span><span><small>Tarefas feitas</small><b>${totalTasks}</b></span></div>
-      <div class="button-stack"><button class="primary-button" data-open="roles">Onde ajudar?</button><button class="secondary-button" data-open="professions">Ver profissões e bônus</button></div>
+      <div class="button-stack"><button class="primary-button" data-open="tasks">Gerenciar prioridades</button><button class="secondary-button" data-open="professions">Ver profissões e bônus</button></div>
       <div class="future-note">Personalização adicional e cosméticos serão expandidos em versões futuras.</div>`;
   }
 
@@ -595,8 +593,10 @@ export class GameUI {
     const role = this.state.profile!.helpRole;
     const tasks = this.simulation.tasks.list();
     const player = this.simulation.actors.find((actor) => actor.kind === 'player')!;
-    return `<div class="current-task"><small>SUA PRIORIDADE</small><strong>${ROLE_INFO[role].icon} ${ROLE_INFO[role].name}</strong><span>${player.activity} · destino ${this.simulation.playerDestinationLabel()}</span>${player.taskId ? '<button data-action="cancel-player-task">Cancelar se ainda não iniciou</button>' : ''}</div>
-      ${tasks.length ? `<div class="task-list">${tasks.map((task) => `<article class="${task.role === role ? '' : 'muted'}"><span>${taskIcon(task.kind)}</span><div><strong>${taskLabel(task.kind)}</strong><small>${ROLE_INFO[task.role].name} · ${taskStatusLabel(task.status)} · espera ${Math.floor(task.waitSeconds)}s</small></div>${task.status === 'pending' && task.role === role ? `<button data-action="prioritize-task" data-id="${task.id}">Fazer agora</button>` : `<i>${task.assignedActorId ? '✓' : '—'}</i>`}</article>`).join('')}</div>` : emptyState('✓', 'Nenhuma tarefa aguardando', 'A operação está tranquila neste momento.')}`;
+    const accepts = (taskRole: HelpRole) => role === 'manager' || taskRole === role;
+    const selector = `<h3>Prioridade do proprietário</h3><p class="panel-intro">Gerente atende automaticamente a tarefa mais importante de qualquer setor. Escolha um setor para direcionar seu personagem.</p><div class="role-list">${PLAYER_TASK_ROLES.map((id) => { const option = ROLE_INFO[id]; return `<button data-action="choose-role" data-id="${id}" class="role-card ${role === id ? 'selected' : ''}"><span>${option.icon}</span><div><strong>${option.name}</strong><small>${option.text}</small></div>${role === id ? '<b>ATUAL</b>' : '<i>Escolher</i>'}</button>`; }).join('')}</div>`;
+    return `${selector}<div class="current-task"><small>SUA PRIORIDADE</small><strong>${ROLE_INFO[role].icon} ${ROLE_INFO[role].name}</strong><span>${player.activity} · destino ${this.simulation.playerDestinationLabel()}</span>${player.taskId ? '<button data-action="cancel-player-task">Cancelar se ainda não iniciou</button>' : ''}</div>
+      ${tasks.length ? `<div class="task-list">${tasks.map((task) => `<article class="${accepts(task.role) ? '' : 'muted'}"><span>${taskIcon(task.kind)}</span><div><strong>${taskLabel(task.kind)}</strong><small>${ROLE_INFO[task.role].name} · ${taskStatusLabel(task.status)} · espera ${Math.floor(task.waitSeconds)}s</small></div>${task.status === 'pending' && accepts(task.role) ? `<button data-action="prioritize-task" data-id="${task.id}">Fazer agora</button>` : `<i>${task.assignedActorId ? '✓' : '—'}</i>`}</article>`).join('')}</div>` : emptyState('✓', 'Nenhuma tarefa aguardando', 'A operação está tranquila neste momento.')}`;
   }
 
   private offlinePanel(): string {

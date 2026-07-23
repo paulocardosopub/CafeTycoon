@@ -70,11 +70,11 @@ CHARACTERS = [
     character("stocker-0", "characters/employees/stockers", "stocker-wave", "skin_light", "wood", "blue", "crate"),
 ]
 
-def world_asset(asset_id, kind, category, footprint=(1, 1), visual_level=1, family=None, frame_size=WORLD_FRAME, skin_id="decor-bloom", layer_role="full"):
+def world_asset(asset_id, kind, category, footprint=(1, 1), visual_level=1, family=None, frame_size=WORLD_FRAME, skin_id="decor-bloom", layer_role="full", counter_base_asset_id=None):
     if kind == "equipment" and skin_id == "decor-bloom":
         skin_id = "equipment-steel-level-1"
     source = "assets/blender/furniture/furniture.blend" if kind == "furniture" else "assets/blender/equipment/kitchen_equipment.blend"
-    return {
+    definition = {
         "assetId": asset_id, "kind": kind, "category": category, "sourceBlend": source,
         "sourceCollection": asset_id, "visualLevel": visual_level, "gameplayLevel": visual_level,
         "equipmentFamilyId": family, "footprint": list(footprint), "anchor": [0.5, WORLD_FLOOR_Y / frame_size[1]],
@@ -84,6 +84,9 @@ def world_asset(asset_id, kind, category, footprint=(1, 1), visual_level=1, fami
         "qualityProfile": QUALITY_PROFILE, "nativeScale": 1.0, "visualSkinId": skin_id, "layerRole": layer_role,
         "visualBounds": {"widthCells": footprint[0], "depthCells": footprint[1], "heightBlocks": 1.8, "overhangCells": .25},
     }
+    if counter_base_asset_id:
+        definition["counterBaseAssetId"] = counter_base_asset_id
+    return definition
 
 FURNITURE = [
     world_asset("table_two", "furniture", "furniture/tables", skin_id="table-oak"), world_asset("table_four", "furniture", "furniture/tables", skin_id="table-oak"),
@@ -123,31 +126,40 @@ EQUIPMENT = [
     world_asset("sink_level_1", "equipment", "equipment/sinks", (1, 1), family="sink"),
     world_asset("cauldron_level_1", "equipment", "equipment/cauldrons", family="cauldron"),
     world_asset("assembly_level_1", "equipment", "equipment/preparation", (2, 1), family="assembly"),
-    world_asset("a1_stove_industrial", "equipment", "equipment/stoves", (1, 1), family="stove"),
+    world_asset("a1_stove_industrial", "equipment", "equipment/stoves", (1, 1), family="stove", counter_base_asset_id="c1_service_isolated"),
     world_asset("a2_convection_oven", "equipment", "equipment/ovens", family="oven"),
-    world_asset("a3_griddle", "equipment", "equipment/griddles", family="grill"),
-    world_asset("a4_fryer", "equipment", "equipment/fryers", family="fryer"),
-    world_asset("a5_kettle", "equipment", "equipment/kettles", family="cauldron"),
-    world_asset("a6_grill", "equipment", "equipment/grills", family="grill"),
+    world_asset("a3_griddle", "equipment", "equipment/griddles", family="grill", counter_base_asset_id="c1_service_isolated"),
+    world_asset("a4_fryer", "equipment", "equipment/fryers", family="fryer", counter_base_asset_id="c1_service_isolated"),
+    world_asset("a5_kettle", "equipment", "equipment/kettles", family="cauldron", counter_base_asset_id="c1_service_isolated"),
+    world_asset("a6_grill", "equipment", "equipment/grills", family="grill", counter_base_asset_id="c1_service_isolated"),
     world_asset("a7_bakery_oven", "equipment", "equipment/ovens", family="oven"),
-    world_asset("a8_coffee_machine", "equipment", "equipment/coffee-machines", family="coffee_machine"),
+    world_asset("a8_coffee_machine", "equipment", "equipment/coffee-machines", family="coffee_machine", counter_base_asset_id="c1_service_isolated"),
     world_asset("b1_industrial_fridge", "equipment", "equipment/refrigerators", family="refrigerator"),
     world_asset("b2_industrial_freezer", "equipment", "equipment/refrigerators", family="refrigerator"),
-    world_asset("b3_preparation_counter", "equipment", "equipment/preparation", family="preparation"),
-    world_asset("b4_ingredient_station", "equipment", "equipment/preparation", family="preparation"),
-    world_asset("b5_industrial_sink", "equipment", "equipment/sinks", family="sink"),
+    world_asset("b3_preparation_counter", "equipment", "equipment/preparation", family="preparation", counter_base_asset_id="c1_service_isolated"),
+    world_asset("b4_ingredient_station", "equipment", "equipment/preparation", family="preparation", counter_base_asset_id="c1_service_isolated"),
+    world_asset("b5_industrial_sink", "equipment", "equipment/sinks", family="sink", counter_base_asset_id="c1_service_isolated"),
     world_asset("b6_dishwasher", "equipment", "equipment/dishwashers", family="dishwasher"),
     world_asset("b7_double_sink", "equipment", "equipment/sinks", (2, 1), family="sink"),
     world_asset("b8_pastry_table", "equipment", "equipment/preparation", (2, 1), family="preparation"),
 ]
+
+_EXACT_COUNTER_APPLIANCES = {
+    "a1_stove_industrial", "a3_griddle", "a4_fryer", "a5_kettle", "a6_grill",
+    "a8_coffee_machine", "b3_preparation_counter", "b4_ingredient_station", "b5_industrial_sink",
+}
 
 for _asset in EQUIPMENT:
     if _asset["equipmentFamilyId"] == "refrigerator":
         _asset["animations"] = {"closed": 1, "open": 2, "complete": 1}
     if _asset["assetId"].startswith(("a2_", "a3_", "a4_", "a5_", "a6_", "a7_", "a8_", "b3_", "b4_", "b5_", "b6_", "b7_", "b8_")):
         _asset["animations"] = {"idle": 1}
-    if _asset["assetId"] == "a8_coffee_machine":
-        _asset["renderVersion"] = "0.0.8-coffee-counter-5"
+    if _asset["assetId"] in _EXACT_COUNTER_APPLIANCES:
+        # This asset intentionally reuses the exact service-counter shell.
+        # Its dedicated source contains that approved shell plus only the
+        # industrial espresso machine mounted on the countertop.
+        _asset["sourceBlend"] = f"assets/blender/equipment/exact-counters/{_asset['assetId']}.blend"
+        _asset["renderVersion"] = "0.0.8-exact-service-counter-1"
 
 ASSETS = CHARACTERS + FURNITURE + EQUIPMENT
 

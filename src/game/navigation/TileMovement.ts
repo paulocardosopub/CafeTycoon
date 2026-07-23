@@ -36,10 +36,15 @@ export function advanceTileMover(grid: RestaurantGrid, mover: TileMover, deltaSe
     y: mover.position.y + (target.y - mover.position.y) * amount,
   };
   if (mover.moveProgress < 1) return { moved: true, completedTile: false, blocked: false };
+  if (!grid.occupy(target, mover.id)) {
+    mover.visual = { ...mover.position };
+    mover.moveProgress = 0;
+    grid.releaseReservations(mover.id);
+    return { moved: false, completedTile: false, blocked: true };
+  }
   mover.position = { ...target };
   mover.visual = { ...target };
   mover.path.shift();
   mover.moveProgress = 0;
-  grid.occupy(mover.position, mover.id);
   return { moved: true, completedTile: true, blocked: false };
 }

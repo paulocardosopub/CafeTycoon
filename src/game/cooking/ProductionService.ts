@@ -27,6 +27,11 @@ export function productionDuration(state: GameState, recipeId: RecipeId): number
   return base * Math.max(0.55, 1 - stationBonus - playerBonus) / BALANCE.cookingSpeedMultiplier;
 }
 
+/** Effective duration used by both the batch timer and the UI. */
+export function productionBatchDuration(state: GameState, recipeId: RecipeId, quantity = RECIPE_BY_ID[recipeId].batchYield): number {
+  return productionDuration(state, recipeId) * Math.max(1, quantity);
+}
+
 export interface ProductionTickResult { produced: Partial<Record<RecipeId, number>>; blocked?: string }
 
 export function tickProduction(state: GameState, deltaSeconds: number): ProductionTickResult {

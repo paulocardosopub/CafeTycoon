@@ -1,6 +1,7 @@
 import type { GameState } from '../../core/types';
 import { FURNITURE_BY_ID } from '../data/furniture/catalog';
 import { STAFF_BY_ID } from '../data/staff';
+import { LEVEL_REWARD_BY_LEVEL } from '../../content/progression/levels';
 
 export const INITIAL_TUTORIAL_STEPS = [
   { id: 'welcome', title: 'Bem-vindo ao seu primeiro restaurante!', objective: 'Antes de receber clientes, vamos montar a estrutura necessária.', manual: true },
@@ -21,7 +22,9 @@ export const INITIAL_TUTORIAL_STEPS = [
   { id: 'chapter-complete', title: 'Seu restaurante está funcionando!', objective: 'Consulte os próximos capítulos na Jornada do Restaurante.' },
 ] as const;
 
-export const JOURNEY_CHAPTER_LEVELS = [1,2,3,4,5,7,10,15,20,25,30,31,35,41,45,47,50,53,55,57,59,60,61,62,63,66,67,70,73,74,77,78,80,82,83,86,89,90,92,93,98,99,100] as const;
+const JOURNEY_CANDIDATE_LEVELS = [1,2,3,4,5,7,10,15,20,25,30,31,35,41,45,47,50,53,55,57,59,60,61,62,63,66,67,70,73,74,77,78,80,82,83,86,89,90,92,93,98,99,100] as const;
+export const JOURNEY_CHAPTER_LEVELS = JOURNEY_CANDIDATE_LEVELS.filter((level) => level === 1
+  || LEVEL_REWARD_BY_LEVEL[level]?.rewards.some((reward) => reward.type !== 'currency'));
 export const JOURNEY_CHAPTER_TITLES: Partial<Record<number,string>> = {
   82:'Parceria comercial: redução do custo de produção',
   89:'Eficiência operacional: redução do tempo de preparo',

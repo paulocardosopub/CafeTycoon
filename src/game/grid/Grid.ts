@@ -64,11 +64,14 @@ export class RestaurantGrid {
     this.reservedCellByActor.delete(actorId);
   }
 
-  occupy(point: GridPoint, actorId: string): void {
+  occupy(point: GridPoint, actorId: string): boolean {
+    const target = this.get(point);
+    if (!target?.walkable || (target.occupiedBy && target.occupiedBy !== actorId) || (target.reservedBy && target.reservedBy !== actorId)) return false;
     this.vacate(actorId);
     this.releaseReservations(actorId);
-    this.set(point, { occupiedBy: actorId });
+    target.occupiedBy = actorId;
     this.occupiedCellByActor.set(actorId, { ...point });
+    return true;
   }
 
   vacate(actorId: string): void {

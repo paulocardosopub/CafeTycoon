@@ -18,7 +18,7 @@ const PROFESSIONS: Record<number, { specialty:string; candidateId:string; statio
 };
 
 const EXTRA: Record<number, RewardDefinition[]> = {
-  2:[reward('currency','coins:level-2:150','Caixa de boas-vindas','150 moedas para fortalecer o início.','●','progression','level>=2')],
+  2:[reward('currency','coins:level-2:150','Caixa de boas-vindas','150 moedas para fortalecer o início.','●','progression','level>=2'),reward('system','system:second-service-counter','Exposição de duas receitas','Aprenda a usar um segundo balcão de serviço.','▰','shop','level>=2')],
   3:[reward('currency','coins:level-3:200','Bônus de primeiros clientes','200 moedas para o próximo investimento.','●','progression','level>=3')],
   4:[reward('currency','coins:level-4:250','Fundo para a fornearia','250 moedas para contratar e equipar a nova área.','●','progression','level>=4')],
   6:[reward('currency','coins:level-6:180','Retorno de divulgação','180 moedas de incentivo.','●','progression','level>=6')],

@@ -33,10 +33,9 @@ export const seatFacingTowardTable = (chair: GridPoint, table: GridPoint): Direc
 const chairServicePoint = (chair: GridPoint, table: GridPoint): GridPoint => {
   const dx = Math.sign(chair.x - table.x);
   const dy = Math.sign(chair.y - table.y);
-  // The guest approaches from outside the table. Service happens at the
-  // perpendicular inside corner so guest, waiter and adjacent seats never
-  // reserve the same walkable tile.
-  return { x: chair.x - dy, y: chair.y + dx };
+  // Orders and delivery happen behind the chair. This remains accessible when
+  // adjacent tables are joined into one long table.
+  return { x: chair.x + dx, y: chair.y + dy };
 };
 
 function createChair(tableId: string, suffix: string, position: GridPoint, tablePosition: GridPoint, approach: GridPoint, _skinIndex: number): ChairRuntime {

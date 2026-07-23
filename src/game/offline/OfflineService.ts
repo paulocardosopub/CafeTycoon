@@ -6,7 +6,7 @@ import { chargePayroll } from '../staff/StaffService';
 import { createStations } from '../map/initialMap';
 import { completeProductionTask, deferProductionTask, markProductionTaskStarted, prepareNextProductionTask, preparedQuantity, refreshMaintainTargetPlans } from '../cooking/ProductionPlanningService';
 
-const PROFESSION_BY_ROLE: Record<HelpRole, ProfessionId> = { kitchen:'cook', service:'waiter', cleaning:'cleaner', stock:'stocker' };
+const PROFESSION_BY_ROLE: Record<HelpRole, ProfessionId> = { manager:'cook', kitchen:'cook', service:'waiter', cleaning:'cleaner', stock:'stocker' };
 
 function emptyReport(absentSeconds:number, calculatedSeconds:number, role:HelpRole): OfflineReport {
   return { absentSeconds, calculatedSeconds, capped:absentSeconds>BALANCE.offline.maxSeconds, produced:{}, sold:{}, ingredientsConsumed:{}, coins:0, experience:0, characterRole:role, characterTasks:0, characterGeneralXp:0, characterProfessionXp:0, bonusPercent:0, idleSeconds:calculatedSeconds, stoppedReasons:[], ingredientsPurchased:{}, salariesCharged:0, purchaseCosts:0, grossRevenue:0, costs:0, netProfit:0, blockedTasks:[] };
@@ -15,7 +15,7 @@ function emptyReport(absentSeconds:number, calculatedSeconds:number, role:HelpRo
 export function calculateOfflineProgress(state:GameState, now=Date.now()): OfflineReport {
   const absentSeconds=Math.max(0,Math.floor((now-state.lastActiveAt)/1000));
   const calculatedSeconds=Math.min(absentSeconds,BALANCE.offline.maxSeconds);
-  const role=state.profile?.helpRole??'kitchen';
+  const role=state.profile?.helpRole??'manager';
   const report=emptyReport(absentSeconds,calculatedSeconds,role);
   const claimId=`${state.lastActiveAt}:${now}`;
   if(state.offlineClaimId===claimId||calculatedSeconds<=0){state.lastActiveAt=now;return report;}

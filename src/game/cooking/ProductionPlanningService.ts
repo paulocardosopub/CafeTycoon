@@ -4,7 +4,7 @@ import type {
   GameState, ProductionPlan, ProductionPlanMode, ProductionSystemState, ProductionTask, RecipeId, ServiceCounterModule, StationRuntime,
 } from '../../core/types';
 import { stableRuntimeId } from '../../core/id';
-import { productionDuration } from './ProductionService';
+import { productionBatchDuration } from './ProductionService';
 import { compatibleStationFunction } from '../recipes/RecipeAvailability';
 import { STAFF_BY_ID } from '../data/staff';
 import { gameEvents } from '../../core/events';
@@ -120,7 +120,7 @@ export function prepareNextProductionTask(state: GameState, stations: StationRun
     task.workSlotId = `${station.id}:primary`;
     task.state = 'reserved';
     task.blockedReason = undefined;
-    return { task, station, target: station.interaction, priority: plan.priority, duration: productionDuration(state, task.recipeId) * task.batchQuantity };
+    return { task, station, target: station.interaction, priority: plan.priority, duration: productionBatchDuration(state, task.recipeId, task.batchQuantity) };
   }
   return undefined;
 }

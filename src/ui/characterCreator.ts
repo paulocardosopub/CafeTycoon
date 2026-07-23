@@ -75,7 +75,7 @@ export function showCharacterCreator(root: HTMLElement): Promise<PlayerProfile> 
       }
       const professions = Object.fromEntries((['cook', 'waiter', 'cleaner', 'stocker'] as ProfessionId[]).map((id) => [id, { xp: 0, level: 1, tasksCompleted: 0 }])) as PlayerProfile['professions'];
       const taskHistory = Object.fromEntries((['take_order', 'cook_step', 'deliver', 'payment', 'clean', 'stock_support', 'restock_purchase', 'production_batch'] as TaskKind[]).map((id) => [id, 0])) as PlayerProfile['taskHistory'];
-      resolve({ id: createPersistentId('profile'), name, appearance: { ...appearance }, level: 1, xp: 0, helpRole: 'kitchen', professions, taskHistory });
+      resolve({ id: createPersistentId('profile'), name, appearance: { ...appearance }, level: 1, xp: 0, helpRole: 'manager', professions, taskHistory });
     });
     refresh();
   });

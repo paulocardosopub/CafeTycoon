@@ -33,7 +33,7 @@ async function boot(): Promise<void> {
   const state = migrateAndSanitizeSave(rawState);
   const query = new URLSearchParams(window.location.search);
   let localQa = ['localhost', '127.0.0.1'].includes(window.location.hostname) ? query.get('qa') : null;
-  if (localQa && !['creator', 'four-seat-v005', 'v006', 'spatial-fix', 'tutorial', 'shop'].includes(localQa)) {
+  if (localQa && !['creator', 'four-seat-v005', 'v006', 'spatial-fix', 'tutorial', 'shop', 'counter-compare', 'counter-family'].includes(localQa)) {
     query.delete('qa');
     query.delete('assets');
     const suffix = query.toString();
@@ -47,6 +47,8 @@ async function boot(): Promise<void> {
   if (localQa === 'v006') applyV006QaState(state);
   if (localQa === 'spatial-fix') applySpatialFixQaState(state);
   if (localQa === 'tutorial' || localQa === 'shop') applyTutorialQaState(state);
+  if (localQa === 'counter-compare') applyCounterCompareQaState(state);
+  if (localQa === 'counter-family') applyCounterFamilyQaState(state);
 
   if (!state.profile) {
     state.profile = await showCharacterCreator(root);
@@ -143,10 +145,43 @@ function applyTutorialQaState(state: GameState): void {
   if (qaQuery.get('step') === '2') { state.tutorial008.completedSteps = ['welcome']; state.tutorial008.currentStep = 1; }
   if (qaQuery.get('qa') === 'shop' || qaQuery.get('nomodal') === '1') { state.progression.pendingLevels = []; state.progression.retroactiveSummaryPending = false; }
   state.profile = {
-    id:state.playerId,name:'Jogador',appearance:{presentation:'masculina',skin:'honey',hairStyle:'short',hairColor:'espresso',face:'soft',outfit:'casual',outfitColor:'green'},level:1,xp:0,helpRole:'kitchen',
+    id:state.playerId,name:'Jogador',appearance:{presentation:'masculina',skin:'honey',hairStyle:'short',hairColor:'espresso',face:'soft',outfit:'casual',outfitColor:'green'},level:1,xp:0,helpRole:'manager',
     professions:{cook:{xp:0,level:1,tasksCompleted:0},waiter:{xp:0,level:1,tasksCompleted:0},cleaner:{xp:0,level:1,tasksCompleted:0},stocker:{xp:0,level:1,tasksCompleted:0}},
     taskHistory:{take_order:0,cook_step:0,deliver:0,payment:0,clean:0,stock_support:0,restock_purchase:0,production_batch:0},
   };
+}
+
+function applyCounterCompareQaState(state: GameState): void {
+  applyTutorialQaState(state);
+  state.tutorial008.started = false;
+  state.construction.placedFurniture = [
+    { id:'sink:compare', definitionId:'washing.b5.sink', gridX:5, gridY:6, orientation:'sw', skinId:'steel-standard', level:1, state:{} },
+    { id:'coffee:compare', definitionId:'cooking.a8.coffee', gridX:6, gridY:6, orientation:'sw', skinId:'steel-standard', level:1, state:{} },
+    { id:'counter:compare', definitionId:'service.c1.isolated', gridX:7, gridY:6, orientation:'sw', skinId:'counter-forest', level:1, state:{} },
+  ];
+  state.construction.serviceCounters = modulesFromFurniture(state.construction.placedFurniture);
+  state.restaurantOpen = false;
+}
+
+function applyCounterFamilyQaState(state: GameState): void {
+  applyTutorialQaState(state);
+  state.tutorial008.started = false;
+  const definitions = [
+    'service.c1.isolated', 'cooking.a1.stove', 'cooking.a3.griddle', 'cooking.a4.fryer', 'cooking.a5.kettle',
+    'cooking.a6.grill', 'cooking.a8.coffee', 'preparation.b3.counter', 'preparation.b4.ingredients', 'washing.b5.sink',
+  ];
+  state.construction.placedFurniture = definitions.map((definitionId, index) => ({
+    id:`counter-family:${index}`,
+    definitionId,
+    gridX:5 + (index % 5) * 2,
+    gridY:5 + Math.floor(index / 5) * 3,
+    orientation:'sw',
+    skinId:definitionId.startsWith('service.') ? 'counter-forest' : 'steel-standard',
+    level:1,
+    state:{},
+  }));
+  state.construction.serviceCounters = modulesFromFurniture(state.construction.placedFurniture);
+  state.restaurantOpen = false;
 }
 
 function applyFourSeatQaState(state: GameState): void {

@@ -997,7 +997,7 @@ export class RestaurantSimulation {
 
   prioritizeForPlayer(taskId: string): boolean {
     const task = this.tasks.get(taskId); const player = this.playerActor();
-    if (!task || task.status !== 'pending' || task.role !== this.state.profile?.helpRole) return false;
+    if (!task || task.status !== 'pending' || !this.rolesForActor(player).includes(task.role)) return false;
     player.preferredTaskId = taskId; return true;
   }
 
@@ -1497,9 +1497,10 @@ export class RestaurantSimulation {
   }
   private rolesForActor(actor: WorkerActor): HelpRole[] {
     if (actor.kind === 'cook') return ['kitchen']; if (actor.kind === 'waiter') return ['service']; if (actor.kind === 'cleaner') return ['cleaning']; if (actor.kind === 'stocker') return ['stock'];
-    return [this.state.profile?.helpRole ?? 'kitchen'];
+    const selected = this.state.profile?.helpRole ?? 'manager';
+    return selected === 'manager' ? ['service', 'kitchen', 'cleaning', 'stock'] : [selected];
   }
-  private primaryRole(actor: WorkerActor): HelpRole { return this.rolesForActor(actor)[0]; }
+  private primaryRole(actor: WorkerActor): HelpRole { return actor.kind === 'player' ? this.state.profile?.helpRole ?? 'manager' : this.rolesForActor(actor)[0]; }
   private advanceMover(mover: Mover, delta: number, speed: number): MovementResult {
     const before = { ...mover.visual };
     const result = advanceTileMover(this.grid, mover, delta, speed);
@@ -1520,10 +1521,15 @@ export class RestaurantSimulation {
       return 2.5 * BALANCE.movementSpeedMultiplier * (staff ? effectiveMovementSpeed(staff) : 1);
     }
     if (!this.state.profile) return 2.5 * BALANCE.movementSpeedMultiplier;
+    if (this.state.profile.helpRole === 'manager') return 2.5 * BALANCE.movementSpeedMultiplier * (1 + (this.state.profile.level - 1) * .02);
     const profession = this.professionForRole(this.state.profile.helpRole);
     return 2.5 * BALANCE.movementSpeedMultiplier * (1 + (this.state.profile.professions[profession].level - 1) * .05);
   }
   private taskDuration(actor: WorkerActor, task: RestaurantTask): number {
+    // Production promises a concrete batch duration in the UI. Keep that
+    // timer authoritative; generic employee task-speed only affects service
+    // actions and ad-hoc cooking, never shortens a displayed batch silently.
+    if (task.kind === 'production_batch') return task.duration;
     if (actor.kind !== 'player') {
       const staff = this.state.staff.instances.find((instance) => instance.id === actor.id);
       return task.duration / Math.max(.5, staff ? effectiveStaffSpeed(staff) : 1);
@@ -1559,7 +1565,7 @@ export class RestaurantSimulation {
   private setCustomerState(customer: CustomerRuntime, state: CustomerState): void { customer.state = state; customer.stateEnteredAt = this.simulationTime; }
   private samePoint(a: GridPoint, b: GridPoint): boolean { return a.x === b.x && a.y === b.y; }
   private distance(a: GridPoint, b: GridPoint): number { return Math.abs(a.x - b.x) + Math.abs(a.y - b.y); }
-  private roleLabel(role: HelpRole): string { return { kitchen: 'Cozinha', service: 'Atendimento', cleaning: 'Limpeza', stock: 'Estoque e apoio' }[role]; }
+  private roleLabel(role: HelpRole): string { return { manager: 'Gerência', kitchen: 'Cozinha', service: 'Atendimento', cleaning: 'Limpeza', stock: 'Estoque e apoio' }[role]; }
   private developmentMode(): boolean { return typeof window === 'undefined' || ['localhost', '127.0.0.1'].includes(window.location.hostname); }
   private toRecords(value: unknown): Record<string, unknown>[] { return JSON.parse(JSON.stringify(value)) as Record<string, unknown>[]; }
 }

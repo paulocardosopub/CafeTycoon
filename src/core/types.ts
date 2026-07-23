@@ -171,7 +171,7 @@ export type WorldAssetId = 'floor_dining' | 'floor_kitchen' | 'floor_outside' | 
   'table' | 'chair_ne' | 'chair_nw' | 'chair_se' | 'chair_sw' | 'prep' | 'stove' | 'grill' | 'cauldron' |
   'coffee_machine' | 'assembly' | 'pickup' | 'fridge' | 'oven' | 'sink' | 'storage' | 'plant' | 'shelf' | 'bin' | 'dish';
 export type Presentation = 'masculina' | 'feminina';
-export type HelpRole = 'kitchen' | 'service' | 'cleaning' | 'stock';
+export type HelpRole = 'manager' | 'kitchen' | 'service' | 'cleaning' | 'stock';
 export type ProfessionId = 'cook' | 'waiter' | 'cleaner' | 'stocker';
 export type StaffRole = ProfessionId;
 export type StaffState = 'idle' | 'movingToTask' | 'working' | 'carrying' | 'waitingForWorkSlot' |
