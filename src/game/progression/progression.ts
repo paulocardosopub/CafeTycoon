@@ -1,5 +1,6 @@
 import { BALANCE, levelFromXp } from '../../config/balance';
 import type { GameState, ProfessionId, TaskKind } from '../../core/types';
+import { applyProgressionThroughLevel } from './RewardService';
 
 const PROFESSION_FOR_TASK: Record<TaskKind, ProfessionId> = {
   take_order: 'waiter', cook_step: 'cook', deliver: 'waiter', payment: 'waiter', clean: 'cleaner', stock_support: 'stocker',
@@ -19,5 +20,7 @@ export function awardPlayerTaskXp(state: GameState, task: TaskKind): void {
 }
 
 export function updateRestaurantLevel(state: GameState): void {
-  state.restaurantLevel = levelFromXp(state.restaurantXp, BALANCE.restaurantLevels);
+  const nextLevel = levelFromXp(state.restaurantXp, BALANCE.restaurantLevels);
+  if (nextLevel > state.restaurantLevel) applyProgressionThroughLevel(state, nextLevel, { notify:true });
+  state.restaurantLevel = nextLevel;
 }

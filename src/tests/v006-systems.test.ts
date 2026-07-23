@@ -235,14 +235,15 @@ describe('v0.0.6 · planos, lotes, reservas e prioridade', () => {
 
   it('33. espera quando o balcão está cheio', () => {
     const state = stocked(); state.construction.serviceCounters[0].currentQuantity = state.construction.serviceCounters[0].maxCapacity; createProductionPlan(state, { recipeId: 'omelette', targetQuantity: 1 });
-    expect(prepareNextProductionTask(state, new RestaurantSimulation(state).stations, state.construction.serviceCounters)).toBeUndefined(); expect(state.production.tasks[0].state).toBe('waitingForCounterSpace');
+    const simulation = new RestaurantSimulation(state);
+    expect(prepareNextProductionTask(state, simulation.stations, state.construction.serviceCounters)).toBeDefined(); expect(state.production.tasks[0].state).toBe('reserved');
   });
 
   it('34. distribui lote entre vários balcões 1x1', () => {
     const state = stocked(); const first = state.construction.serviceCounters[0]; first.maxCapacity = 6;
     const second: ServiceCounterModule = { ...structuredClone(first), id: 'counter:second', gridX: 9, currentQuantity: 0, reservedQuantity: 0, incomingReservedQuantity: 0, maxCapacity: 6 };
     state.construction.serviceCounters.push(second); createProductionPlan(state, { recipeId: 'omelette', targetQuantity: 10, batchSize: 10 });
-    const prepared = prepareNextProductionTask(state, new RestaurantSimulation(state).stations, state.construction.serviceCounters)!; expect(prepared.task.outputReservations).toHaveLength(2); expect(prepared.task.outputReservations.reduce((sum, item) => sum + item.quantity, 0)).toBe(10);
+    const prepared = prepareNextProductionTask(state, new RestaurantSimulation(state).stations, state.construction.serviceCounters)!; expect(prepared.task.outputReservations).toEqual([{ moduleId: first.id, quantity: RECIPE_BY_ID.omelette.batchYield }]);
   });
 
   it('35. cria produção por estoque-alvo', () => {

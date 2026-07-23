@@ -10,7 +10,6 @@ import { getApproachSlotCells, getSpriteAnchor, getVisualScale, snapToGrid } fro
 import { seatFacingTowardTable } from '../../map/initialMap';
 import { modulesFromFurniture } from '../service-counter/ServiceCounterSystem';
 import { availableStaffFurniture, linkedStaffStart, nearestSafeStaffStart, staffFurnitureRequirement, syncLinkedStaffStarts, validateStaffStartPosition } from './StaffStartSystem';
-import { storageHasContents } from '../../inventory/StorageService';
 import { createStaffInstance } from '../../staff/StaffService';
 
 export interface ConstructionDraft {
@@ -97,7 +96,7 @@ export class ConstructionEditor {
     if (!definition) return { ok: false, reason: `Móvel desconhecido: ${definitionId}.` };
     const stored = storedItemId ? this.current.construction.storedFurniture.find((item) => item.id === storedItemId) : undefined;
     if (storedItemId && !stored) return { ok: false, reason: 'Item guardado não encontrado.' };
-    if (!stored && this.current.coins < definition.price) return { ok: false, reason: 'Moedas insuficientes.' };
+    if (!stored) return { ok: false, reason: 'Este item ainda não foi comprado. Acesse a Loja primeiro.' };
     const item: PlacedFurniture = stored ? { ...clone(stored), gridX, gridY, orientation } : {
       id: createPersistentId('furniture'), definitionId, gridX, gridY, orientation,
       skinId: skinId ?? definition.skinIds[0], level: 1, state: {},
@@ -107,7 +106,6 @@ export class ConstructionEditor {
     if (!validation.valid) return { ok: false, reason: validation.errors[0], warnings: validation.warnings };
     this.record();
     if (stored) this.current.construction.storedFurniture = this.current.construction.storedFurniture.filter((entry) => entry.id !== stored.id);
-    else this.current.coins -= definition.price;
     this.current.construction.placedFurniture.push(item);
     this.refreshFurnitureRelationships();
     return { ok: true, warnings: validation.warnings };
@@ -159,7 +157,6 @@ export class ConstructionEditor {
     if (this.current.construction.staffStartPositions.some((start) => start.linkedFurnitureId === id)) return { ok: false, reason: 'Este móvel está vinculado a um funcionário. Demita-o ou vincule-o a outro móvel antes de guardar.' };
     const module = this.current.construction.serviceCounters.find((entry) => entry.id === id);
     if (module && (module.currentQuantity || module.reservedQuantity) && !confirmFood) return { ok: false, reason: 'Confirme o armazenamento do balcão com comida.' };
-    if (storageHasContents(this.state, id) && !confirmFood) return { ok: false, reason: 'Confirme o armazenamento deste móvel com ingredientes. Os itens serão preservados.' };
     this.record();
     this.current.construction.placedFurniture = this.current.construction.placedFurniture.filter((entry) => entry.id !== id);
     this.current.construction.storedFurniture.push(item); this.refreshFurnitureRelationships(); return { ok: true };
@@ -172,7 +169,6 @@ export class ConstructionEditor {
     if (this.current.construction.staffStartPositions.some((start) => start.linkedFurnitureId === id)) return { ok: false, reason: 'Este móvel está vinculado a um funcionário e não pode ser vendido.' };
     const module = this.current.construction.serviceCounters.find((entry) => entry.id === id);
     if (module && (module.currentQuantity || module.reservedQuantity) && !confirmFood) return { ok: false, reason: 'Confirme a venda do balcão e a devolução do estoque.' };
-    if (storageHasContents(this.state, id) && !confirmFood) return { ok: false, reason: 'Este armazenamento contém ingredientes. Confirme para redistribuir sem apagar itens.' };
     this.record(); this.current.construction.placedFurniture = this.current.construction.placedFurniture.filter((entry) => entry.id !== id);
     this.current.coins += definition.resaleValue; this.refreshFurnitureRelationships(); return { ok: true };
   }
@@ -256,10 +252,11 @@ export class ConstructionEditor {
   hireStaff(staffId: string): EditorResult {
     const definition = STAFF_BY_ID[staffId];
     if (!definition || definition.includedByDefault) return { ok: false, reason: 'Funcionário indisponível para contratação.' };
+    if (!this.state.staff.instances.length && !definition.specialties.includes('Barista')) return { ok: false, reason: 'Seu primeiro funcionário deve ser o Barista iniciante.' };
     if (this.current.construction.staffStartPositions.some((item) => item.staffId === staffId)) return { ok: false, reason: 'Este funcionário já faz parte da equipe.' };
     if (this.current.coins < definition.hireCost) return { ok: false, reason: 'Moedas insuficientes para esta contratação.' };
-    const requiredFurniture = staffFurnitureRequirement(definition.role);
-    const furniture = availableStaffFurniture(definition.role, this.current.construction.placedFurniture, this.current.construction.staffStartPositions);
+    const requiredFurniture = staffFurnitureRequirement(definition.role, definition.id);
+    const furniture = availableStaffFurniture(definition.role, this.current.construction.placedFurniture, this.current.construction.staffStartPositions, definition.id);
     if (requiredFurniture && !furniture) return { ok: false, reason: `Instale um ${requiredFurniture} livre antes desta contratação.` };
     const start = furniture ? linkedStaffStart(staffId, definition.role, furniture)
       : nearestSafeStaffStart(staffId, definition.suggestedStart, definition.facing, this.current.construction.placedFurniture, this.current.construction.builtAreas);
@@ -298,7 +295,7 @@ export class ConstructionEditor {
     if (!tables.length || !linkedChairs.length) return { ok: false, reason: 'Coloque ao menos uma mesa com uma cadeira ao lado para reabrir.' };
     for (const start of this.current.construction.staffStartPositions) {
       const definition = STAFF_BY_ID[start.staffId];
-      if (definition && !definition.includedByDefault && staffFurnitureRequirement(definition.role) && !start.linkedFurnitureId) return { ok: false, reason: `${definition.name} precisa permanecer vinculado a um ${staffFurnitureRequirement(definition.role)}.` };
+      if (definition && !definition.includedByDefault && staffFurnitureRequirement(definition.role, definition.id) && !start.linkedFurnitureId) return { ok: false, reason: `${definition.name} precisa permanecer vinculado a um ${staffFurnitureRequirement(definition.role, definition.id)}.` };
       const staffValidation = validateStaffStartPosition(start, this.current.construction.placedFurniture, this.current.construction.builtAreas);
       if (!staffValidation.valid) return { ok: false, reason: `Ponto inicial de ${start.staffId}: ${staffValidation.reason}` };
     }
@@ -312,6 +309,14 @@ export class ConstructionEditor {
     }
     this.state.construction = clone(this.current.construction); this.state.coins = this.current.coins; this.active = false;
     return { ok: true, warnings: validation.warnings };
+  }
+
+  confirmPurchases(): EditorResult {
+    if (!this.active) return { ok: false, reason: 'Loja encerrada.' };
+    this.state.construction.storedFurniture = clone(this.current.construction.storedFurniture);
+    this.state.coins = this.current.coins;
+    this.active = false;
+    return { ok: true };
   }
 
   cancel(): EditorResult {

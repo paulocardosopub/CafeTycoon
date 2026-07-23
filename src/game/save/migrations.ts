@@ -12,9 +12,11 @@ import { sanitizeProductionState } from '../cooking/ProductionPlanningService';
 import { orientedFootprint, resolvedWorkSlots } from '../systems/furniture/FurniturePlacement';
 import { getApproachSlotCells, getSpriteAnchor, getVisualScale } from '../grid/SpatialLayoutService';
 import { seatFacingTowardTable } from '../map/initialMap';
-import { RECIPE_BY_ID } from '../../content/recipes/recipes';
 import { STAFF_BY_ID, STAFF_CATALOG } from '../data/staff';
 import { availableStaffFurniture, linkedStaffStart, syncLinkedStaffStarts } from '../systems/construction/StaffStartSystem';
+import { applyProgressionThroughLevel, sanitizeProgressionState } from '../progression/RewardService';
+
+const STORAGE_REMOVAL_MIGRATION = '0.0.8: móveis físicos de armazenamento removidos e reembolsados';
 
 export function migrateAndSanitizeSave(raw: GameState | null, now = Date.now()): GameState {
   if (!raw || typeof raw !== 'object') return createDefaultState(now);
@@ -22,6 +24,10 @@ export function migrateAndSanitizeSave(raw: GameState | null, now = Date.now()):
   const containsQaResidue = hasQaResidue(raw.construction?.placedFurniture)
     || (raw.operation?.tables ?? []).some((table) => String(table.id ?? '').includes(':qa-'));
   const construction = sanitizeConstruction(raw.construction, raw.graphics, raw.readyDishes, fallback.construction);
+  const storageAlreadyRefunded = raw.construction?.migrationLog?.includes(STORAGE_REMOVAL_MIGRATION) ?? false;
+  const removedStorage = [...(raw.construction?.placedFurniture ?? []), ...(raw.construction?.storedFurniture ?? [])]
+    .filter((item) => isObsoleteStorageFurniture(item.definitionId));
+  const storageRefund = storageAlreadyRefunded ? 0 : removedStorage.reduce((sum, item) => sum + (FURNITURE_BY_ID[item.definitionId]?.price ?? 0), 0);
   const inventory = sanitizeInventory(raw.inventory ?? {});
   const sourceVersion = typeof raw.gameVersion === 'string' ? raw.gameVersion : '0.0.5';
   const migrationAdjustments: string[] = [];
@@ -30,16 +36,15 @@ export function migrateAndSanitizeSave(raw: GameState | null, now = Date.now()):
     ...raw,
     schemaVersion: SAVE_SCHEMA_VERSION,
     gameVersion: GAME_VERSION,
-    coins: Math.max(0, Number(raw.coins) || 0),
+    coins: Math.max(0, Number(raw.coins) || 0) + storageRefund,
     restaurantXp: Math.max(0, Number(raw.restaurantXp) || 0),
-    restaurantLevel: Math.max(1, Math.min(3, Number(raw.restaurantLevel) || 1)),
+    restaurantLevel: Math.max(1, Math.min(100, Number(raw.restaurantLevel) || 1)),
     reputation: Math.max(0, Math.min(100, Number(raw.reputation) || 0)),
+    restaurantOpen: typeof raw.restaurantOpen === 'boolean' ? raw.restaurantOpen : true,
     inventory,
     inventoryReserved: sanitizeReservations(raw.inventoryReserved, inventory),
     readyDishes: { ...fallback.readyDishes, ...(raw.readyDishes ?? {}) },
-    enabledRecipeIds: Array.isArray(raw.enabledRecipeIds)
-      ? [...new Set(raw.enabledRecipeIds.filter((id): id is RecipeId => Boolean(RECIPE_BY_ID[id])))]
-      : fallback.enabledRecipeIds,
+    enabledRecipeIds: fallback.enabledRecipeIds,
     productionQueue: Array.isArray(raw.productionQueue) ? raw.productionQueue.slice(0, 20) : [],
     upgrades: { ...fallback.upgrades, ...(raw.upgrades ?? {}) },
     stats: { ...fallback.stats, ...(raw.stats ?? {}) },
@@ -49,13 +54,17 @@ export function migrateAndSanitizeSave(raw: GameState | null, now = Date.now()):
     storage: fallback.storage,
     procurement: fallback.procurement,
     production: fallback.production,
+    progression: sanitizeProgressionState(raw.progression),
     tutorial006: fallback.tutorial006,
+    tutorial008: raw.tutorial008 && typeof raw.tutorial008 === 'object' ? { ...fallback.tutorial008, ...raw.tutorial008 } : { ...fallback.tutorial008, started: false, mandatory: false },
     operation: containsQaResidue ? undefined : sanitizeOperation(raw.operation),
   };
   state.staff = sanitizeStaffState(raw.staff, state, now);
   state.storage = createInitialStorageState(state, now, raw.storage);
   state.procurement = sanitizeProcurementState(raw.procurement, now);
   state.production = sanitizeProductionState(raw.production);
+  const hadProgression = Boolean(raw.progression);
+  applyProgressionThroughLevel(state, state.restaurantLevel, { notify: hadProgression, retroactive: !hadProgression });
   state.tutorial006 = raw.tutorial006 && typeof raw.tutorial006 === 'object'
     ? { ...fallback.tutorial006, ...raw.tutorial006, automationUnlocked: Boolean(raw.tutorial006.automationUnlocked), completed: Boolean(raw.tutorial006.completed) }
     : fallback.tutorial006;
@@ -75,6 +84,7 @@ export function migrateAndSanitizeSave(raw: GameState | null, now = Date.now()):
   else if (!raw.storage) migrationAdjustments.push('Estoque existente distribuído entre os móveis físicos compatíveis.');
   if (!raw.procurement) migrationAdjustments.push('Automação de compras criada desligada e com saldo protegido.');
   if (!raw.production) migrationAdjustments.push('Central de produção inicializada sem duplicar a fila antiga.');
+  if (storageRefund > 0) migrationAdjustments.push(`${removedStorage.length} móveis de armazenamento removidos; ${storageRefund} moedas reembolsadas uma vez.`);
   state.migration006 = raw.migration006 ?? { sourceVersion, migratedAt: now, adjustments: migrationAdjustments };
   for (const key of Object.keys(state.readyDishes) as (keyof typeof state.readyDishes)[]) state.readyDishes[key] = Math.max(0, Math.floor(Number(state.readyDishes[key]) || 0));
   return state;
@@ -95,6 +105,11 @@ function sanitizeOperation(input: GameState['operation']): GameState['operation'
   return { ...input, simulationTime: Math.max(0, Number(input.simulationTime) || 0), customerSequence: Math.max(0, Math.floor(Number(input.customerSequence) || 0)), spawnCountdown: Math.max(0, Number(input.spawnCountdown) || 0) };
 }
 
+function isObsoleteStorageFurniture(definitionId: string): boolean {
+  const definition = FURNITURE_BY_ID[definitionId];
+  return Boolean(definition && (definition.category === 'storage' || definition.category === 'refrigeration' || definition.functionId === 'storage' || definition.functionId === 'fridge'));
+}
+
 function sanitizeConstruction(
   input: GameState['construction'] | undefined,
   graphics: GraphicsSaveState | undefined,
@@ -105,9 +120,10 @@ function sanitizeConstruction(
     return migrateGraphics004ToConstruction(graphics, readyDishes, fallback);
   }
   const qaResidueRemoved = hasQaResidue(input.placedFurniture) || hasQaResidue(input.storedFurniture);
-  const placedFurniture = input.placedFurniture.filter((item) => item && FURNITURE_BY_ID[item.definitionId] && !isQaFurniture(item)).map(sanitizePlaced);
-  const storedFurniture = Array.isArray(input.storedFurniture) ? input.storedFurniture.filter((item) => item && FURNITURE_BY_ID[item.definitionId] && !isQaFurniture(item)).map(sanitizePlaced) : [];
+  const placedFurniture = input.placedFurniture.filter((item) => item && FURNITURE_BY_ID[item.definitionId] && !isQaFurniture(item) && !isObsoleteStorageFurniture(item.definitionId)).map(sanitizePlaced);
+  const storedFurniture = Array.isArray(input.storedFurniture) ? input.storedFurniture.filter((item) => item && FURNITURE_BY_ID[item.definitionId] && !isQaFurniture(item) && !isObsoleteStorageFurniture(item.definitionId)).map(sanitizePlaced) : [];
   const previousMigrationLog = Array.isArray(input.migrationLog) ? input.migrationLog.slice(-99) : [];
+  if (!previousMigrationLog.includes(STORAGE_REMOVAL_MIGRATION)) previousMigrationLog.push(STORAGE_REMOVAL_MIGRATION);
   const migrateFixedDecorations = !previousMigrationLog.includes(MOVABLE_DECORATION_MIGRATION);
   if (migrateFixedDecorations) {
     for (const legacyId of ['decor:plant-a', 'decor:plant-b', 'decor:bin']) {

@@ -1,0 +1,2353 @@
+{
+  "package": "c3-br-v007-stage-2b-1x1",
+  "runtimePipeline": "Blender source -> isometric sprites -> Phaser 3",
+  "officialModule": {
+    "width": 1.0,
+    "depth": 1.0,
+    "counterHeight": 1.1,
+    "topThickness": 0.1,
+    "plinthHeight": 0.12,
+    "unit": "Blender unit / logical grid cell"
+  },
+  "isoTilePixels": [
+    64,
+    32
+  ],
+  "characterReferenceHeight": 2.2,
+  "rotationStepDegrees": 90,
+  "assets": [
+    {
+      "assetId": "counter_common",
+      "logicalId": "counter_common",
+      "label": "Balcão comum",
+      "category": "kitchen",
+      "footprint": [
+        1,
+        1
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "empty"
+      ],
+      "slots": [
+        {
+          "id": "work",
+          "type": "WorkSlot",
+          "position": [
+            0,
+            -1.0,
+            0
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "approach",
+          "type": "ApproachSlot",
+          "position": [
+            0,
+            -1.5,
+            0
+          ],
+          "facing": "ne"
+        }
+      ]
+    },
+    {
+      "assetId": "prep_counter",
+      "logicalId": "preparation.b3.counter",
+      "label": "Bancada de preparo",
+      "category": "kitchen",
+      "footprint": [
+        1,
+        1
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "empty",
+        "preparing"
+      ],
+      "slots": [
+        {
+          "id": "work",
+          "type": "WorkSlot",
+          "position": [
+            0,
+            -1.0,
+            0
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "approach",
+          "type": "ApproachSlot",
+          "position": [
+            0,
+            -1.5,
+            0
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "surface",
+          "type": "SurfacePoint",
+          "position": [
+            0,
+            0,
+            1.18
+          ],
+          "facing": "ne"
+        }
+      ]
+    },
+    {
+      "assetId": "sink",
+      "logicalId": "washing.b5.sink",
+      "label": "Pia",
+      "category": "kitchen",
+      "footprint": [
+        1,
+        1
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "empty",
+        "in-use",
+        "with-dishes"
+      ],
+      "slots": [
+        {
+          "id": "work",
+          "type": "WorkSlot",
+          "position": [
+            0,
+            -1.0,
+            0
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "approach",
+          "type": "ApproachSlot",
+          "position": [
+            0,
+            -1.5,
+            0
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "basin",
+          "type": "BasinPoint",
+          "position": [
+            0,
+            -0.02,
+            1.15
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "faucet",
+          "type": "FaucetPoint",
+          "position": [
+            0,
+            0.2,
+            1.5
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "dishes",
+          "type": "DishPoint",
+          "position": [
+            0.12,
+            -0.02,
+            1.22
+          ],
+          "facing": "ne"
+        }
+      ],
+      "boundingBox": [
+        1.0,
+        1.0,
+        1.65
+      ],
+      "collision": [
+        1,
+        1
+      ]
+    },
+    {
+      "assetId": "stove",
+      "logicalId": "cooking.a1.stove",
+      "label": "Fogão de quatro bocas",
+      "category": "kitchen",
+      "footprint": [
+        1,
+        1
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "off",
+        "on",
+        "complete"
+      ],
+      "slots": [
+        {
+          "id": "work",
+          "type": "WorkSlot",
+          "position": [
+            0,
+            -1.0,
+            0
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "approach",
+          "type": "ApproachSlot",
+          "position": [
+            0,
+            -1.5,
+            0
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "burner-1",
+          "type": "BurnerPoint",
+          "position": [
+            -0.3,
+            0,
+            1.18
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "burner-2",
+          "type": "BurnerPoint",
+          "position": [
+            -0.1,
+            0,
+            1.18
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "burner-3",
+          "type": "BurnerPoint",
+          "position": [
+            0.1,
+            0,
+            1.18
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "burner-4",
+          "type": "BurnerPoint",
+          "position": [
+            0.3,
+            0,
+            1.18
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "pot",
+          "type": "PotPoint",
+          "position": [
+            0,
+            0,
+            1.22
+          ],
+          "facing": "ne"
+        }
+      ],
+      "boundingBox": [
+        1.0,
+        1.0,
+        1.65
+      ],
+      "collision": [
+        1,
+        1
+      ]
+    },
+    {
+      "assetId": "griddle",
+      "logicalId": "cooking.a3.griddle",
+      "label": "Chapa ou grelha",
+      "category": "kitchen",
+      "footprint": [
+        1,
+        1
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "off",
+        "on"
+      ],
+      "slots": [
+        {
+          "id": "work",
+          "type": "WorkSlot",
+          "position": [
+            0,
+            -1.0,
+            0
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "approach",
+          "type": "ApproachSlot",
+          "position": [
+            0,
+            -1.5,
+            0
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "surface",
+          "type": "SurfacePoint",
+          "position": [
+            0,
+            0,
+            1.18
+          ],
+          "facing": "ne"
+        }
+      ]
+    },
+    {
+      "assetId": "oven",
+      "logicalId": "cooking.a2.convection",
+      "label": "Forno sob bancada",
+      "category": "kitchen",
+      "footprint": [
+        1,
+        1
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "off",
+        "on"
+      ],
+      "slots": [
+        {
+          "id": "work",
+          "type": "WorkSlot",
+          "position": [
+            0,
+            -1.0,
+            0
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "approach",
+          "type": "ApproachSlot",
+          "position": [
+            0,
+            -1.5,
+            0
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "surface",
+          "type": "SurfacePoint",
+          "position": [
+            0,
+            0,
+            1.18
+          ],
+          "facing": "ne"
+        }
+      ]
+    },
+    {
+      "assetId": "fryer",
+      "logicalId": "cooking.a4.fryer",
+      "label": "Fritadeira",
+      "category": "kitchen",
+      "footprint": [
+        1,
+        1
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "off",
+        "on"
+      ],
+      "slots": [
+        {
+          "id": "work",
+          "type": "WorkSlot",
+          "position": [
+            0,
+            -1.0,
+            0
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "approach",
+          "type": "ApproachSlot",
+          "position": [
+            0,
+            -1.5,
+            0
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "surface",
+          "type": "SurfacePoint",
+          "position": [
+            0,
+            0,
+            1.18
+          ],
+          "facing": "ne"
+        }
+      ]
+    },
+    {
+      "assetId": "kettle",
+      "logicalId": "cooking.a5.kettle",
+      "label": "Cooktop com caldeirão",
+      "category": "kitchen",
+      "footprint": [
+        1,
+        1
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "off",
+        "on"
+      ],
+      "slots": [
+        {
+          "id": "work",
+          "type": "WorkSlot",
+          "position": [
+            0,
+            -1.0,
+            0
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "approach",
+          "type": "ApproachSlot",
+          "position": [
+            0,
+            -1.5,
+            0
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "surface",
+          "type": "SurfacePoint",
+          "position": [
+            0,
+            0,
+            1.18
+          ],
+          "facing": "ne"
+        }
+      ]
+    },
+    {
+      "assetId": "delivery_counter",
+      "logicalId": "service.c1.isolated",
+      "label": "Balcão de entrega",
+      "category": "kitchen",
+      "footprint": [
+        1,
+        1
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "empty",
+        "order-ready"
+      ],
+      "slots": [
+        {
+          "id": "work",
+          "type": "WorkSlot",
+          "position": [
+            0,
+            -1.0,
+            0
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "approach",
+          "type": "ApproachSlot",
+          "position": [
+            0,
+            -1.5,
+            0
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "serve",
+          "type": "ServeSlot",
+          "position": [
+            0,
+            0.0,
+            1.18
+          ],
+          "facing": "sw"
+        },
+        {
+          "id": "pickup",
+          "type": "PickupSlot",
+          "position": [
+            0,
+            -1.0,
+            0
+          ],
+          "facing": "ne"
+        }
+      ]
+    },
+    {
+      "assetId": "cashier_counter",
+      "logicalId": "cashier_counter",
+      "label": "Balcão de caixa",
+      "category": "kitchen",
+      "footprint": [
+        1,
+        1
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "idle",
+        "operating"
+      ],
+      "slots": [
+        {
+          "id": "work",
+          "type": "WorkSlot",
+          "position": [
+            0,
+            -1.0,
+            0
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "approach",
+          "type": "ApproachSlot",
+          "position": [
+            0,
+            -1.5,
+            0
+          ],
+          "facing": "ne"
+        }
+      ]
+    },
+    {
+      "assetId": "kitchen_corner",
+      "logicalId": "kitchen_corner",
+      "label": "Módulo de canto",
+      "category": "kitchen",
+      "footprint": [
+        1,
+        1
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "default"
+      ],
+      "slots": []
+    },
+    {
+      "assetId": "kitchen_endcap",
+      "logicalId": "kitchen_endcap",
+      "label": "Acabamento lateral",
+      "category": "kitchen",
+      "footprint": [
+        0,
+        1
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "default"
+      ],
+      "slots": []
+    },
+    {
+      "assetId": "fridge",
+      "logicalId": "refrigeration.b1.fridge",
+      "label": "Geladeira",
+      "category": "storage",
+      "footprint": [
+        1,
+        1
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "closed",
+        "open"
+      ],
+      "slots": [
+        {
+          "id": "approach",
+          "type": "ApproachSlot",
+          "position": [
+            0,
+            -1.0,
+            0
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "pickup",
+          "type": "PickupSlot",
+          "position": [
+            0,
+            -1.0,
+            0
+          ],
+          "facing": "ne"
+        }
+      ]
+    },
+    {
+      "assetId": "freezer",
+      "logicalId": "refrigeration.b2.freezer",
+      "label": "Freezer",
+      "category": "storage",
+      "footprint": [
+        1,
+        1
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "closed",
+        "open"
+      ],
+      "slots": [
+        {
+          "id": "approach",
+          "type": "ApproachSlot",
+          "position": [
+            0,
+            -1.0,
+            0
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "pickup",
+          "type": "PickupSlot",
+          "position": [
+            0,
+            -1.0,
+            0
+          ],
+          "facing": "ne"
+        }
+      ]
+    },
+    {
+      "assetId": "lower_cabinet",
+      "logicalId": "lower_cabinet",
+      "label": "Armário inferior",
+      "category": "storage",
+      "footprint": [
+        1,
+        1
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "default"
+      ],
+      "slots": [
+        {
+          "id": "approach",
+          "type": "ApproachSlot",
+          "position": [
+            0,
+            -1.0,
+            0
+          ],
+          "facing": "ne"
+        }
+      ]
+    },
+    {
+      "assetId": "tall_cabinet",
+      "logicalId": "tall_cabinet",
+      "label": "Armário alto",
+      "category": "storage",
+      "footprint": [
+        1,
+        1
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "default"
+      ],
+      "slots": [
+        {
+          "id": "approach",
+          "type": "ApproachSlot",
+          "position": [
+            0,
+            -1.0,
+            0
+          ],
+          "facing": "ne"
+        }
+      ]
+    },
+    {
+      "assetId": "wall_cabinet",
+      "logicalId": "wall_cabinet",
+      "label": "Armário suspenso",
+      "category": "storage",
+      "footprint": [
+        1,
+        1
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "default"
+      ],
+      "slots": [
+        {
+          "id": "approach",
+          "type": "ApproachSlot",
+          "position": [
+            0,
+            -1.0,
+            0
+          ],
+          "facing": "ne"
+        }
+      ]
+    },
+    {
+      "assetId": "open_shelf",
+      "logicalId": "open_shelf",
+      "label": "Prateleira",
+      "category": "storage",
+      "footprint": [
+        1,
+        1
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "default"
+      ],
+      "slots": [
+        {
+          "id": "approach",
+          "type": "ApproachSlot",
+          "position": [
+            0,
+            -1.0,
+            0
+          ],
+          "facing": "ne"
+        }
+      ]
+    },
+    {
+      "assetId": "pantry",
+      "logicalId": "storage.c5.pantry",
+      "label": "Despensa",
+      "category": "storage",
+      "footprint": [
+        1,
+        1
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "default"
+      ],
+      "slots": [
+        {
+          "id": "approach",
+          "type": "ApproachSlot",
+          "position": [
+            0,
+            -1.0,
+            0
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "pickup",
+          "type": "PickupSlot",
+          "position": [
+            0,
+            -1.0,
+            0
+          ],
+          "facing": "ne"
+        }
+      ]
+    },
+    {
+      "assetId": "ingredient_shelf",
+      "logicalId": "storage.c6.ingredients",
+      "label": "Estante de ingredientes",
+      "category": "storage",
+      "footprint": [
+        1,
+        1
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "default"
+      ],
+      "slots": [
+        {
+          "id": "approach",
+          "type": "ApproachSlot",
+          "position": [
+            0,
+            -1.0,
+            0
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "pickup",
+          "type": "PickupSlot",
+          "position": [
+            0,
+            -1.0,
+            0
+          ],
+          "facing": "ne"
+        }
+      ]
+    },
+    {
+      "assetId": "plate_storage",
+      "logicalId": "service.c7.plates",
+      "label": "Armazenamento de pratos",
+      "category": "storage",
+      "footprint": [
+        1,
+        1
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "default"
+      ],
+      "slots": [
+        {
+          "id": "approach",
+          "type": "ApproachSlot",
+          "position": [
+            0,
+            -1.0,
+            0
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "pickup",
+          "type": "PickupSlot",
+          "position": [
+            0,
+            -1.0,
+            0
+          ],
+          "facing": "ne"
+        }
+      ]
+    },
+    {
+      "assetId": "utensil_storage",
+      "logicalId": "utensil_storage",
+      "label": "Armazenamento de utensílios",
+      "category": "storage",
+      "footprint": [
+        1,
+        1
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "default"
+      ],
+      "slots": [
+        {
+          "id": "approach",
+          "type": "ApproachSlot",
+          "position": [
+            0,
+            -1.0,
+            0
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "pickup",
+          "type": "PickupSlot",
+          "position": [
+            0,
+            -1.0,
+            0
+          ],
+          "facing": "ne"
+        }
+      ]
+    },
+    {
+      "assetId": "table_2",
+      "logicalId": "table_2",
+      "label": "Mesa para duas pessoas",
+      "category": "dining",
+      "footprint": [
+        1,
+        1
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "clean",
+        "served",
+        "dirty"
+      ],
+      "slots": [
+        {
+          "id": "seat-1",
+          "type": "SeatSlot",
+          "position": [
+            0,
+            -0.9,
+            0.48
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "approach-1",
+          "type": "ApproachSlot",
+          "position": [
+            0.0,
+            -1.215,
+            0
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "seat-2",
+          "type": "SeatSlot",
+          "position": [
+            0,
+            0.9,
+            0.48
+          ],
+          "facing": "sw"
+        },
+        {
+          "id": "approach-2",
+          "type": "ApproachSlot",
+          "position": [
+            0.0,
+            1.215,
+            0
+          ],
+          "facing": "sw"
+        },
+        {
+          "id": "plate-center",
+          "type": "PlatePoint",
+          "position": [
+            0,
+            0,
+            0.92
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "tray",
+          "type": "TrayPoint",
+          "position": [
+            0,
+            0,
+            0.94
+          ],
+          "facing": "ne"
+        }
+      ]
+    },
+    {
+      "assetId": "table_4",
+      "logicalId": "table_4",
+      "label": "Mesa para quatro pessoas",
+      "category": "dining",
+      "footprint": [
+        2,
+        2
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "clean",
+        "served",
+        "dirty"
+      ],
+      "slots": [
+        {
+          "id": "seat-1",
+          "type": "SeatSlot",
+          "position": [
+            -1.35,
+            0,
+            0.48
+          ],
+          "facing": "se"
+        },
+        {
+          "id": "approach-1",
+          "type": "ApproachSlot",
+          "position": [
+            -1.8225000000000002,
+            0.0,
+            0
+          ],
+          "facing": "se"
+        },
+        {
+          "id": "seat-2",
+          "type": "SeatSlot",
+          "position": [
+            1.35,
+            0,
+            0.48
+          ],
+          "facing": "nw"
+        },
+        {
+          "id": "approach-2",
+          "type": "ApproachSlot",
+          "position": [
+            1.8225000000000002,
+            0.0,
+            0
+          ],
+          "facing": "nw"
+        },
+        {
+          "id": "seat-3",
+          "type": "SeatSlot",
+          "position": [
+            0,
+            -1.175,
+            0.48
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "approach-3",
+          "type": "ApproachSlot",
+          "position": [
+            0.0,
+            -1.5862500000000002,
+            0
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "seat-4",
+          "type": "SeatSlot",
+          "position": [
+            0,
+            1.175,
+            0.48
+          ],
+          "facing": "sw"
+        },
+        {
+          "id": "approach-4",
+          "type": "ApproachSlot",
+          "position": [
+            0.0,
+            1.5862500000000002,
+            0
+          ],
+          "facing": "sw"
+        },
+        {
+          "id": "plate-center",
+          "type": "PlatePoint",
+          "position": [
+            0,
+            0,
+            0.92
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "tray",
+          "type": "TrayPoint",
+          "position": [
+            0,
+            0,
+            0.94
+          ],
+          "facing": "ne"
+        }
+      ]
+    },
+    {
+      "assetId": "table_6",
+      "logicalId": "table_6",
+      "label": "Mesa para seis pessoas",
+      "category": "dining",
+      "footprint": [
+        3,
+        2
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "clean",
+        "served",
+        "dirty"
+      ],
+      "slots": [
+        {
+          "id": "seat-1",
+          "type": "SeatSlot",
+          "position": [
+            -1.775,
+            -0.32,
+            0.48
+          ],
+          "facing": "se"
+        },
+        {
+          "id": "approach-1",
+          "type": "ApproachSlot",
+          "position": [
+            -2.39625,
+            -0.43200000000000005,
+            0
+          ],
+          "facing": "se"
+        },
+        {
+          "id": "seat-2",
+          "type": "SeatSlot",
+          "position": [
+            -1.775,
+            0.32,
+            0.48
+          ],
+          "facing": "se"
+        },
+        {
+          "id": "approach-2",
+          "type": "ApproachSlot",
+          "position": [
+            -2.39625,
+            0.43200000000000005,
+            0
+          ],
+          "facing": "se"
+        },
+        {
+          "id": "seat-3",
+          "type": "SeatSlot",
+          "position": [
+            1.775,
+            -0.32,
+            0.48
+          ],
+          "facing": "nw"
+        },
+        {
+          "id": "approach-3",
+          "type": "ApproachSlot",
+          "position": [
+            2.39625,
+            -0.43200000000000005,
+            0
+          ],
+          "facing": "nw"
+        },
+        {
+          "id": "seat-4",
+          "type": "SeatSlot",
+          "position": [
+            1.775,
+            0.32,
+            0.48
+          ],
+          "facing": "nw"
+        },
+        {
+          "id": "approach-4",
+          "type": "ApproachSlot",
+          "position": [
+            2.39625,
+            0.43200000000000005,
+            0
+          ],
+          "facing": "nw"
+        },
+        {
+          "id": "seat-5",
+          "type": "SeatSlot",
+          "position": [
+            0,
+            -1.175,
+            0.48
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "approach-5",
+          "type": "ApproachSlot",
+          "position": [
+            0.0,
+            -1.5862500000000002,
+            0
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "seat-6",
+          "type": "SeatSlot",
+          "position": [
+            0,
+            1.175,
+            0.48
+          ],
+          "facing": "sw"
+        },
+        {
+          "id": "approach-6",
+          "type": "ApproachSlot",
+          "position": [
+            0.0,
+            1.5862500000000002,
+            0
+          ],
+          "facing": "sw"
+        },
+        {
+          "id": "plate-center",
+          "type": "PlatePoint",
+          "position": [
+            0,
+            0,
+            0.92
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "tray",
+          "type": "TrayPoint",
+          "position": [
+            0,
+            0,
+            0.94
+          ],
+          "facing": "ne"
+        }
+      ]
+    },
+    {
+      "assetId": "dining_chair",
+      "logicalId": "dining.chair.basic",
+      "label": "Cadeira independente",
+      "category": "dining",
+      "footprint": [
+        1,
+        1
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "default"
+      ],
+      "slots": [
+        {
+          "id": "seat",
+          "type": "SeatSlot",
+          "position": [
+            0,
+            0,
+            0.54
+          ],
+          "facing": "sw"
+        },
+        {
+          "id": "approach",
+          "type": "ApproachSlot",
+          "position": [
+            0,
+            -0.9,
+            0
+          ],
+          "facing": "ne"
+        }
+      ]
+    },
+    {
+      "assetId": "dining_bench",
+      "logicalId": "dining_bench",
+      "label": "Banco",
+      "category": "dining",
+      "footprint": [
+        2,
+        1
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "default"
+      ],
+      "slots": [
+        {
+          "id": "seat",
+          "type": "SeatSlot",
+          "position": [
+            0,
+            0,
+            0.55
+          ],
+          "facing": "sw"
+        }
+      ]
+    },
+    {
+      "assetId": "dining_booth",
+      "logicalId": "dining_booth",
+      "label": "Sofá booth",
+      "category": "dining",
+      "footprint": [
+        2,
+        1
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "default"
+      ],
+      "slots": [
+        {
+          "id": "seat-1",
+          "type": "SeatSlot",
+          "position": [
+            -0.46,
+            -0.1,
+            0.56
+          ],
+          "facing": "sw"
+        },
+        {
+          "id": "seat-2",
+          "type": "SeatSlot",
+          "position": [
+            0.46,
+            -0.1,
+            0.56
+          ],
+          "facing": "sw"
+        }
+      ]
+    },
+    {
+      "assetId": "booth_table",
+      "logicalId": "booth_table",
+      "label": "Mesa para booth",
+      "category": "dining",
+      "footprint": [
+        2,
+        1
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "clean",
+        "served",
+        "dirty"
+      ],
+      "slots": [
+        {
+          "id": "seat-1",
+          "type": "SeatSlot",
+          "position": [
+            -1.375,
+            0,
+            0.48
+          ],
+          "facing": "se"
+        },
+        {
+          "id": "approach-1",
+          "type": "ApproachSlot",
+          "position": [
+            -1.8562500000000002,
+            0.0,
+            0
+          ],
+          "facing": "se"
+        },
+        {
+          "id": "seat-2",
+          "type": "SeatSlot",
+          "position": [
+            1.375,
+            0,
+            0.48
+          ],
+          "facing": "nw"
+        },
+        {
+          "id": "approach-2",
+          "type": "ApproachSlot",
+          "position": [
+            1.8562500000000002,
+            0.0,
+            0
+          ],
+          "facing": "nw"
+        },
+        {
+          "id": "seat-3",
+          "type": "SeatSlot",
+          "position": [
+            0,
+            -0.86,
+            0.48
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "approach-3",
+          "type": "ApproachSlot",
+          "position": [
+            0.0,
+            -1.161,
+            0
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "seat-4",
+          "type": "SeatSlot",
+          "position": [
+            0,
+            0.86,
+            0.48
+          ],
+          "facing": "sw"
+        },
+        {
+          "id": "approach-4",
+          "type": "ApproachSlot",
+          "position": [
+            0.0,
+            1.161,
+            0
+          ],
+          "facing": "sw"
+        },
+        {
+          "id": "plate-center",
+          "type": "PlatePoint",
+          "position": [
+            0,
+            0,
+            0.92
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "tray",
+          "type": "TrayPoint",
+          "position": [
+            0,
+            0,
+            0.94
+          ],
+          "facing": "ne"
+        }
+      ]
+    },
+    {
+      "assetId": "bar_counter",
+      "logicalId": "bar_counter",
+      "label": "Balcão com banquetas",
+      "category": "dining",
+      "footprint": [
+        3,
+        1
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "default"
+      ],
+      "slots": [
+        {
+          "id": "seat-1",
+          "type": "SeatSlot",
+          "position": [
+            -1,
+            -1.0,
+            0.56
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "seat-2",
+          "type": "SeatSlot",
+          "position": [
+            0,
+            -1.0,
+            0.56
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "seat-3",
+          "type": "SeatSlot",
+          "position": [
+            1,
+            -1.0,
+            0.56
+          ],
+          "facing": "ne"
+        }
+      ]
+    },
+    {
+      "assetId": "bar_stool",
+      "logicalId": "bar_stool",
+      "label": "Banqueta independente",
+      "category": "dining",
+      "footprint": [
+        1,
+        1
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "default"
+      ],
+      "slots": [
+        {
+          "id": "seat",
+          "type": "SeatSlot",
+          "position": [
+            0,
+            0,
+            0.74
+          ],
+          "facing": "sw"
+        },
+        {
+          "id": "approach",
+          "type": "ApproachSlot",
+          "position": [
+            0,
+            -0.8,
+            0
+          ],
+          "facing": "ne"
+        }
+      ]
+    },
+    {
+      "assetId": "waiter_station",
+      "logicalId": "waiter_station",
+      "label": "Estação do garçom",
+      "category": "service",
+      "footprint": [
+        1,
+        1
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "default"
+      ],
+      "slots": [
+        {
+          "id": "work",
+          "type": "WorkSlot",
+          "position": [
+            0,
+            -1,
+            0
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "pickup",
+          "type": "PickupSlot",
+          "position": [
+            0,
+            0,
+            1.18
+          ],
+          "facing": "ne"
+        }
+      ]
+    },
+    {
+      "assetId": "cleaning_station",
+      "logicalId": "cleaning_station",
+      "label": "Estação de limpeza",
+      "category": "service",
+      "footprint": [
+        1,
+        1
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "default"
+      ],
+      "slots": [
+        {
+          "id": "work",
+          "type": "WorkSlot",
+          "position": [
+            0,
+            -1,
+            0
+          ],
+          "facing": "ne"
+        },
+        {
+          "id": "pickup",
+          "type": "PickupSlot",
+          "position": [
+            0,
+            0,
+            1.18
+          ],
+          "facing": "ne"
+        }
+      ]
+    },
+    {
+      "assetId": "waste_bin",
+      "logicalId": "service.c8.waste",
+      "label": "Lixeira",
+      "category": "service",
+      "footprint": [
+        1,
+        1
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "default"
+      ],
+      "slots": [
+        {
+          "id": "approach",
+          "type": "ApproachSlot",
+          "position": [
+            0,
+            -0.8,
+            0
+          ],
+          "facing": "ne"
+        }
+      ]
+    },
+    {
+      "assetId": "prop_plate",
+      "logicalId": "prop_plate",
+      "label": "Prato",
+      "category": "prop",
+      "footprint": [
+        0,
+        0
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "default"
+      ],
+      "slots": [
+        {
+          "id": "grip",
+          "type": "HandGrip",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "facing": "ne"
+        }
+      ]
+    },
+    {
+      "assetId": "prop_bowl",
+      "logicalId": "prop_bowl",
+      "label": "Tigela",
+      "category": "prop",
+      "footprint": [
+        0,
+        0
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "default"
+      ],
+      "slots": [
+        {
+          "id": "grip",
+          "type": "HandGrip",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "facing": "ne"
+        }
+      ]
+    },
+    {
+      "assetId": "prop_glass",
+      "logicalId": "prop_glass",
+      "label": "Copo",
+      "category": "prop",
+      "footprint": [
+        0,
+        0
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "default"
+      ],
+      "slots": [
+        {
+          "id": "grip",
+          "type": "HandGrip",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "facing": "ne"
+        }
+      ]
+    },
+    {
+      "assetId": "prop_cup",
+      "logicalId": "prop_cup",
+      "label": "Xícara",
+      "category": "prop",
+      "footprint": [
+        0,
+        0
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "default"
+      ],
+      "slots": [
+        {
+          "id": "grip",
+          "type": "HandGrip",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "facing": "ne"
+        }
+      ]
+    },
+    {
+      "assetId": "prop_tray",
+      "logicalId": "prop_tray",
+      "label": "Bandeja",
+      "category": "prop",
+      "footprint": [
+        0,
+        0
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "default"
+      ],
+      "slots": [
+        {
+          "id": "grip",
+          "type": "HandGrip",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "facing": "ne"
+        }
+      ]
+    },
+    {
+      "assetId": "prop_fork",
+      "logicalId": "prop_fork",
+      "label": "Garfo",
+      "category": "prop",
+      "footprint": [
+        0,
+        0
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "default"
+      ],
+      "slots": [
+        {
+          "id": "grip",
+          "type": "HandGrip",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "facing": "ne"
+        }
+      ]
+    },
+    {
+      "assetId": "prop_knife",
+      "logicalId": "prop_knife",
+      "label": "Faca",
+      "category": "prop",
+      "footprint": [
+        0,
+        0
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "default"
+      ],
+      "slots": [
+        {
+          "id": "grip",
+          "type": "HandGrip",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "facing": "ne"
+        }
+      ]
+    },
+    {
+      "assetId": "prop_spoon",
+      "logicalId": "prop_spoon",
+      "label": "Colher",
+      "category": "prop",
+      "footprint": [
+        0,
+        0
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "default"
+      ],
+      "slots": [
+        {
+          "id": "grip",
+          "type": "HandGrip",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "facing": "ne"
+        }
+      ]
+    },
+    {
+      "assetId": "prop_pot",
+      "logicalId": "prop_pot",
+      "label": "Panela",
+      "category": "prop",
+      "footprint": [
+        0,
+        0
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "default"
+      ],
+      "slots": [
+        {
+          "id": "grip",
+          "type": "HandGrip",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "facing": "ne"
+        }
+      ]
+    },
+    {
+      "assetId": "prop_pan",
+      "logicalId": "prop_pan",
+      "label": "Frigideira",
+      "category": "prop",
+      "footprint": [
+        0,
+        0
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "default"
+      ],
+      "slots": [
+        {
+          "id": "grip",
+          "type": "HandGrip",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "facing": "ne"
+        }
+      ]
+    },
+    {
+      "assetId": "prop_board",
+      "logicalId": "prop_board",
+      "label": "Tábua de preparo",
+      "category": "prop",
+      "footprint": [
+        0,
+        0
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "default"
+      ],
+      "slots": [
+        {
+          "id": "grip",
+          "type": "HandGrip",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "facing": "ne"
+        }
+      ]
+    },
+    {
+      "assetId": "prop_ingredient",
+      "logicalId": "prop_ingredient",
+      "label": "Ingrediente genérico",
+      "category": "prop",
+      "footprint": [
+        0,
+        0
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "default"
+      ],
+      "slots": [
+        {
+          "id": "grip",
+          "type": "HandGrip",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "facing": "ne"
+        }
+      ]
+    },
+    {
+      "assetId": "prop_plate_stack",
+      "logicalId": "prop_plate_stack",
+      "label": "Pilha de pratos",
+      "category": "prop",
+      "footprint": [
+        0,
+        0
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "default"
+      ],
+      "slots": [
+        {
+          "id": "grip",
+          "type": "HandGrip",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "facing": "ne"
+        }
+      ]
+    },
+    {
+      "assetId": "prop_dish_basket",
+      "logicalId": "prop_dish_basket",
+      "label": "Cesto de louças",
+      "category": "prop",
+      "footprint": [
+        0,
+        0
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "default"
+      ],
+      "slots": [
+        {
+          "id": "grip",
+          "type": "HandGrip",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "facing": "ne"
+        }
+      ]
+    },
+    {
+      "assetId": "prop_utensil",
+      "logicalId": "prop_utensil",
+      "label": "Utensílio de cozinha",
+      "category": "prop",
+      "footprint": [
+        0,
+        0
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "frontDirection": "sw",
+      "rotationStepDegrees": 90,
+      "states": [
+        "default"
+      ],
+      "slots": [
+        {
+          "id": "grip",
+          "type": "HandGrip",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "facing": "ne"
+        }
+      ]
+    }
+  ],
+  "compatibility": {
+    "preservesLogicalIds": true,
+    "changesGrid": false,
+    "changesEconomy": false,
+    "changesSaves": false,
+    "changesPathfinding": false
+  },
+  "correctedFrom": "c3-br-v007-stage-2a"
+}

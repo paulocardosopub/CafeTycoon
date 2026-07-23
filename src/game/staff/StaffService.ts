@@ -39,7 +39,7 @@ export function createStaffInstance(definition: StaffDefinition, now: number, st
   };
 }
 
-export function createInitialStaffState(state: Pick<GameState, 'construction'>, now = Date.now()): StaffSystemState {
+export function createInitialStaffState(state: Pick<GameState, 'construction' | 'restaurantLevel'>, now = Date.now()): StaffSystemState {
   const hiredDefinitions = STAFF_CATALOG.filter((definition) => definition.includedByDefault
     || state.construction.staffStartPositions.some((position) => position.staffId === definition.id || position.staffId === definition.actorId));
   const instances = hiredDefinitions.map((definition) => {
@@ -49,7 +49,7 @@ export function createInitialStaffState(state: Pick<GameState, 'construction'>, 
   return {
     instances,
     schedules: [{ ...DEFAULT_STAFF_SCHEDULE, workingDays: [...DEFAULT_STAFF_SCHEDULE.workingDays], breakRules: [...DEFAULT_STAFF_SCHEDULE.breakRules] }],
-    candidateDefinitionIds: STAFF_CANDIDATES.map((candidate) => candidate.id),
+    candidateDefinitionIds: instances.length ? STAFF_CANDIDATES.filter((candidate) => candidate.minimumLevel <= state.restaurantLevel).map((candidate) => candidate.id) : ['cook-0'],
     candidateRefreshAt: now + BALANCE.staff.candidateRefreshSeconds * 1000,
     maxStaff: BALANCE.staff.initialLimit,
     nextPayrollAt: now + BALANCE.staff.payrollIntervalSeconds * 1000,
@@ -60,7 +60,7 @@ export function createInitialStaffState(state: Pick<GameState, 'construction'>, 
   };
 }
 
-export function sanitizeStaffState(input: StaffSystemState | undefined, state: Pick<GameState, 'construction'>, now = Date.now()): StaffSystemState {
+export function sanitizeStaffState(input: StaffSystemState | undefined, state: Pick<GameState, 'construction' | 'restaurantLevel'>, now = Date.now()): StaffSystemState {
   const fallback = createInitialStaffState(state, now);
   if (!input || !Array.isArray(input.instances)) return fallback;
   const seen = new Set<string>();
@@ -75,7 +75,7 @@ export function sanitizeStaffState(input: StaffSystemState | undefined, state: P
     ...input,
     instances,
     schedules,
-    candidateDefinitionIds: STAFF_CANDIDATES.map((candidate) => candidate.id).filter((id) => !instances.some((instance) => instance.definitionId === id)),
+    candidateDefinitionIds: (instances.length ? STAFF_CANDIDATES.filter((candidate) => candidate.minimumLevel <= state.restaurantLevel).map((candidate) => candidate.id) : ['cook-0']).filter((id) => !instances.some((instance) => instance.definitionId === id)),
     maxStaff: Math.max(instances.length, Math.floor(Number(input.maxStaff) || fallback.maxStaff)),
     nextPayrollAt: Math.max(now, Number(input.nextPayrollAt) || fallback.nextPayrollAt),
     salaryArrears: Math.max(0, Number(input.salaryArrears) || 0),
@@ -90,11 +90,12 @@ export interface StaffActionResult { ok: boolean; reason?: string; instance?: St
 export function hireStaff(state: GameState, definitionId: string, _startPosition?: GridPoint, now = Date.now()): StaffActionResult {
   const definition = STAFF_BY_ID[definitionId];
   if (!definition || definition.includedByDefault) return { ok: false, reason: 'Candidato indisponível.' };
+  if (!state.staff.instances.length && !definition.specialties.includes('Barista')) return { ok: false, reason: 'Seu primeiro funcionário deve ser o Barista iniciante.' };
   if (state.staff.instances.some((instance) => instance.definitionId === definitionId)) return { ok: false, reason: 'Este candidato já foi contratado.' };
   if (state.staff.instances.length >= state.staff.maxStaff) return { ok: false, reason: 'Limite de funcionários atingido.' };
   if (state.coins < definition.hiringCost) return { ok: false, reason: 'Saldo insuficiente para o custo de contratação.' };
-  const requiredFurniture = staffFurnitureRequirement(definition.role);
-  const furniture = availableStaffFurniture(definition.role, state.construction.placedFurniture, state.construction.staffStartPositions);
+  const requiredFurniture = staffFurnitureRequirement(definition.role, definition.id);
+  const furniture = availableStaffFurniture(definition.role, state.construction.placedFurniture, state.construction.staffStartPositions, definition.id);
   if (requiredFurniture && !furniture) return { ok: false, reason: `Instale um ${requiredFurniture} livre para contratar este funcionário.` };
   const start = furniture
     ? linkedStaffStart(definition.id, definition.role, furniture)
@@ -106,7 +107,7 @@ export function hireStaff(state: GameState, definitionId: string, _startPosition
   const instance = createStaffInstance(definition, now, { x: start.gridX, y: start.gridY });
   state.staff.instances.push(instance);
   state.construction.staffStartPositions.push(start);
-  state.staff.candidateDefinitionIds = state.staff.candidateDefinitionIds.filter((id) => id !== definitionId);
+  state.staff.candidateDefinitionIds = STAFF_CANDIDATES.filter((candidate) => candidate.minimumLevel <= state.restaurantLevel && candidate.id !== definitionId).map((candidate) => candidate.id);
   logStaff(state, now, `${definition.name} foi contratado por ${definition.hiringCost} moedas.`, instance.id);
   return { ok: true, instance };
 }

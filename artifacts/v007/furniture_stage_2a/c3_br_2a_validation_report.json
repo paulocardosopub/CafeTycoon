@@ -1,0 +1,808 @@
+{
+  "blend": "art_source\\blender\\furniture\\c3_br_modular_furniture_v007_2a.blend",
+  "passed": 160,
+  "total": 160,
+  "allPassed": true,
+  "checks": [
+    {
+      "name": "49 coleções de assets independentes",
+      "passed": true,
+      "detail": "encontradas: 49"
+    },
+    {
+      "name": "ASSET_bar_counter: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=10"
+    },
+    {
+      "name": "bar_counter:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "bar_counter:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_bar_stool: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=6"
+    },
+    {
+      "name": "bar_stool:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "bar_stool:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_booth_table: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=6"
+    },
+    {
+      "name": "booth_table:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "booth_table:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_cashier_counter: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=11"
+    },
+    {
+      "name": "cashier_counter:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "cashier_counter:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_cleaning_station: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=10"
+    },
+    {
+      "name": "cleaning_station:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "cleaning_station:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_counter_common: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=8"
+    },
+    {
+      "name": "counter_common:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "counter_common:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_delivery_counter: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=10"
+    },
+    {
+      "name": "delivery_counter:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "delivery_counter:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_dining_bench: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=3"
+    },
+    {
+      "name": "dining_bench:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "dining_bench:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_dining_booth: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=5"
+    },
+    {
+      "name": "dining_booth:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "dining_booth:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_dining_chair: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=10"
+    },
+    {
+      "name": "dining_chair:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "dining_chair:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_freezer: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=4"
+    },
+    {
+      "name": "freezer:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "freezer:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_fridge: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=9"
+    },
+    {
+      "name": "fridge:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "fridge:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_fryer: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=14"
+    },
+    {
+      "name": "fryer:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "fryer:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_griddle: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=15"
+    },
+    {
+      "name": "griddle:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "griddle:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_ingredient_shelf: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=11"
+    },
+    {
+      "name": "ingredient_shelf:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "ingredient_shelf:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_kettle: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=12"
+    },
+    {
+      "name": "kettle:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "kettle:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_kitchen_corner: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=9"
+    },
+    {
+      "name": "kitchen_corner:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "kitchen_corner:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_kitchen_endcap: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=1"
+    },
+    {
+      "name": "kitchen_endcap:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "kitchen_endcap:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_lower_cabinet: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=8"
+    },
+    {
+      "name": "lower_cabinet:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "lower_cabinet:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_open_shelf: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=6"
+    },
+    {
+      "name": "open_shelf:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "open_shelf:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_oven: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=14"
+    },
+    {
+      "name": "oven:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "oven:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_pantry: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=6"
+    },
+    {
+      "name": "pantry:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "pantry:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_plate_storage: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=18"
+    },
+    {
+      "name": "plate_storage:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "plate_storage:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_prep_counter: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=12"
+    },
+    {
+      "name": "prep_counter:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "prep_counter:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_prop_board: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=1"
+    },
+    {
+      "name": "prop_board:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "prop_board:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_prop_bowl: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=2"
+    },
+    {
+      "name": "prop_bowl:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "prop_bowl:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_prop_cup: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=2"
+    },
+    {
+      "name": "prop_cup:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "prop_cup:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_prop_dish_basket: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=5"
+    },
+    {
+      "name": "prop_dish_basket:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "prop_dish_basket:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_prop_fork: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=5"
+    },
+    {
+      "name": "prop_fork:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "prop_fork:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_prop_glass: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=1"
+    },
+    {
+      "name": "prop_glass:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "prop_glass:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_prop_ingredient: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=1"
+    },
+    {
+      "name": "prop_ingredient:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "prop_ingredient:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_prop_knife: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=2"
+    },
+    {
+      "name": "prop_knife:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "prop_knife:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_prop_pan: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=2"
+    },
+    {
+      "name": "prop_pan:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "prop_pan:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_prop_plate: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=1"
+    },
+    {
+      "name": "prop_plate:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "prop_plate:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_prop_plate_stack: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=5"
+    },
+    {
+      "name": "prop_plate_stack:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "prop_plate_stack:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_prop_pot: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=3"
+    },
+    {
+      "name": "prop_pot:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "prop_pot:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_prop_spoon: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=2"
+    },
+    {
+      "name": "prop_spoon:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "prop_spoon:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_prop_tray: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=1"
+    },
+    {
+      "name": "prop_tray:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "prop_tray:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_prop_utensil: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=2"
+    },
+    {
+      "name": "prop_utensil:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "prop_utensil:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_sink: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=16"
+    },
+    {
+      "name": "sink:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "sink:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_stove: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=18"
+    },
+    {
+      "name": "stove:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "stove:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_table_2: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=6"
+    },
+    {
+      "name": "table_2:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "table_2:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_table_4: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=6"
+    },
+    {
+      "name": "table_4:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "table_4:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_table_6: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=6"
+    },
+    {
+      "name": "table_6:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "table_6:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_tall_cabinet: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=6"
+    },
+    {
+      "name": "tall_cabinet:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "tall_cabinet:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_utensil_storage: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=18"
+    },
+    {
+      "name": "utensil_storage:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "utensil_storage:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_waiter_station: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=12"
+    },
+    {
+      "name": "waiter_station:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "waiter_station:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_wall_cabinet: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=3"
+    },
+    {
+      "name": "wall_cabinet:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "wall_cabinet:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "ASSET_waste_bin: modelo 3D real",
+      "passed": true,
+      "detail": "meshes=2"
+    },
+    {
+      "name": "waste_bin:root: pivô inferior central",
+      "passed": true,
+      "detail": "(0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "waste_bin:root: rotação 90 graus",
+      "passed": true,
+      "detail": "90"
+    },
+    {
+      "name": "altura uniforme das bancadas",
+      "passed": true,
+      "detail": "[('counter_common', 1.1, 1.0), ('prep_counter', 1.1, 1.0), ('sink', 1.1, 1.0), ('stove', 1.1, 1.0), ('griddle', 1.1, 1.0), ('oven', 1.1, 1.0), ('fryer', 1.1, 1.0), ('kettle', 1.1, 1.0), ('delivery_counter', 1.1, 1.0), ('cashier_counter', 1.1, 1.0)]"
+    },
+    {
+      "name": "profundidade uniforme das bancadas",
+      "passed": true,
+      "detail": "[('counter_common', 1.1, 1.0), ('prep_counter', 1.1, 1.0), ('sink', 1.1, 1.0), ('stove', 1.1, 1.0), ('griddle', 1.1, 1.0), ('oven', 1.1, 1.0), ('fryer', 1.1, 1.0), ('kettle', 1.1, 1.0), ('delivery_counter', 1.1, 1.0), ('cashier_counter', 1.1, 1.0)]"
+    },
+    {
+      "name": "counter_common: múltiplo exato do grid",
+      "passed": true,
+      "detail": "[1, 1]"
+    },
+    {
+      "name": "prep_counter: múltiplo exato do grid",
+      "passed": true,
+      "detail": "[1, 1]"
+    },
+    {
+      "name": "sink: múltiplo exato do grid",
+      "passed": true,
+      "detail": "[2, 1]"
+    },
+    {
+      "name": "stove: múltiplo exato do grid",
+      "passed": true,
+      "detail": "[2, 1]"
+    },
+    {
+      "name": "griddle: múltiplo exato do grid",
+      "passed": true,
+      "detail": "[1, 1]"
+    },
+    {
+      "name": "fryer: múltiplo exato do grid",
+      "passed": true,
+      "detail": "[1, 1]"
+    },
+    {
+      "name": "delivery_counter: múltiplo exato do grid",
+      "passed": true,
+      "detail": "[1, 1]"
+    },
+    {
+      "name": "pontos de interação presentes",
+      "passed": true,
+      "detail": "marcadores=115"
+    },
+    {
+      "name": "pivô de porta da geladeira",
+      "passed": true,
+      "detail": "door-pivot"
+    },
+    {
+      "name": "componentes de estado reutilizáveis",
+      "passed": true,
+      "detail": "componentes=26"
+    }
+  ]
+}

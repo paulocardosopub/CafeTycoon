@@ -2,11 +2,8 @@ import { BALANCE } from '../../config/balance';
 import { RECIPE_BY_ID } from '../../content/recipes/recipes';
 import type { GameState, ProductionQueueItem, RecipeId } from '../../core/types';
 import { stableRuntimeId } from '../../core/id';
-import { consumeRecipe } from '../inventory/InventoryService';
 
-export function readyDishCapacity(state: GameState): number {
-  return BALANCE.readyDishCapacity + state.upgrades.dishStorage * BALANCE.upgrades.dishStorage.amount;
-}
+export function readyDishCapacity(_state: GameState): number { return Number.MAX_SAFE_INTEGER; }
 
 export function readyDishUsed(state: GameState): number {
   return Object.entries(state.readyDishes).reduce((sum, [recipeId, amount]) => sum + amount * RECIPE_BY_ID[recipeId as RecipeId].storageSpace, 0);
@@ -15,7 +12,7 @@ export function readyDishUsed(state: GameState): number {
 export function enqueueProduction(state: GameState, recipeId: RecipeId, quantity: number): ProductionQueueItem {
   const item: ProductionQueueItem = {
     id: stableRuntimeId('production'), recipeId, quantity: Math.max(1, Math.min(BALANCE.production.maximumQuantity, Math.floor(quantity))),
-    completed: 0, progressSeconds: 0, status: 'queued', ingredientsCommitted: false,
+    completed: 0, progressSeconds: 0, status: 'queued', ingredientsCommitted: false, costPaid: false,
   };
   state.productionQueue.push(item);
   return item;
@@ -38,14 +35,14 @@ export function tickProduction(state: GameState, deltaSeconds: number): Producti
   while (remainingDelta > 0 && state.productionQueue.length) {
     const item = state.productionQueue[0];
     const recipe = RECIPE_BY_ID[item.recipeId];
-    if (!item.ingredientsCommitted) {
-      if (readyDishUsed(state) + recipe.storageSpace * recipe.yield > readyDishCapacity(state)) {
-        item.status = 'blocked_storage'; result.blocked = 'Armazenamento de pratos cheio.'; break;
+    if (!item.costPaid) {
+      if (state.coins < recipe.batchCost) {
+        item.status = 'queued';
+        result.blocked = `Saldo insuficiente: faltam ${recipe.batchCost - state.coins} moedas para iniciar ${recipe.name}.`;
+        break;
       }
-      if (!consumeRecipe(state, recipe)) {
-        item.status = 'blocked_ingredients'; result.blocked = 'Ingredientes insuficientes.'; break;
-      }
-      item.ingredientsCommitted = true;
+      state.coins -= recipe.batchCost;
+      item.costPaid = true;
       item.status = 'producing';
     }
     const duration = productionDuration(state, item.recipeId);
@@ -55,13 +52,13 @@ export function tickProduction(state: GameState, deltaSeconds: number): Producti
     remainingDelta -= applied;
     if (item.progressSeconds + 0.0001 >= duration) {
       item.progressSeconds = 0;
-      item.ingredientsCommitted = false;
       item.completed += 1;
       state.readyDishes[item.recipeId] += recipe.yield;
       state.restaurantXp += recipe.experience;
       state.stats.dishesProduced += recipe.yield;
       result.produced[item.recipeId] = (result.produced[item.recipeId] ?? 0) + recipe.yield;
       if (item.completed >= item.quantity) state.productionQueue.shift();
+      else item.costPaid = false;
     }
   }
   return result;

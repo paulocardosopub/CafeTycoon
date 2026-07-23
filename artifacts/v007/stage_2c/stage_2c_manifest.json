@@ -1,0 +1,314 @@
+[
+  {
+    "assetId": "char_player_male_01",
+    "short": "player_male_01",
+    "role": "player",
+    "animations": {
+      "idle": 4,
+      "walk": 8,
+      "turn": 6,
+      "pickup": 6,
+      "place": 6,
+      "carry_plate_idle": 4,
+      "carry_plate_walk": 8,
+      "carry_tray_idle": 4,
+      "carry_tray_walk": 8,
+      "carry_ingredient_idle": 4,
+      "carry_ingredient_walk": 8,
+      "prep_counter": 8,
+      "cook_stove": 8,
+      "wash_sink": 8,
+      "serve_table": 6,
+      "clear_table": 6,
+      "clean_table": 8,
+      "talk": 6
+    },
+    "frameWidth": 112,
+    "frameHeight": 168,
+    "directions": [
+      "sw",
+      "nw",
+      "ne",
+      "se"
+    ],
+    "rigId": "C3BR_Humanoid_Approved_v3",
+    "nativeScale": 0.72
+  },
+  {
+    "assetId": "char_player_female_01",
+    "short": "player_female_01",
+    "role": "player",
+    "animations": {
+      "idle": 4,
+      "walk": 8,
+      "turn": 6,
+      "pickup": 6,
+      "place": 6,
+      "carry_plate_idle": 4,
+      "carry_plate_walk": 8,
+      "carry_tray_idle": 4,
+      "carry_tray_walk": 8,
+      "carry_ingredient_idle": 4,
+      "carry_ingredient_walk": 8,
+      "prep_counter": 8,
+      "cook_stove": 8,
+      "wash_sink": 8,
+      "serve_table": 6,
+      "clear_table": 6,
+      "clean_table": 8,
+      "talk": 6
+    },
+    "frameWidth": 112,
+    "frameHeight": 168,
+    "directions": [
+      "sw",
+      "nw",
+      "ne",
+      "se"
+    ],
+    "rigId": "C3BR_Humanoid_Approved_v3",
+    "nativeScale": 0.72
+  },
+  {
+    "assetId": "char_cook_female_01",
+    "short": "cook_female_01",
+    "role": "cook",
+    "animations": {
+      "idle": 4,
+      "walk": 8,
+      "turn": 6,
+      "pickup": 6,
+      "place": 6,
+      "carry_plate_idle": 4,
+      "carry_plate_walk": 8,
+      "carry_ingredient_idle": 4,
+      "carry_ingredient_walk": 8,
+      "prep_counter": 8,
+      "cook_stove": 8,
+      "wash_sink": 8,
+      "place_dish": 6,
+      "wait_workstation": 4
+    },
+    "frameWidth": 112,
+    "frameHeight": 168,
+    "directions": [
+      "sw",
+      "nw",
+      "ne",
+      "se"
+    ],
+    "rigId": "C3BR_Humanoid_Approved_v3",
+    "nativeScale": 0.72
+  },
+  {
+    "assetId": "char_waiter_male_01",
+    "short": "waiter_male_01",
+    "role": "waiter",
+    "animations": {
+      "idle": 4,
+      "walk": 8,
+      "turn": 6,
+      "pickup": 6,
+      "place": 6,
+      "carry_plate_idle": 4,
+      "carry_plate_walk": 8,
+      "carry_tray_idle": 4,
+      "carry_tray_walk": 8,
+      "pickup_dish": 6,
+      "serve_table": 6,
+      "clear_table": 6,
+      "clean_table": 8,
+      "wait_service": 4
+    },
+    "frameWidth": 112,
+    "frameHeight": 168,
+    "directions": [
+      "sw",
+      "nw",
+      "ne",
+      "se"
+    ],
+    "rigId": "C3BR_Humanoid_Approved_v3",
+    "nativeScale": 0.72
+  },
+  {
+    "assetId": "char_customer_01",
+    "short": "customer_01",
+    "role": "customer",
+    "animations": {
+      "idle": 4,
+      "walk": 8,
+      "turn": 6,
+      "pickup": 6,
+      "place": 6,
+      "sit_down": 6,
+      "seated_idle": 4,
+      "wait_food": 4,
+      "eat": 8,
+      "drink": 8,
+      "react_happy": 6,
+      "react_impatient": 6,
+      "stand_up": 6
+    },
+    "frameWidth": 112,
+    "frameHeight": 168,
+    "directions": [
+      "sw",
+      "nw",
+      "ne",
+      "se"
+    ],
+    "rigId": "C3BR_Humanoid_Approved_v3",
+    "nativeScale": 0.72
+  },
+  {
+    "assetId": "char_customer_02",
+    "short": "customer_02",
+    "role": "customer",
+    "animations": {
+      "idle": 4,
+      "walk": 8,
+      "turn": 6,
+      "pickup": 6,
+      "place": 6,
+      "sit_down": 6,
+      "seated_idle": 4,
+      "wait_food": 4,
+      "eat": 8,
+      "drink": 8,
+      "react_happy": 6,
+      "react_impatient": 6,
+      "stand_up": 6
+    },
+    "frameWidth": 112,
+    "frameHeight": 168,
+    "directions": [
+      "sw",
+      "nw",
+      "ne",
+      "se"
+    ],
+    "rigId": "C3BR_Humanoid_Approved_v3",
+    "nativeScale": 0.72
+  },
+  {
+    "assetId": "char_customer_03",
+    "short": "customer_03",
+    "role": "customer",
+    "animations": {
+      "idle": 4,
+      "walk": 8,
+      "turn": 6,
+      "pickup": 6,
+      "place": 6,
+      "sit_down": 6,
+      "seated_idle": 4,
+      "wait_food": 4,
+      "eat": 8,
+      "drink": 8,
+      "react_happy": 6,
+      "react_impatient": 6,
+      "stand_up": 6
+    },
+    "frameWidth": 112,
+    "frameHeight": 168,
+    "directions": [
+      "sw",
+      "nw",
+      "ne",
+      "se"
+    ],
+    "rigId": "C3BR_Humanoid_Approved_v3",
+    "nativeScale": 0.72
+  },
+  {
+    "assetId": "char_customer_04",
+    "short": "customer_04",
+    "role": "customer",
+    "animations": {
+      "idle": 4,
+      "walk": 8,
+      "turn": 6,
+      "pickup": 6,
+      "place": 6,
+      "sit_down": 6,
+      "seated_idle": 4,
+      "wait_food": 4,
+      "eat": 8,
+      "drink": 8,
+      "react_happy": 6,
+      "react_impatient": 6,
+      "stand_up": 6
+    },
+    "frameWidth": 112,
+    "frameHeight": 168,
+    "directions": [
+      "sw",
+      "nw",
+      "ne",
+      "se"
+    ],
+    "rigId": "C3BR_Humanoid_Approved_v3",
+    "nativeScale": 0.72
+  },
+  {
+    "assetId": "char_customer_05",
+    "short": "customer_05",
+    "role": "customer",
+    "animations": {
+      "idle": 4,
+      "walk": 8,
+      "turn": 6,
+      "pickup": 6,
+      "place": 6,
+      "sit_down": 6,
+      "seated_idle": 4,
+      "wait_food": 4,
+      "eat": 8,
+      "drink": 8,
+      "react_happy": 6,
+      "react_impatient": 6,
+      "stand_up": 6
+    },
+    "frameWidth": 112,
+    "frameHeight": 168,
+    "directions": [
+      "sw",
+      "nw",
+      "ne",
+      "se"
+    ],
+    "rigId": "C3BR_Humanoid_Approved_v3",
+    "nativeScale": 0.72
+  },
+  {
+    "assetId": "char_customer_06",
+    "short": "customer_06",
+    "role": "customer",
+    "animations": {
+      "idle": 4,
+      "walk": 8,
+      "turn": 6,
+      "pickup": 6,
+      "place": 6,
+      "sit_down": 6,
+      "seated_idle": 4,
+      "wait_food": 4,
+      "eat": 8,
+      "drink": 8,
+      "react_happy": 6,
+      "react_impatient": 6,
+      "stand_up": 6
+    },
+    "frameWidth": 112,
+    "frameHeight": 168,
+    "directions": [
+      "sw",
+      "nw",
+      "ne",
+      "se"
+    ],
+    "rigId": "C3BR_Humanoid_Approved_v3",
+    "nativeScale": 0.72
+  }
+]

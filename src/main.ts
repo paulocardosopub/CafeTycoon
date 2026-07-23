@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 // Sufixo estável e próprio evita colisão de cache entre prévias locais que usam
 // o mesmo caminho virtual `/src/styles.css` no navegador integrado.
-import './styles.css?v=bistro-bloom-006-ui';
+import './styles.css?v=cafe-mania-008-alpha';
 import { showCharacterCreator } from './ui/characterCreator';
 import { GameUI } from './ui/GameUI';
 import { IndexedDbSaveRepository, SAVE_RESET_SESSION_KEY } from './game/save/SaveRepository';
@@ -13,11 +13,12 @@ import { AudioService } from './game/audio/AudioService';
 import { validateRestaurantMap } from './game/map/validateMap';
 import { createInitialConstructionState } from './game/map/initialConstruction';
 import type { GameState, PlacedFurniture } from './core/types';
-import { GAME_VERSION } from './config/balance';
+import { GAME_VERSION, SAVE_SCHEMA_VERSION } from './config/balance';
 import { modulesFromFurniture } from './game/systems/service-counter/ServiceCounterSystem';
 import { reconcileStorage } from './game/inventory/StorageService';
 import { createPurchaseRequest } from './game/inventory/ProcurementService';
 import { createProductionPlan } from './game/cooking/ProductionPlanningService';
+import { createInitialStaffState } from './game/staff/StaffService';
 
 export const CONSTRUCTION_RELOAD_SESSION_KEY = 'bistro-bloom-construction-reload';
 
@@ -28,11 +29,11 @@ async function boot(): Promise<void> {
   root.innerHTML = '<div class="boot-screen"><span>✿</span><strong>Abrindo o Bistrô Bloom…</strong></div>';
   const repository = new IndexedDbSaveRepository();
   const rawState = await repository.load();
-  if (rawState && (rawState.gameVersion !== GAME_VERSION || rawState.schemaVersion < 5)) await repository.backupLegacy(rawState);
+  if (rawState && (rawState.gameVersion !== GAME_VERSION || rawState.schemaVersion < SAVE_SCHEMA_VERSION)) await repository.backupLegacy(rawState);
   const state = migrateAndSanitizeSave(rawState);
   const query = new URLSearchParams(window.location.search);
   let localQa = ['localhost', '127.0.0.1'].includes(window.location.hostname) ? query.get('qa') : null;
-  if (localQa && !['creator', 'four-seat-v005', 'v006', 'spatial-fix'].includes(localQa)) {
+  if (localQa && !['creator', 'four-seat-v005', 'v006', 'spatial-fix', 'tutorial', 'shop'].includes(localQa)) {
     query.delete('qa');
     query.delete('assets');
     const suffix = query.toString();
@@ -45,6 +46,7 @@ async function boot(): Promise<void> {
   if (localQa === 'four-seat-v005') applyFourSeatQaState(state);
   if (localQa === 'v006') applyV006QaState(state);
   if (localQa === 'spatial-fix') applySpatialFixQaState(state);
+  if (localQa === 'tutorial' || localQa === 'shop') applyTutorialQaState(state);
 
   if (!state.profile) {
     state.profile = await showCharacterCreator(root);
@@ -54,7 +56,9 @@ async function boot(): Promise<void> {
   }
 
   const offlineReport = calculateOfflineProgress(state, Date.now());
-  if (!localQa) await repository.save(state);
+  // A tela principal não precisa aguardar uma segunda gravação do mesmo save.
+  // Persistimos em paralelo para remover a pausa longa do primeiro acesso.
+  if (!localQa) void repository.save(state);
   const simulation = new RestaurantSimulation(state);
   if (['localhost', '127.0.0.1'].includes(window.location.hostname)) {
     (window as unknown as { __BISTRO_DEBUG__: { simulation: RestaurantSimulation; state: GameState } }).__BISTRO_DEBUG__ = { simulation, state };
@@ -67,6 +71,14 @@ async function boot(): Promise<void> {
   const audio = new AudioService();
   audio.load();
   const ui = new GameUI(root, state, simulation, repository, audio);
+  if (localQa === 'tutorial' && query.get('show') === '1') window.setTimeout(() => root.querySelector<HTMLElement>('[data-action="tutorial-show"]')?.click(), 80);
+  if (localQa === 'shop') window.setTimeout(() => {
+    root.querySelector<HTMLElement>('[data-action="open-construction"][data-mode="shop"]')?.click();
+    if (query.get('confirm') === '1' || query.get('complete') === '1') window.setTimeout(() => {
+      root.querySelector<HTMLElement>('[data-editor-action="purchase"]:not([disabled])')?.click();
+      if (query.get('complete') === '1') window.setTimeout(() => root.querySelector<HTMLElement>('[data-editor-action="confirm-purchase"]')?.click(), 80);
+    }, 80);
+  }, 50);
   if (['localhost', '127.0.0.1'].includes(window.location.hostname)) {
     const probe = document.createElement('output');
     probe.id = 'simulation-debug-probe';
@@ -115,6 +127,26 @@ async function boot(): Promise<void> {
     }
   });
   window.addEventListener('beforeunload', () => { window.clearInterval(autosave); saveActiveState(); });
+}
+
+function applyTutorialQaState(state: GameState): void {
+  state.construction = createInitialConstructionState();
+  state.operation = undefined;
+  state.coins = 1200;
+  state.restaurantLevel = 1;
+  state.restaurantXp = 0;
+  state.restaurantOpen = false;
+  for (const id of Object.keys(state.readyDishes) as (keyof typeof state.readyDishes)[]) state.readyDishes[id] = 0;
+  state.staff = createInitialStaffState(state, Date.now());
+  state.tutorial008 = { started:true, mandatory:true, minimized:false, currentStep:0, completedSteps:[], availableChapters:['level-1-first-service'], deferredChapters:[], completedChapters:[], rewardsReceived:[], highlightsShown:[] };
+  const qaQuery = new URLSearchParams(window.location.search);
+  if (qaQuery.get('step') === '2') { state.tutorial008.completedSteps = ['welcome']; state.tutorial008.currentStep = 1; }
+  if (qaQuery.get('qa') === 'shop' || qaQuery.get('nomodal') === '1') { state.progression.pendingLevels = []; state.progression.retroactiveSummaryPending = false; }
+  state.profile = {
+    id:state.playerId,name:'Jogador',appearance:{presentation:'masculina',skin:'honey',hairStyle:'short',hairColor:'espresso',face:'soft',outfit:'casual',outfitColor:'green'},level:1,xp:0,helpRole:'kitchen',
+    professions:{cook:{xp:0,level:1,tasksCompleted:0},waiter:{xp:0,level:1,tasksCompleted:0},cleaner:{xp:0,level:1,tasksCompleted:0},stocker:{xp:0,level:1,tasksCompleted:0}},
+    taskHistory:{take_order:0,cook_step:0,deliver:0,payment:0,clean:0,stock_support:0,restock_purchase:0,production_batch:0},
+  };
 }
 
 function applyFourSeatQaState(state: GameState): void {

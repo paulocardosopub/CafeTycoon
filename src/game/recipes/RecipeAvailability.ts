@@ -17,6 +17,14 @@ const FALLBACK_STATION_NAMES: Partial<Record<StationId, string>> = {
   cauldron: 'Caldeira',
 };
 
+export const STATION_FUNCTION_ALIASES: Partial<Record<StationId, StationId>> = {
+  fryer: 'grill', cold_prep: 'prep', beverage: 'coffee_machine', wok: 'stove', smoker: 'grill', pastry: 'prep',
+};
+
+export function compatibleStationFunction(stationId: StationId): StationId {
+  return STATION_FUNCTION_ALIASES[stationId] ?? stationId;
+}
+
 export function recipeRequirements(state: Pick<GameState, 'restaurantLevel' | 'construction'>, recipe: RecipeDefinition): RecipeRequirementStatus[] {
   const installedFunctions = new Set(state.construction.placedFurniture.map((item) => FURNITURE_BY_ID[item.definitionId]?.functionId));
   const stationIds = [...new Set(recipe.steps.map((step) => step.stationId))];
@@ -25,7 +33,7 @@ export function recipeRequirements(state: Pick<GameState, 'restaurantLevel' | 'c
     ...stationIds.map((stationId) => ({
       id: `station:${stationId}`,
       label: stationName(stationId),
-      satisfied: installedFunctions.has(stationId),
+      satisfied: installedFunctions.has(compatibleStationFunction(stationId)),
     })),
   ];
 }

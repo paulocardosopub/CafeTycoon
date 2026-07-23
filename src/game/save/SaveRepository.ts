@@ -14,13 +14,16 @@ const BACKUP_KEY = 'backup-before-spatial-schema-5';
 export const SAVE_RESET_SESSION_KEY = 'bistro-bloom-reset-in-progress';
 
 export class IndexedDbSaveRepository implements SaveRepository {
+  private databasePromise?: Promise<IDBDatabase>;
+
   private async database(): Promise<IDBDatabase> {
-    return new Promise((resolve, reject) => {
+    this.databasePromise ??= new Promise((resolve, reject) => {
       const request = indexedDB.open(DB_NAME, 1);
       request.onupgradeneeded = () => request.result.createObjectStore(STORE);
       request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error);
+      request.onerror = () => { this.databasePromise = undefined; reject(request.error); };
     });
+    return this.databasePromise;
   }
 
   async load(): Promise<GameState | null> {

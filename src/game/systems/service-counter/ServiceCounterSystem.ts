@@ -2,7 +2,7 @@ import type { Direction, PlacedFurniture, RecipeId, ServiceCounterConnection, Se
 import { FURNITURE_BY_ID } from '../../data/furniture/catalog';
 import { resolvedWorkSlots } from '../furniture/FurniturePlacement';
 
-export const COUNTER_CAPACITY_BY_LEVEL = [0, 24, 48, 96, 999] as const;
+export const COUNTER_CAPACITY_BY_LEVEL = [0, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER] as const;
 
 export function isServiceCounter(item: PlacedFurniture): boolean {
   return ['C1', 'C2', 'C3', 'C4'].includes(FURNITURE_BY_ID[item.definitionId]?.code ?? '');
@@ -16,7 +16,7 @@ export function modulesFromFurniture(furniture: readonly PlacedFurniture[], prev
     return {
       id: item.id, gridX: item.gridX, gridY: item.gridY, orientation: item.orientation,
       assignedRecipeId: old?.assignedRecipeId,
-      currentQuantity: Math.max(0, Math.min(999, Math.floor(old?.currentQuantity ?? 0))),
+      currentQuantity: Math.max(0, Math.floor(old?.currentQuantity ?? 0)),
       reservedQuantity: Math.max(0, Math.floor(old?.reservedQuantity ?? 0)),
       incomingReservedQuantity: Math.max(0, Math.floor(old?.incomingReservedQuantity ?? 0)),
       maxCapacity: COUNTER_CAPACITY_BY_LEVEL[Math.min(4, Math.max(1, item.level))],
@@ -59,7 +59,7 @@ export class ServiceCounterStore {
   deposit(recipeId: RecipeId, quantity: number): number {
     let remaining = Math.max(0, Math.floor(quantity));
     for (const module of this.modules.filter((item) => item.assignedRecipeId === recipeId)) {
-      const accepted = Math.min(remaining, module.maxCapacity - module.currentQuantity);
+      const accepted = remaining;
       module.currentQuantity += accepted; remaining -= accepted;
       if (!remaining) break;
     }

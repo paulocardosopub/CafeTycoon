@@ -7,14 +7,25 @@ export interface StaffStartValidation { valid: boolean; reason?: string }
 
 const STAFF_FURNITURE: Partial<Record<StaffRole, { label: string; matches: (item: PlacedFurniture) => boolean }>> = {
   waiter: { label: 'balcão de serviço', matches: (item) => FURNITURE_BY_ID[item.definitionId]?.functionId === 'pickup' },
+  cleaner: { label: 'pia', matches: (item) => FURNITURE_BY_ID[item.definitionId]?.functionId === 'sink' },
   stocker: { label: 'despensa', matches: (item) => item.definitionId === 'storage.c5.pantry' },
-  cook: { label: 'fogão', matches: (item) => FURNITURE_BY_ID[item.definitionId]?.functionId === 'stove' },
+  cook: { label: 'estação de cozinha compatível', matches: (item) => ['coffee_machine','oven','cauldron','stove','grill','assembly'].includes(FURNITURE_BY_ID[item.definitionId]?.functionId ?? '') },
 };
 
-export function staffFurnitureRequirement(role: StaffRole): string | undefined { return STAFF_FURNITURE[role]?.label; }
+function staffRequirement(role: StaffRole, staffDefinitionId?: string): { label: string; matches: (item: PlacedFurniture) => boolean } | undefined {
+  const staff = staffDefinitionId ? STAFF_BY_ID[staffDefinitionId] : undefined;
+  if (role === 'cook' && staff?.compatibleStationId) {
+    const functionId = ({ coffee_machine: 'coffee_machine', oven: 'oven', cauldron: 'cauldron', stove: 'stove', grill: 'grill', fryer: 'grill', prep: 'assembly' } as Record<string,string>)[staff.compatibleStationId] ?? staff.compatibleStationId;
+    const label = ({ coffee_machine: 'Cafeteira', oven: 'Forno', cauldron: 'Sopeira', stove: 'Fogão', grill: 'Chapa', assembly: 'Bancada de preparo' } as Record<string,string>)[functionId] ?? 'estação compatível';
+    return { label, matches: (item) => FURNITURE_BY_ID[item.definitionId]?.functionId === functionId };
+  }
+  return STAFF_FURNITURE[role];
+}
 
-export function availableStaffFurniture(role: StaffRole, furniture: readonly PlacedFurniture[], starts: readonly StaffStartPosition[]): PlacedFurniture | undefined {
-  const requirement = STAFF_FURNITURE[role];
+export function staffFurnitureRequirement(role: StaffRole, staffDefinitionId?: string): string | undefined { return staffRequirement(role, staffDefinitionId)?.label; }
+
+export function availableStaffFurniture(role: StaffRole, furniture: readonly PlacedFurniture[], starts: readonly StaffStartPosition[], staffDefinitionId?: string): PlacedFurniture | undefined {
+  const requirement = staffRequirement(role, staffDefinitionId);
   if (!requirement) return undefined;
   const used = new Set(starts.map((start) => start.linkedFurnitureId).filter(Boolean));
   return furniture.find((item) => requirement.matches(item) && !used.has(item.id));
@@ -53,7 +64,7 @@ export function validateStaffStartPosition(
     const definition = STAFF_BY_ID[position.staffId] ?? STAFF_CATALOG.find((candidate) => candidate.actorId === position.staffId);
     if (!linked || !definition) return { valid: false, reason: 'Móvel vinculado ao funcionário não está instalado.' };
     const expected = linkedStaffStart(position.staffId, definition.role, linked);
-    if (expected.gridX !== point.x || expected.gridY !== point.y) return { valid: false, reason: `A posição deve permanecer diante do ${staffFurnitureRequirement(definition.role) ?? 'móvel vinculado'}.` };
+    if (expected.gridX !== point.x || expected.gridY !== point.y) return { valid: false, reason: `A posição deve permanecer diante do ${staffFurnitureRequirement(definition.role, definition.id) ?? 'móvel vinculado'}.` };
   }
   const blocked = new Set(furniture.flatMap((item) => occupiedCells(item)).map(key));
   if (blocked.has(key(point))) return { valid: false, reason: 'Posição dentro de um móvel.' };

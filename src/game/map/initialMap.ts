@@ -39,16 +39,16 @@ const chairServicePoint = (chair: GridPoint, table: GridPoint): GridPoint => {
   return { x: chair.x - dy, y: chair.y + dx };
 };
 
-function createChair(tableId: string, suffix: string, position: GridPoint, tablePosition: GridPoint, approach: GridPoint, skinIndex: number): ChairRuntime {
+function createChair(tableId: string, suffix: string, position: GridPoint, tablePosition: GridPoint, approach: GridPoint, _skinIndex: number): ChairRuntime {
   const id = `${tableId}-chair-${suffix}`;
-  const visualSkinId = (['chair-wood', 'chair-upholstered', 'chair-bistro'] as const)[skinIndex % 3];
+  const visualSkinId = 'chair-wood' as const;
   const assetStem = visualSkinId.replace('chair-', 'chair_');
   const visualPosition = { ...position };
   return {
     id, seatId: `${tableId}-seat-${suffix}`, chairId: id, tableId, position, visualPosition, approach, sitPoint: { ...position },
     seatAnchor: { ...visualPosition }, footprint: { width: 1, depth: 1 }, depthOffset: 0, visualSkinId,
     layerAssetIds: { back: `${assetStem}_back`, front: `${assetStem}_front` },
-    servicePoint: chairServicePoint(position, tablePosition), platePosition: { ...position }, dirtPosition: { ...position },
+    servicePoint: chairServicePoint(position, tablePosition), platePosition: { ...tablePosition }, dirtPosition: { ...tablePosition },
     state: 'free', orientation: seatFacingTowardTable(position, tablePosition), enabled: true, accessible: true,
   };
 }
@@ -133,9 +133,11 @@ export function createInitialGrid(tables = createTables(), stations = createStat
   const grid = new RestaurantGrid(Math.max(34, builtMaxX + 6), Math.max(38, builtMaxY + 2));
   const built = (x: number, y: number) => construction.builtAreas.some((area) => x >= area.x && y >= area.y && x < area.x + area.width && y < area.y + area.depth);
   for (let y = 0; y < grid.height; y += 1) for (let x = 0; x < grid.width; x += 1) {
-    if (!built(x, y)) continue;
-    const boundary = !built(x - 1, y) || !built(x + 1, y) || !built(x, y - 1) || !built(x, y + 1);
-    if (boundary && !(x === ENTRANCE.x && y === ENTRANCE.y) && !(x === EXIT.x && y === EXIT.y)) grid.set({ x, y }, { kind: 'wall', walkable: false });
+    if (built(x, y)) continue;
+    // A parede vive na aresta externa do losango, não ocupa o próprio tile.
+    // Mantemos somente o corredor externo de chegada transitável.
+    const streetAccess = x >= 1 && x <= 17 && y >= RESTAURANT_SIZE.height && y <= 21;
+    if (!streetAccess) grid.set({ x, y }, { kind: 'outside', walkable: false });
   }
   grid.set(ENTRANCE, { kind: 'entrance', walkable: true });
   grid.set(EXIT, { kind: 'exit', walkable: true });
@@ -169,13 +171,13 @@ function createPlacedChair(tableItem: PlacedFurniture, chairItem: PlacedFurnitur
   // Old saves may contain a stale facing. Seating direction is always derived
   // from the current chair/table geometry so rotations and moves stay correct.
   const orientation = seatFacingTowardTable(position, tablePosition);
-  const visualSkinId = (['chair-wood', 'chair-upholstered', 'chair-bistro'].includes(chairItem.skinId) ? chairItem.skinId : 'chair-wood') as ChairRuntime['visualSkinId'];
+  const visualSkinId = 'chair-wood' as ChairRuntime['visualSkinId'];
   const assetStem = visualSkinId.replace('chair-', 'chair_');
   return {
     id: chairItem.id, seatId: `${chairItem.id}:seat`, chairId: chairItem.id, tableId: tableItem.id, position, visualPosition, approach,
     sitPoint: position, seatAnchor: visualPosition, footprint: { width: 1, depth: 1 }, depthOffset: index * .001, visualSkinId,
     layerAssetIds: { back: `${assetStem}_back`, front: `${assetStem}_front` }, servicePoint: chairServicePoint(position, tablePosition), platePosition: tablePosition,
-    dirtPosition: position, state: 'free', orientation, enabled: true, accessible: true,
+    dirtPosition: tablePosition, state: 'free', orientation, enabled: true, accessible: true,
   };
 }
 

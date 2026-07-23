@@ -16,7 +16,7 @@ import { gridToWorld, getFootprintFloorAnchorWorld } from '../game/grid/SpatialL
 
 const projectRoot = resolve(import.meta.dirname, '../..');
 
-function counter(recipeId: 'coffee' | 'omelette' | 'burger' | 'soup', quantity: number): ServiceCounterModule {
+function counter(recipeId: string, quantity: number): ServiceCounterModule {
   return {
     id: `counter-${recipeId}`, gridX: 0, gridY: 0, orientation: 'se', assignedRecipeId: recipeId,
     currentQuantity: quantity, reservedQuantity: 0, incomingReservedQuantity: 0, maxCapacity: 24,
@@ -37,7 +37,7 @@ describe('pratos definitivos low-poly 0.0.7', () => {
     expect(FOOD_DISPLAY_SCALE).toBe(.5);
     for (const asset of STAGE_2D_FOOD_ASSETS) {
       expect(asset.frameSize).toEqual([96, 96]);
-      expect(asset.frameCount).toBe(1);
+      expect(asset.frameCount).toBe(asset.assetId.startsWith('food_v008_') ? 4 : 1);
       expect(asset.orientations).toEqual(['ne', 'nw', 'se', 'sw']);
       expect(asset.nativeScale).toBe(FOOD_DISPLAY_SCALE);
       const file = resolve(projectRoot, 'public', asset.spriteSheet.slice(1));
@@ -53,12 +53,12 @@ describe('pratos definitivos low-poly 0.0.7', () => {
     const modules = RECIPES.map((recipe, index) => counter(recipe.id, index));
     const store = new ServiceCounterStore(modules);
     expect(store.total('coffee')).toBe(0);
-    expect(store.total('omelette')).toBe(1);
-    expect(store.total('burger')).toBe(2);
-    expect(store.total('soup')).toBe(3);
+    expect(store.total('omelette')).toBe(3);
+    expect(store.total('burger')).toBe(9);
+    expect(store.total('soup')).toBe(2);
     expect(store.reserve('burger', 2)).toEqual([{ moduleId: 'counter-burger', quantity: 2 }]);
     expect(store.consume([{ moduleId: 'counter-burger', quantity: 2 }])).toBe(true);
-    expect(store.total('burger')).toBe(0);
+    expect(store.total('burger')).toBe(7);
   });
 
   it('usa a mesma identidade no balcão, transporte, mesa e louça suja', () => {

@@ -177,9 +177,9 @@ export type StaffRole = ProfessionId;
 export type StaffState = 'idle' | 'movingToTask' | 'working' | 'carrying' | 'waitingForWorkSlot' |
   'waitingForResource' | 'waitingForCounterSpace' | 'resting' | 'offShift' | 'blocked' | 'recovering' | 'training';
 export type StorageType = 'dry' | 'refrigerated' | 'frozen' | 'general';
-export type IngredientId = 'bread' | 'beef' | 'cheese' | 'egg' | 'tomato' | 'coffee' | 'water' | 'vegetables' | 'seasoning';
-export type RecipeId = 'coffee' | 'omelette' | 'burger' | 'soup';
-export type StationId = 'prep' | 'stove' | 'grill' | 'cauldron' | 'coffee_machine' | 'assembly' | 'pickup' | 'fridge' | 'oven' | 'sink' | 'storage' | `${string}:${string}`;
+export type IngredientId = string;
+export type RecipeId = string;
+export type StationId = string;
 export type TableState = 'free' | 'reserved' | 'occupied' | 'waiting_order' | 'waiting_food' | 'eating' | 'waiting_payment' | 'dirty' | 'cleaning' | 'unavailable';
 export type ChairState = 'free' | 'reserved' | 'approaching' | 'occupied' | 'waiting_order' | 'waiting_food' | 'eating' | 'waiting_payment' | 'dirty' | 'cleaning' | 'blocked' | 'inaccessible';
 export type StationState = 'free' | 'reserved' | 'in_use' | 'waiting_worker' | 'complete' | 'blocked' | 'no_ingredients';
@@ -222,6 +222,10 @@ export interface StaffDefinition {
   hiringCost: number;
   stamina: number;
   traits: string[];
+  specialties: string[];
+  primaryProfession: string;
+  minimumLevel: number;
+  compatibleStationId: string;
   allowedTasks: TaskKind[];
   scheduleId: string;
   startPosition: GridPoint;
@@ -404,6 +408,8 @@ export interface ProductionPlan {
   repeat: boolean;
   currentProgress: number;
   createdAt: number;
+  chargedCost?: number;
+  refundedAt?: number;
 }
 
 export type ProductionTaskState = 'queued' | 'waitingForIngredients' | 'waitingForStorage' | 'waitingForStaff' |
@@ -425,6 +431,9 @@ export interface ProductionTask {
   createdAt: number;
   startedAt?: number;
   completedAt?: number;
+  endsAt?: number;
+  currentStepIndex?: number;
+  completionClaimed?: boolean;
   blockedReason?: string;
 }
 
@@ -471,7 +480,32 @@ export interface RecipeDefinition {
   requiredLevel: number;
   icon: string;
   storageSpace: number;
-  category: 'drink' | 'breakfast' | 'main' | 'soup';
+  category: 'drink' | 'breakfast' | 'main' | 'soup' | 'snack' | 'dessert' | 'premium';
+  aliases: string[];
+  assetId: string;
+  menuOrder: number;
+  durationProfile: 'express' | 'quick' | 'medium' | 'long' | 'overnight' | 'premium' | 'legendary';
+  baseDurationSeconds: number;
+  batchYield: number;
+  batchCost: number;
+  grossRevenue: number;
+  estimatedProfit: number;
+  reputationReward: number;
+  requiredSpecialties: string[];
+  available: boolean;
+}
+
+export interface Tutorial008State {
+  started: boolean;
+  mandatory: boolean;
+  minimized: boolean;
+  currentStep: number;
+  completedSteps: string[];
+  availableChapters: string[];
+  deferredChapters: string[];
+  completedChapters: string[];
+  rewardsReceived: string[];
+  highlightsShown: string[];
 }
 
 export interface StationDefinition {
@@ -617,9 +651,25 @@ export interface ProductionQueueItem {
   progressSeconds: number;
   status: 'queued' | 'producing' | 'blocked_ingredients' | 'blocked_storage';
   ingredientsCommitted: boolean;
+  /** Persisted payment marker. Prevents charging a running batch again after save/load. */
+  costPaid?: boolean;
 }
 
 export interface UpgradeState { inventory: number; dishStorage: number; stationSpeed: number }
+
+export interface ProgressionState {
+  appliedRewardIds: string[];
+  notifiedLevels: number[];
+  confirmedLevels: number[];
+  pendingLevels: number[];
+  unlockedProfessionIds: string[];
+  unlockedCandidateIds: string[];
+  unlockedFurnitureIds: string[];
+  unlockedSystemIds: string[];
+  restaurantStars: number;
+  retroactiveSummaryPending: boolean;
+  retroactiveSummaryLevels: number[];
+}
 
 export interface GameState {
   schemaVersion: number;
@@ -631,12 +681,14 @@ export interface GameState {
   restaurantXp: number;
   restaurantLevel: number;
   reputation: number;
+  restaurantOpen: boolean;
   inventory: Record<IngredientId, number>;
   inventoryReserved: Record<IngredientId, number>;
   readyDishes: Record<RecipeId, number>;
   enabledRecipeIds: RecipeId[];
   productionQueue: ProductionQueueItem[];
   upgrades: UpgradeState;
+  progression: ProgressionState;
   lastActiveAt: number;
   offlineClaimId: string;
   stats: { customersServed: number; customersLost: number; dishesProduced: number; coinsEarned: number };
@@ -647,6 +699,7 @@ export interface GameState {
   procurement: ProcurementState;
   production: ProductionSystemState;
   tutorial006: Tutorial006State;
+  tutorial008: Tutorial008State;
   migration006?: Migration006Report;
   operation?: OperationSaveState;
 }

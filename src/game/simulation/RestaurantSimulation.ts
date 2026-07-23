@@ -27,9 +27,9 @@ import {
 import { completePurchaseRequest, evaluateAutoPurchases, failPurchaseRequest, setPurchaseRequestStage } from '../inventory/ProcurementService';
 import { storageTargetPoint } from '../inventory/StorageService';
 import {
-  completeProductionTask, markProductionTaskStarted, prepareNextProductionTask, refreshMaintainTargetPlans,
+  cancelProductionPlan, completeProductionTask, markProductionTaskStarted, prepareNextProductionTask, refreshMaintainTargetPlans,
 } from '../cooking/ProductionPlanningService';
-import { recipeIsOperational } from '../recipes/RecipeAvailability';
+import { compatibleStationFunction, recipeIsOperational } from '../recipes/RecipeAvailability';
 import { playerSkinAsset } from '../../content/characters/playerSkins';
 import { CUSTOMER_CHARACTER_ASSET_IDS } from '../../assets/pixel/characterVariantManifest';
 
@@ -156,10 +156,14 @@ export class RestaurantSimulation {
   private productionSchedulerCountdown = 0;
 
   constructor(public readonly state: GameState) {
+    this.autoSpawn = state.restaurantOpen;
     this.tables = createTablesFromConstruction(state.construction);
     this.stations = createStations(state.construction);
     this.grid = createInitialGrid(this.tables, this.stations, state.construction);
     this.counterModules = state.construction.serviceCounters;
+    // Prepared dishes stack by recipe. Older saves can still carry the former
+    // per-counter cap, so normalize it without forcing a rebuild or save reset.
+    for (const module of this.counterModules) module.maxCapacity = Number.MAX_SAFE_INTEGER;
     this.counterStore = new ServiceCounterStore(this.counterModules);
     this.counterSlots = this.counterModules.flatMap((module) => Array.from({ length: 8 }, (_, index) => ({
       id: `${module.id}:slot:${index + 1}`, moduleId: module.id, state: 'free' as const, quantity: 0,
@@ -611,7 +615,9 @@ export class RestaurantSimulation {
   }
 
   private createProductionTask(): void {
-    if (this.tasks.list().some((task) => task.kind === 'production_batch')) return;
+    const activeProductionTasks = this.tasks.list().filter((task) => task.kind === 'production_batch' && !['completed', 'cancelled'].includes(task.status)).length;
+    const availableCooks = this.state.staff.instances.filter((instance) => instance.enabled && instance.role === 'cook' && !this.state.staff.training.some((session) => session.staffId === instance.id && session.status === 'active')).length;
+    if (activeProductionTasks >= Math.max(1, availableCooks)) return;
     const prepared = prepareNextProductionTask(this.state, this.stations, this.counterModules, Date.now());
     if (!prepared) return;
     this.tasks.add({
@@ -691,7 +697,12 @@ export class RestaurantSimulation {
     const task = this.tasks.claim(actor.id, roles, actor.preferredTaskId, (candidate) => {
       const station = this.stationFromTask(candidate);
       const allowed = !staff || staff.automationSettings.allowedTasks.includes(candidate.kind);
-      return allowed && (!station || station.state === 'free' || station.queue[0] === candidate.payload.orderId);
+      const productionRecipe = candidate.kind === 'production_batch'
+        ? RECIPE_BY_ID[this.state.production.tasks.find((item) => item.id === candidate.payload.productionTaskId)?.recipeId ?? '']
+        : undefined;
+      const staffSpecialties = staff ? STAFF_BY_ID[staff.definitionId]?.specialties ?? [] : [];
+      const specialtyAllowed = !productionRecipe || !staff || productionRecipe.requiredSpecialties.some((specialty) => staffSpecialties.includes(specialty));
+      return allowed && specialtyAllowed && (!station || station.state === 'free' || station.queue[0] === candidate.payload.orderId);
     });
     actor.preferredTaskId = undefined;
     if (!task) return;
@@ -797,7 +808,7 @@ export class RestaurantSimulation {
       } else gameEvents.emit('toast', { message: result.reason ?? 'Reposição bloqueada.', tone: 'warning' });
     } else if (task.kind === 'production_batch') {
       const completed = completeProductionTask(this.state, String(task.payload.productionTaskId), this.counterModules, Date.now());
-      gameEvents.emit('toast', { message: completed ? 'Lote entregue aos balcões.' : 'Lote aguardando espaço ou ingredientes.', tone: completed ? 'success' : 'warning' });
+      gameEvents.emit('toast', { message: completed ? 'Lote entregue ao balcão ilimitado.' : 'O balcão foi removido; lote devolvido à fila.', tone: completed ? 'success' : 'warning' });
     } else if (task.kind === 'stock_support') {
       actor.carrying = undefined;
       const order = this.orderFor(task.payload.orderId);
@@ -808,9 +819,10 @@ export class RestaurantSimulation {
   private placeOrder(customer: CustomerRuntime, table: TableRuntime, seat: ChairRuntime): void {
     if (customer.orderId) return;
     const enabledRecipes = new Set(this.state.enabledRecipeIds);
-    const available = RECIPES.filter((recipe) => enabledRecipes.has(recipe.id) && recipeIsOperational(this.state, recipe));
+    const available = RECIPES.filter((recipe) => enabledRecipes.has(recipe.id) && recipe.requiredLevel <= this.state.restaurantLevel
+      && (this.state.readyDishes[recipe.id] > 0 || this.counterModules.some((module) => module.assignedRecipeId === recipe.id && module.currentQuantity - module.reservedQuantity > 0)));
     if (!available.length) {
-      gameEvents.emit('toast', { message: 'Nenhuma receita está ligada a uma cozinha e um balcão completos.', tone: 'warning' });
+      gameEvents.emit('toast', { message: 'Nenhum prato pronto disponível. Produza um lote antes de receber novos pedidos.', tone: 'warning' });
       return;
     }
     const recipe = available[(this.customerSequence + this.orders.length) % available.length];
@@ -822,16 +834,7 @@ export class RestaurantSimulation {
     this.orders.push(order); customer.orderId = order.id; seat.orderId = order.id; seat.state = 'waiting_food'; this.setCustomerState(customer, 'waiting_food'); this.refreshTableState(table);
     if (this.placePreparedCounterDish(order)) return;
     if (this.state.readyDishes[recipe.id] > 0 && this.placeReadyDishOnCounter(order)) return;
-    const reservation = reserveRecipe(this.state, recipe, 1);
-    if (!reservation) {
-      order.state = 'awaiting_ingredients';
-      const firstStation = this.stationForStep(recipe.steps[0].stationId, recipe.id);
-      if (firstStation) firstStation.state = 'no_ingredients';
-      const issue = this.ingredientAvailabilityIssue(order);
-      gameEvents.emit('toast', { message: `${issue.message} · pedido mantido na fila.`, tone: issue.physicallyMissing ? 'warning' : 'info' });
-      return;
-    }
-    order.ingredientReservation = reservation; order.ingredientsState = 'reserved'; order.state = 'awaiting_station'; this.createCookStep(order);
+    order.state = 'cancelled'; customer.orderId = undefined; seat.orderId = undefined; seat.state = 'waiting_order'; this.setCustomerState(customer, 'waiting_order');
   }
 
   private placeReadyDishOnCounter(order: OrderRuntime): boolean {
@@ -1100,6 +1103,23 @@ export class RestaurantSimulation {
     gameEvents.emit('simulation:update', undefined);
   }
   debugSetAutoSpawn(enabled: boolean): void { this.autoSpawn = enabled; }
+  setRestaurantOpen(open: boolean): void {
+    this.state.restaurantOpen = open;
+    this.autoSpawn = open;
+    // O primeiro cliente deve aparecer quase imediatamente; o tutorial não
+    // pode parecer travado esperando o intervalo normal de lotação.
+    if (open && this.activeCustomerCount() === 0) this.spawnCountdown = Math.min(this.spawnCountdown, .35);
+  }
+  cancelProduction(planId: string): boolean {
+    const cancelled = cancelProductionPlan(this.state, planId, this.counterModules, Date.now());
+    if (!cancelled) return false;
+    const runtimeTasks = this.tasks.cancelWhere((task) => task.kind === 'production_batch' && task.payload.productionPlanId === planId, 'Produção cancelada pelo jogador.');
+    for (const task of runtimeTasks) {
+      for (const actor of this.actors.filter((entry) => entry.taskId === task.id)) this.clearActorTask(actor);
+      this.releaseTaskStation(task);
+    }
+    return true;
+  }
   debugBeginDeparture(customer: CustomerRuntime, gaveUp = false): void { if (gaveUp) this.customerGivesUp(customer); else this.beginDeparture(customer, false); }
 
   syncStaffRoster(): void {
@@ -1440,7 +1460,8 @@ export class RestaurantSimulation {
       const module = moduleId ? this.counterModules.find((item) => item.id === moduleId) : this.counterModules.find((item) => item.assignedRecipeId === recipeId);
       return module ? this.stationForCounterModule(module.id) : this.stations.find((item) => item.id === 'pickup' || item.id.startsWith('pickup:'));
     }
-    return this.stations.find((item) => item.id === stationId || item.id.startsWith(`${stationId}:`));
+    const compatible = compatibleStationFunction(stationId);
+    return this.stations.find((item) => item.id === compatible || item.id.startsWith(`${compatible}:`));
   }
   private stationForCounterModule(moduleId: string): StationRuntime | undefined {
     const module = this.counterModules.find((item) => item.id === moduleId);

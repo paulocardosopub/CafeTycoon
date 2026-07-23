@@ -58,8 +58,13 @@ interface TableVisual {
 
 const ZOOM_LEVELS = VISUAL_METRICS.zoomLevels;
 const SEATED_STATES = ['sitting', 'waiting_order', 'waiting_food', 'eating', 'paying'];
+const REMOVED_DINING_SKINS = new Set([
+  'chair', 'chair_bistro', 'chair_bistro_back', 'chair_bistro_front',
+  'chair_upholstered', 'chair_upholstered_back', 'chair_upholstered_front',
+  'table_four', 'table_four_green', 'table_two_green',
+]);
 const RENDERED_ASSETS = [
-  ...BLENDER_RENDERED_ASSETS.filter((asset) => asset.kind !== 'character' && !STAGE_2B_RENDERED_ASSET_IDS.has(asset.assetId)),
+  ...BLENDER_RENDERED_ASSETS.filter((asset) => asset.kind !== 'character' && !STAGE_2B_RENDERED_ASSET_IDS.has(asset.assetId) && !REMOVED_DINING_SKINS.has(asset.assetId)),
   ...STAGE_2C_CHARACTER_ASSETS,
   ...C3_BR_VARIANT_ASSETS,
   ...STAGE_2B_FURNITURE_ASSETS,
@@ -421,7 +426,7 @@ export class RestaurantScene extends Phaser.Scene {
   }
 
   private drawTable(table: TableRuntime): void {
-    const tableAssetId = `${table.maxCustomers === 2 ? 'table_two' : 'table_four'}${this.visualSkinSet === 'sage' ? '_green' : ''}`;
+    const tableAssetId = 'table_two';
     const tableImage = this.addWorldAsset('table', table.position, 30, table.orientation, tableAssetId, FURNITURE_BY_ID['dining.table.basic'].visualScale, { width: 1, depth: 1 }).setInteractive({ useHandCursor: true });
     tableImage.on('pointerdown', (_pointer: Phaser.Input.Pointer, _x: number, _y: number, event: Phaser.Types.Input.EventData) => {
       event.stopPropagation();
@@ -430,13 +435,13 @@ export class RestaurantScene extends Phaser.Scene {
     });
     const chairBacks = table.chairs.map((chair) => this.addWorldAsset(
       `chair_${chair.orientation}`, chair.visualPosition, VISUAL_METRICS.depth.chairBack + chair.depthOffset, chair.orientation,
-      this.visualSkinSet === 'sage' ? 'chair_upholstered_back' : chair.layerAssetIds.back,
+      chair.layerAssetIds.back,
       FURNITURE_BY_ID['dining.chair.basic'].visualScale,
       { width: 1, depth: 1 },
     ));
     const chairFronts = table.chairs.map((chair) => this.addWorldAsset(
       `chair_${chair.orientation}`, chair.visualPosition, VISUAL_METRICS.depth.chairFront + chair.depthOffset, chair.orientation,
-      this.visualSkinSet === 'sage' ? 'chair_upholstered_front' : chair.layerAssetIds.front,
+      chair.layerAssetIds.front,
       FURNITURE_BY_ID['dining.chair.basic'].visualScale,
       { width: 1, depth: 1 },
     ));
@@ -552,9 +557,11 @@ export class RestaurantScene extends Phaser.Scene {
     const expectedFacing = actor.path[0] ? directionBetween(actor.visual, actor.path[0], actor.direction) : actor.direction;
     const nextVector = actor.path[0] ? { x: actor.path[0].x - actor.visual.x, y: actor.path[0].y - actor.visual.y } : { x: 0, y: 0 };
     const diagnostic = `${actor.name} · ${actor.kind}${staff ? ` · ${staff.currentState}` : ''}\ngrid ${actor.position.x},${actor.position.y} · visual ${actor.visual.x.toFixed(2)},${actor.visual.y.toFixed(2)}\nface ${actor.direction} · esperado ${expectedFacing} · vetor ${nextVector.x.toFixed(1)},${nextVector.y.toFixed(1)}\n${task ? `${task.kind} P${task.priority} · ${task.status}` : actor.activity}\n${reservations}\nrota ${actor.pathStatus} · sem progresso ${actor.blockedSeconds.toFixed(1)}s · tentativas ${actor.retryCount}`;
+    const productionCountdown = task?.kind === 'production_batch' && task.status === 'executing' && actor.taskRemaining > 0
+      ? `⏱ ${formatCountdown(actor.taskRemaining)}` : '';
     visual.bubble.setPosition(Math.round(point.x), Math.round(point.y - characterUiOffset(variant))).setDepth(isoDepth(actor.visual, VISUAL_METRICS.depth.status))
-      .setText(this.technicalMode ? diagnostic : '')
-      .setVisible(this.technicalMode);
+      .setText(this.technicalMode ? diagnostic : productionCountdown)
+      .setVisible(this.technicalMode || Boolean(productionCountdown));
   }
 
   private syncCustomer(customer: CustomerRuntime): void {
@@ -654,7 +661,7 @@ export class RestaurantScene extends Phaser.Scene {
     const counter = isServiceCounter
       ? this.simulation.counterModules.find((module) => module.gridX === station.position.x && module.gridY === station.position.y)
       : undefined;
-    visual.label.setText(this.technicalMode ? (station.state === 'no_ingredients' ? `${station.name} · sem ingredientes` : station.currentStep ?? station.name) : '')
+    visual.label.setText(this.technicalMode ? (station.state === 'no_ingredients' ? `${station.name} · aguardando produção` : station.currentStep ?? station.name) : '')
       .setVisible(this.technicalMode && (station.state !== 'free' || Boolean(station.currentStep)));
     const active = station.state === 'in_use';
     const effect = station.id === 'stove' || station.id === 'grill' ? 'flame' : station.id === 'oven' ? 'oven-glow' : station.id === 'cauldron' ? 'bubble' : 'steam';
@@ -763,7 +770,7 @@ export class RestaurantScene extends Phaser.Scene {
 
 
 const WORLD_BLENDER_ASSET: Partial<Record<WorldAssetId, string>> = {
-  table: 'table_four',
+  table: 'table_two',
   chair_ne: 'chair_wood_front', chair_nw: 'chair_wood_front', chair_se: 'chair_wood_front', chair_sw: 'chair_wood_front',
   prep: 'preparation_level_1',
   stove: 'stove_level_1',
@@ -899,11 +906,22 @@ function worldRenderedFrame(direction: Direction, stateFrame: number, assetId: s
   const asset = blenderAsset(assetId);
   if (!asset) return 0;
   const directionIndex = renderedDirectionRow(direction, asset);
+  if (asset.category.startsWith('food/')) return directionIndex;
   return directionIndex * asset.frameCount + Phaser.Math.Clamp(stateFrame, 0, Math.max(0, asset.frameCount - 1));
 }
 
 function isDevelopmentHost(): boolean {
   return typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname);
+}
+
+function formatCountdown(seconds: number): string {
+  const whole = Math.max(0, Math.ceil(seconds));
+  const hours = Math.floor(whole / 3600);
+  const minutes = Math.floor((whole % 3600) / 60);
+  const remainingSeconds = whole % 60;
+  return hours ? `${hours}h ${String(minutes).padStart(2, '0')}m`
+    : minutes ? `${minutes}m ${String(remainingSeconds).padStart(2, '0')}s`
+      : `${remainingSeconds}s`;
 }
 
 function activeVisualSkinSet(): 'bloom' | 'sage' {

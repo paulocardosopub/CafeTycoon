@@ -1,8 +1,9 @@
-export const GAME_VERSION = '0.0.7';
-export const SAVE_SCHEMA_VERSION = 5;
+export const GAME_VERSION = '0.0.8';
+export const SAVE_SCHEMA_VERSION = 6;
 
 export const BALANCE = {
-  startingCoins: 260,
+  // Covers the complete level-one setup, the first Barista and two extra coffee batches.
+  startingCoins: 1200,
   startingReputation: 60,
   readyDishCapacity: 10,
   inventoryCapacity: 110,
@@ -25,7 +26,7 @@ export const BALANCE = {
     reservationTimeoutSeconds: 20,
   },
   staff: {
-    initialLimit: 6,
+    initialLimit: 10,
     candidateRefreshSeconds: 24 * 60 * 60,
     payrollIntervalSeconds: 60 * 60,
     payrollWarningSeconds: 10 * 60,
@@ -54,9 +55,9 @@ export const BALANCE = {
     historyLimit: 100,
   },
   production: {
-    maximumQuantity: 999,
-    defaultBatchSize: 10,
-    maximumBatchSize: 50,
+    maximumQuantity: 180,
+    defaultBatchSize: 1,
+    maximumBatchSize: 180,
     queueHistoryLimit: 240,
     schedulerIntervalSeconds: 0.5,
   },
@@ -64,7 +65,7 @@ export const BALANCE = {
     maxSeconds: 8 * 60 * 60,
     saleIntervalSeconds: 150,
   },
-  restaurantLevels: [0, 80, 220],
+  restaurantLevels: Array.from({ length: 100 }, (_, index) => index === 0 ? 0 : Math.round(52 * Math.pow(index, 1.72))),
   playerLevels: [0, 40, 120],
   professionLevels: [0, 25, 80],
   professionSpeedPerLevel: 0.08,
@@ -76,5 +77,5 @@ export const BALANCE = {
 } as const;
 
 export function levelFromXp(xp: number, thresholds: readonly number[]): number {
-  return Math.min(3, 1 + thresholds.slice(1).filter((threshold) => xp >= threshold).length);
+  return Math.min(thresholds.length, 1 + thresholds.slice(1).filter((threshold) => xp >= threshold).length);
 }

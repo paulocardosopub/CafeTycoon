@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "C:\Users\paulo\OneDrive\Área de Trabalho\Projetos\CafeTycoon\work\blender\c3_br_stage_2c\create_shared_rig_library.py", line 571, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\paulo\OneDrive\Área de Trabalho\Projetos\CafeTycoon\work\blender\c3_br_stage_2c\create_shared_rig_library.py", line 540, in main
+    thumbs, manifest = render_sheets(scene, owners, rigs, props, actions)
+                       ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\paulo\OneDrive\Área de Trabalho\Projetos\CafeTycoon\work\blender\c3_br_stage_2c\create_shared_rig_library.py", line 437, in render_sheets
+    pixels = render_frame(scene, owners, active, props, rigs[asset_id], clip, frame, angle)
+  File "C:\Users\paulo\OneDrive\Área de Trabalho\Projetos\CafeTycoon\work\blender\c3_br_stage_2c\create_shared_rig_library.py", line 386, in render_frame
+    result.pixels.foreach_get(pixels)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+TypeError: expected sequence size 0, got 75264
