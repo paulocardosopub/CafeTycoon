@@ -59,12 +59,17 @@ export function migrateAndSanitizeSave(raw: GameState | null, now = Date.now()):
     tutorial008: raw.tutorial008 && typeof raw.tutorial008 === 'object' ? { ...fallback.tutorial008, ...raw.tutorial008 } : { ...fallback.tutorial008, started: false, mandatory: false },
     operation: containsQaResidue ? undefined : sanitizeOperation(raw.operation),
   };
+  if (state.profile?.helpRole === 'stock') state.profile.helpRole = 'service';
   state.staff = sanitizeStaffState(raw.staff, state, now);
   state.storage = createInitialStorageState(state, now, raw.storage);
   state.procurement = sanitizeProcurementState(raw.procurement, now);
   state.production = sanitizeProductionState(raw.production);
   const hadProgression = Boolean(raw.progression);
+  const coinsBeforeProgressionMigration = state.coins;
   applyProgressionThroughLevel(state, state.restaurantLevel, { notify: hadProgression, retroactive: !hadProgression });
+  // Recompensas monetárias servem ao ritmo de saves novos; carregar ou migrar
+  // um save existente nunca pode alterar silenciosamente seu saldo.
+  state.coins = coinsBeforeProgressionMigration;
   state.tutorial006 = raw.tutorial006 && typeof raw.tutorial006 === 'object'
     ? { ...fallback.tutorial006, ...raw.tutorial006, automationUnlocked: Boolean(raw.tutorial006.automationUnlocked), completed: Boolean(raw.tutorial006.completed) }
     : fallback.tutorial006;
@@ -147,7 +152,8 @@ function sanitizeConstruction(
   } else builtAreas.unshift({ ...fallbackBase });
   const spatialMigrationLog = normalizeDiningFurniture(placedFurniture, storedFurniture, builtAreas);
   const serviceCounters = modulesFromFurniture(placedFurniture, Array.isArray(input.serviceCounters) ? input.serviceCounters : []);
-  const staffStartPositions = Array.isArray(input.staffStartPositions) ? input.staffStartPositions.filter((position) => position && typeof position.staffId === 'string') : [];
+  const staffStartPositions = Array.isArray(input.staffStartPositions) ? input.staffStartPositions.filter((position) => position && typeof position.staffId === 'string'
+    && (position.staffId === 'player' || Boolean(STAFF_BY_ID[position.staffId]) || STAFF_CATALOG.some((candidate) => candidate.actorId === position.staffId))) : [];
   for (const defaultStart of fallback.staffStartPositions) {
     if (!staffStartPositions.some((position) => position.staffId === defaultStart.staffId)) staffStartPositions.push({ ...defaultStart });
   }

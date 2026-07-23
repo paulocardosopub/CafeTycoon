@@ -44,7 +44,8 @@
 .construction-live-overlay .construction-toolbar,
 .construction-live-overlay .construction-catalog,
 .construction-live-overlay .construction-options,
-.construction-live-overlay .construction-selected{pointer-events:auto}
+.construction-live-overlay .construction-selected,
+.construction-live-overlay .tutorial-placement-guide{pointer-events:auto}
 .construction-live-overlay .construction-header{position:absolute;inset:10px 12px auto;min-height:68px;border:1px solid #dfad4e;border-radius:13px;padding:10px 17px;background:#124f49ed;backdrop-filter:blur(10px)}
 .construction-live-overlay .construction-header h1{font-size:21px}
 .construction-live-overlay .construction-header p{font-size:10px}
@@ -307,6 +308,14 @@ fieldset { margin: 0; padding: 0; border: 0; }.choice-pills { display: flex; gap
   font-size: 11px;
   line-height: 1.4;
 }
+
+/* Tutorial precisa ficar acima dos painéis e responder a um único toque. */
+.tutorial-008,.tutorial-reopen{z-index:1300;pointer-events:auto;touch-action:manipulation}
+.tutorial-008 button,.tutorial-reopen{touch-action:manipulation}
+.production-actions{display:grid;grid-template-columns:minmax(0,1fr) 44px;gap:8px;align-items:stretch}
+.repeat-recipe{border:2px solid #7c927e;border-radius:10px;background:#f5f1e3;color:#315b3b;font-size:24px;font-weight:900;line-height:1}
+.repeat-recipe.active{border-color:#2e7d48;background:#2e7d48;color:#fff;box-shadow:0 0 0 3px #8bd19d55}
+.repeat-status{display:block;margin-top:7px;color:#2e7d48;font-weight:900}
 .recipe-card p, .recipe-serving-toggle, .production-planner .primary-button,
 .candidate-card > button, .active-production-top button, .staff-actions button,
 .target-list article > button, .plan-list article > button { font-size: 12px; }
@@ -352,6 +361,8 @@ fieldset { margin: 0; padding: 0; border: 0; }.choice-pills { display: flex; gap
 .production-guide { display: grid; grid-template-columns: auto repeat(4, 1fr); gap: 8px; align-items: center; margin-bottom: 14px; padding: 13px; border: 1px solid #b9d1c6; border-radius: 12px; color: #274c45; background: #e5f0e8; }
 .production-guide strong { font-size: 13px; }
 .production-guide span { padding-left: 8px; border-left: 2px solid #78a99c; font-size: 12px; line-height: 1.35; }
+.production-guide.compact{grid-template-columns:auto 1fr;margin-bottom:7px;padding:7px 10px;gap:7px;border-radius:9px}
+.production-guide.compact strong{font-size:11px}.production-guide.compact span{font-size:10px;line-height:1.2}
 .ready-strip { overflow-x: auto; scrollbar-width: thin; }
 .ready-strip > span { flex: 0 0 auto; }
 
@@ -397,6 +408,7 @@ fieldset { margin: 0; padding: 0; border: 0; }.choice-pills { display: flex; gap
 .shop-purchase-confirm{position:fixed;z-index:400;inset:0;display:grid;place-items:start center;padding-top:max(18px,env(safe-area-inset-top));background:#10281988;pointer-events:auto}.shop-purchase-confirm section{box-sizing:border-box;width:min(390px,calc(100vw - 28px));background:#fffdf6;border-radius:16px;padding:15px 18px;box-shadow:0 20px 70px #0007;text-align:center;overflow-wrap:anywhere}.shop-purchase-confirm img{display:block;width:86px;height:86px;object-fit:contain;margin:3px auto}.shop-purchase-confirm strong{display:block;font-size:18px}.shop-purchase-confirm p{margin:6px 0 10px;font-size:13px;color:#35473a}.shop-purchase-confirm section>div{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}.shop-purchase-confirm button{min-height:42px;padding:8px 14px;border-radius:9px;border:1px solid #56705d;font-weight:900}.shop-purchase-confirm button.primary{background:#376b46;color:white}.construction-live-workspace:has(.shop-purchase-confirm) .catalog-tabs,.construction-live-workspace:has(.shop-purchase-confirm) .catalog-items,.construction-live-workspace:has(.shop-purchase-confirm) .shop-detail,.construction-live-workspace:has(.shop-purchase-confirm) .unavailable-catalog{pointer-events:none}
 .shop-only-overlay{background:#173a36;pointer-events:auto}.shop-only-overlay .construction-live-workspace{display:block;overflow:auto;pointer-events:auto}.shop-only-overlay .construction-catalog{width:100%;max-height:none;overflow:visible;position:relative}.shop-only-overlay .catalog-items{grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}.shop-only-overlay .shop-card{min-height:178px;padding:7px}.shop-only-overlay .shop-card-info{min-height:58px;gap:4px}.shop-only-overlay .shop-card-info img{width:46px;height:46px}.shop-only-overlay .shop-card p{min-height:30px;margin:4px 2px;font-size:10px;line-height:1.3}.shop-only-overlay .shop-buy{margin-top:3px;padding:7px;font-size:10px}#app:has(.construction-overlay) #tutorial-008-host{display:none}@media(max-width:1000px){.shop-only-overlay .catalog-items{grid-template-columns:repeat(4,minmax(0,1fr))}}@media(max-width:700px){.shop-only-overlay .construction-live-workspace{inset:149px 0 54px;display:block;padding:0 5px}.shop-only-overlay .construction-catalog{max-height:100%;overflow:auto}.shop-only-overlay .catalog-items{grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}.shop-only-overlay .shop-card{min-height:170px}.shop-only-overlay .shop-card-info{min-height:54px}.shop-only-overlay .shop-card-info img{width:40px;height:40px}.shop-only-overlay .shop-card p{display:-webkit-box;min-height:31px;overflow:hidden;-webkit-line-clamp:2;-webkit-box-orient:vertical}.shop-only-overlay .construction-toolbar{min-height:76px}.shop-purchase-confirm{padding-top:max(8px,env(safe-area-inset-top))}.shop-purchase-confirm section{padding:12px 14px}.shop-purchase-confirm img{width:72px;height:72px}}
 .tutorial-shop-kit,.tutorial-placement-guide{display:flex;align-items:center;gap:12px;margin:7px 0 12px;padding:12px;border:2px solid #efc361;border-radius:14px;background:#fff7d9;box-shadow:0 7px 20px #203e3522}.tutorial-shop-kit>div,.tutorial-placement-guide{min-width:0}.tutorial-shop-kit small,.tutorial-placement-guide small{display:block;color:#a66c23;font-size:8px;font-weight:900;letter-spacing:.12em}.tutorial-shop-kit strong,.tutorial-placement-guide strong{display:block;color:#245f57;font-size:15px}.tutorial-shop-kit p{margin:3px 0;color:#5f706a;font-size:10px}.tutorial-shop-kit button,.tutorial-placement-guide button{flex:none;padding:10px 12px;border-radius:10px;color:#fff;background:#28756b;font-weight:900}.tutorial-placement-guide{display:grid;gap:4px}.tutorial-placement-guide span{font-size:10px;color:#5f706a}.tutorial-placement-guide button{margin-top:4px}@media(max-width:700px){.tutorial-shop-kit{display:grid;gap:7px}.tutorial-shop-kit button{width:100%}}
+.tutorial-placement-floating{position:fixed;z-index:1100;top:145px;left:10px;box-sizing:border-box;width:260px;margin:0}
 .level-modal{width:min(480px,calc(100vw - 32px))}
 .tutorial-target{position:relative;z-index:5;outline:4px solid #ffd35c!important;box-shadow:0 0 0 7px #1b6f61,0 0 24px #ffd35ccc!important;animation:tutorial-target-pulse 1s ease-in-out infinite alternate}@keyframes tutorial-target-pulse{from{outline-offset:1px}to{outline-offset:7px}}
 
@@ -417,6 +429,8 @@ fieldset { margin: 0; padding: 0; border: 0; }.choice-pills { display: flex; gap
   .editor-only-overlay .catalog-card b,
   .editor-only-overlay .stored-card b { font-size:10px; }
   .editor-only-overlay .construction-selected { max-height:116px; }
+  .editor-only-overlay .tutorial-placement-guide{position:fixed;z-index:1100;top:130px;left:8px;right:8px;width:auto;margin:0;padding:9px 11px;box-shadow:0 10px 32px #10281977}
+  .editor-only-overlay .tutorial-placement-guide button{width:100%;min-height:44px}
 }
 
 /* Restaurant controls that must remain reachable in portrait mobile. */
@@ -426,3 +440,6 @@ fieldset { margin: 0; padding: 0; border: 0; }.choice-pills { display: flex; gap
   .shift-card>.live-dot,.shift-card>div{display:none}
   .shift-card>button{min-width:132px;min-height:48px;padding:9px 14px;border:2px solid #fff4cf;border-radius:13px;color:#173f3a;background:#f1c45b;box-shadow:0 7px 20px #09272277;font-size:12px;font-weight:900}
 }
+
+.tutorial-008,.tutorial-reopen{z-index:1300;pointer-events:auto;touch-action:manipulation}
+.tutorial-008 button,.tutorial-reopen{touch-action:manipulation}

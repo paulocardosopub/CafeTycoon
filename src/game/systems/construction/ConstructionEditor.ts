@@ -111,6 +111,25 @@ export class ConstructionEditor {
     return { ok: true, warnings: validation.warnings };
   }
 
+  placeStoredBatch(placements: readonly { definitionId: string; gridX: number; gridY: number; orientation: Direction; storedItemId: string }[]): EditorResult {
+    const before = clone(this.current);
+    const undoLength = this.undoStack.length;
+    for (const placement of placements) {
+      const result = this.place(placement.definitionId, placement.gridX, placement.gridY, placement.orientation, undefined, placement.storedItemId);
+      if (!result.ok) {
+        this.current = before;
+        this.undoStack.length = undoLength;
+        this.redoStack = [];
+        return result;
+      }
+    }
+    this.undoStack.length = undoLength;
+    this.undoStack.push(before);
+    this.redoStack = [];
+    this.refreshFurnitureRelationships();
+    return { ok: true };
+  }
+
   purchase(definitionId: string, skinId?: string): EditorResult {
     const definition = FURNITURE_BY_ID[definitionId];
     if (!definition) return { ok: false, reason: `Móvel desconhecido: ${definitionId}.` };

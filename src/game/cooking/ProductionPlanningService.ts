@@ -7,6 +7,7 @@ import { stableRuntimeId } from '../../core/id';
 import { productionDuration } from './ProductionService';
 import { compatibleStationFunction } from '../recipes/RecipeAvailability';
 import { STAFF_BY_ID } from '../data/staff';
+import { gameEvents } from '../../core/events';
 
 export interface CreateProductionPlanInput {
   recipeId: RecipeId;
@@ -42,6 +43,7 @@ export function sanitizeProductionState(input: ProductionSystemState | undefined
     priority: Math.max(1, Math.min(100, Math.floor(Number(plan.priority) || 50))),
     preferredEquipmentIds: Array.isArray(plan.preferredEquipmentIds) ? plan.preferredEquipmentIds : [],
     preferredCounterIds: Array.isArray(plan.preferredCounterIds) ? plan.preferredCounterIds : [],
+    repeat: Boolean(plan.repeat),
   })) : [];
   const planIds = new Set(plans.map((plan) => plan.id));
   const tasks = Array.isArray(input.tasks) ? input.tasks.filter((task) => planIds.has(task.productionPlanId) && RECIPE_BY_ID[task.recipeId]).map(sanitizeTask).slice(-BALANCE.production.queueHistoryLimit) : [];
@@ -65,16 +67,17 @@ export function createProductionPlan(state: GameState, input: CreateProductionPl
     .flatMap((instance) => STAFF_BY_ID[instance.definitionId]?.specialties ?? []));
   const missingSpecialties = recipe.requiredSpecialties.filter((specialty) => !availableSpecialties.has(specialty));
   if (missingSpecialties.length) return { ok: false, reason: `Lote não iniciado: contrate ${missingSpecialties.join(' + ')}.` };
-  const productionCost = Math.max(1, Math.round(recipe.batchCost * (1 - Math.min(.3, state.upgrades.inventory * .05))));
+  const productionCost = productionCostFor(state, input.recipeId);
   if (state.coins < productionCost) return { ok: false, reason: `Saldo insuficiente: faltam ${productionCost - state.coins} moedas. O lote custa ${productionCost}.` };
   const targetQuantity = recipe.batchYield;
   const batchSize = recipe.batchYield;
-  const mode: ProductionPlanMode = 'singleBatch';
+  const repeating = Boolean(input.repeat || input.mode === 'repeatWhileResources');
+  const mode: ProductionPlanMode = repeating ? 'repeatWhileResources' : 'singleBatch';
   const plan: ProductionPlan = {
     id: stableRuntimeId('production-plan'), recipeId: input.recipeId, mode, targetQuantity, batchSize,
     priority: Math.max(1, Math.min(100, Math.floor(input.priority ?? 50))),
     preferredEquipmentIds: [...(input.preferredEquipmentIds ?? [])], preferredCounterIds: [...(input.preferredCounterIds ?? [])],
-    enabled: true, repeat: false, currentProgress: 0, createdAt: now, chargedCost: productionCost,
+    enabled: true, repeat: repeating, currentProgress: 0, createdAt: now, chargedCost: productionCost,
   };
   state.coins -= productionCost;
   state.production.plans.push(plan);
@@ -146,8 +149,28 @@ export function completeProductionTask(state: GameState, taskId: string, counter
   state.stats.dishesProduced += task.batchQuantity;
   state.restaurantXp += RECIPE_BY_ID[task.recipeId].experience * task.batchQuantity;
   task.state = 'completed'; task.completedAt = now; task.completionClaimed = true; task.blockedReason = undefined; task.reservedIngredients = {}; task.outputReservations = [];
+  if (plan?.repeat && plan.enabled) {
+    const nextCost = productionCostFor(state, task.recipeId);
+    if (state.coins >= nextCost) {
+      state.coins -= nextCost;
+      plan.chargedCost = (plan.chargedCost ?? 0) + nextCost;
+      appendBatches(state, plan, RECIPE_BY_ID[task.recipeId].batchYield, now + 1);
+    } else {
+      plan.enabled = false;
+      plan.repeat = false;
+      gameEvents.emit('toast', { message: `Repetição de ${RECIPE_BY_ID[task.recipeId].name} pausada: saldo insuficiente.`, tone: 'warning' });
+    }
+  }
   state.production.tasks = trimProductionTasks(state.production.tasks);
   return true;
+}
+
+export function setRecipeRepeat(state: GameState, recipeId: RecipeId, enabled: boolean, now = Date.now()): ProductionPlanResult {
+  if (!enabled) {
+    for (const plan of state.production.plans.filter((item) => item.recipeId === recipeId && item.repeat)) plan.repeat = false;
+    return { ok: true };
+  }
+  return createProductionPlan(state, { recipeId, targetQuantity: RECIPE_BY_ID[recipeId]?.batchYield ?? 1, mode: 'repeatWhileResources', repeat: true }, now);
 }
 
 export function deferProductionTask(state: GameState, taskId: string, counters: ServiceCounterModule[], reason = 'Aguardando próxima oportunidade.'): boolean {
@@ -239,5 +262,6 @@ function trimProductionTasks(tasks: ProductionTask[]): ProductionTask[] {
 }
 
 function planPriority(state: Pick<GameState, 'production'>, planId: string): number { return state.production.plans.find((plan) => plan.id === planId)?.priority ?? 0; }
+function productionCostFor(state: GameState, recipeId: RecipeId): number { return Math.max(1, Math.round(RECIPE_BY_ID[recipeId].batchCost * (1 - Math.min(.3, state.upgrades.inventory * .05)))); }
 function clampQuantity(value: number): number { return Math.max(1, Math.min(BALANCE.production.maximumQuantity, Math.floor(Number(value) || 1))); }
 function clampBatch(value: number): number { return Math.max(1, Math.min(BALANCE.production.maximumBatchSize, Math.floor(Number(value) || 1))); }

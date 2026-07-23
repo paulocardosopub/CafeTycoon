@@ -7,7 +7,7 @@ export const C3_BR_VARIANT_SPECS: readonly VariantSpec[] = [
   { assetId: 'char_staff_cook_hat_white_01', baseAssetId: 'char_cook_female_01', displayName: 'Chef com chapéu branco' },
   { assetId: 'char_staff_service_chef_01', baseAssetId: 'char_waiter_male_01', displayName: 'Equipe de salão' },
   { assetId: 'char_staff_cleaner_chef_01', baseAssetId: 'char_player_female_01', displayName: 'Equipe de limpeza' },
-  { assetId: 'char_staff_stocker_chef_01', baseAssetId: 'char_player_male_01', displayName: 'Equipe de estoque' },
+  { assetId: 'char_staff_stocker_chef_01', baseAssetId: 'char_player_male_01', displayName: 'Jogador padrão' },
   ...Array.from({ length: 16 }, (_, index) => ({
     assetId: `char_variant_customer_${String(index + 1).padStart(2, '0')}`,
     baseAssetId: `char_customer_${String((index % 6) + 1).padStart(2, '0')}`,
@@ -45,4 +45,5 @@ export const STAFF_ROLE_CHARACTER_ASSETS = {
 export const CUSTOMER_CHARACTER_ASSET_IDS = [
   ...STAGE_2C_CHARACTER_ASSETS.filter((asset) => asset.role === 'customer').map((asset) => asset.assetId),
   ...C3_BR_VARIANT_SPECS.filter((variant) => variant.assetId.startsWith('char_variant_customer_')).map((variant) => variant.assetId),
+  'char_player_male_01',
 ] as readonly string[];

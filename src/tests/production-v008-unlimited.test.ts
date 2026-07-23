@@ -6,10 +6,12 @@ import {
   createProductionPlan,
   prepareNextProductionTask,
   sanitizeProductionState,
+  setRecipeRepeat,
 } from '../game/cooking/ProductionPlanningService';
 import { modulesFromFurniture } from '../game/systems/service-counter/ServiceCounterSystem';
 import { createStaffInstance } from '../game/staff/StaffService';
 import { STAFF_BY_ID } from '../game/data/staff';
+import { RECIPE_BY_ID } from '../content/recipes/recipes';
 
 describe('produção 0.0.8 sem ingredientes e sem limite de balcão', () => {
   it('migra esperas obsoletas para a fila normal', () => {
@@ -59,5 +61,24 @@ describe('produção 0.0.8 sem ingredientes e sem limite de balcão', () => {
     actor.taskId = runtime.id; actor.taskRemaining = 30; station.state = 'in_use'; station.workerId = actor.id; station.remaining = 30;
     expect(simulation.cancelProduction(plan.id)).toBe(true);
     expect(actor.taskId).toBeUndefined(); expect(actor.taskRemaining).toBe(0); expect(station.state).toBe('free'); expect(station.remaining).toBe(0); expect(simulation.tasks.list()).toHaveLength(0);
+  });
+
+  it('repete uma receita após a entrega e para depois que o jogador desmarca', () => {
+    const state = createDefaultState(0); state.coins = 10_000;
+    state.staff.instances.push(createStaffInstance(STAFF_BY_ID['cook-0'], 0));
+    state.construction.placedFurniture.push({ id: 'coffee-machine:repeat', definitionId: 'cooking.a8.coffee', gridX: 12, gridY: 8, orientation: 'sw', skinId: 'equipment-steel-level-1', level: 1, state: {} });
+    state.construction.placedFurniture.push({ id: 'counter:repeat', definitionId: 'service.c1.isolated', gridX: 8, gridY: 6, orientation: 'sw', skinId: 'counter-forest', level: 1, state: {} });
+    state.construction.serviceCounters = modulesFromFurniture(state.construction.placedFurniture);
+    const simulation = new RestaurantSimulation(state);
+    const before = state.coins;
+    expect(setRecipeRepeat(state, 'coffee', true, 1).ok).toBe(true);
+    const first = prepareNextProductionTask(state, simulation.stations, state.construction.serviceCounters, 2)!;
+    expect(completeProductionTask(state, first.task.id, state.construction.serviceCounters, 3)).toBe(true);
+    expect(state.production.tasks.filter((task) => !['completed', 'cancelled', 'failed'].includes(task.state))).toHaveLength(1);
+    expect(state.coins).toBe(before - 2 * RECIPE_BY_ID.coffee.batchCost);
+    expect(setRecipeRepeat(state, 'coffee', false, 4).ok).toBe(true);
+    const second = prepareNextProductionTask(state, simulation.stations, state.construction.serviceCounters, 5)!;
+    expect(completeProductionTask(state, second.task.id, state.construction.serviceCounters, 6)).toBe(true);
+    expect(state.production.tasks.filter((task) => !['completed', 'cancelled', 'failed'].includes(task.state))).toHaveLength(0);
   });
 });

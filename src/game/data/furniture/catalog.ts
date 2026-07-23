@@ -71,11 +71,11 @@ const serviceSlots = (): FurnitureWorkSlot[] => [
 ];
 
 export const FURNITURE_DEFINITIONS: readonly FurnitureDefinition[] = [
-  definition({ id: 'cooking.a1.stove', code: 'A1', category: 'cooking', name: 'Fogão industrial com fornos', assetId: 'a1_stove_industrial', price: 260, functionId: 'stove', workSlots: [work('work', { x: 0, y: 1 }, 'any', 'work')], unlockLevel: 4 }),
-  definition({ id: 'cooking.a2.convection', code: 'A2', category: 'cooking', name: 'Forno de convecção', assetId: 'a2_convection_oven', price: 120, functionId: 'oven', unlockLevel: 2 }),
-  definition({ id: 'cooking.a3.griddle', code: 'A3', category: 'cooking', name: 'Chapa industrial', assetId: 'a3_griddle', price: 160, functionId: 'grill', unlockLevel: 7 }),
-  definition({ id: 'cooking.a4.fryer', code: 'A4', category: 'cooking', name: 'Fritadeira industrial', assetId: 'a4_fryer', price: 140, functionId: 'grill', unlockLevel: 5 }),
-  definition({ id: 'cooking.a5.kettle', code: 'A5', category: 'cooking', name: 'Caldeira industrial', assetId: 'a5_kettle', price: 130, functionId: 'cauldron', unlockLevel: 3 }),
+  definition({ id: 'cooking.a1.stove', code: 'A1', category: 'cooking', name: 'Fogão industrial com fornos', assetId: 'a1_stove_industrial', price: 260, functionId: 'stove', workSlots: [work('work', { x: 0, y: 1 }, 'any', 'work')], unlockLevel: 15 }),
+  definition({ id: 'cooking.a2.convection', code: 'A2', category: 'cooking', name: 'Forno de convecção', assetId: 'a2_convection_oven', price: 120, functionId: 'oven', unlockLevel: 5 }),
+  definition({ id: 'cooking.a3.griddle', code: 'A3', category: 'cooking', name: 'Chapa industrial', assetId: 'a3_griddle', price: 160, functionId: 'grill', unlockLevel: 25 }),
+  definition({ id: 'cooking.a4.fryer', code: 'A4', category: 'cooking', name: 'Fritadeira industrial', assetId: 'a4_fryer', price: 140, functionId: 'grill', unlockLevel: 20 }),
+  definition({ id: 'cooking.a5.kettle', code: 'A5', category: 'cooking', name: 'Caldeira industrial', assetId: 'a5_kettle', price: 130, functionId: 'cauldron', unlockLevel: 10 }),
   definition({ id: 'cooking.a6.grill', code: 'A6', category: 'cooking', name: 'Parrilla e defumador', assetId: 'a6_grill', price: 195, functionId: 'grill', unlockLevel: 47 }),
   definition({ id: 'cooking.a7.bakery', code: 'A7', category: 'cooking', name: 'Forno de padaria', assetId: 'a7_bakery_oven', price: 240, functionId: 'oven', unlockLevel: 55 }),
   definition({ id: 'cooking.a8.coffee', code: 'A8', category: 'cooking', name: 'Máquina de café', assetId: 'a8_coffee_machine', price: 175, functionId: 'coffee_machine', essential: true }),

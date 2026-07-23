@@ -1,9 +1,8 @@
-import { BALANCE, levelFromXp } from '../../config/balance';
+import { BALANCE } from '../../config/balance';
 import { RECIPE_BY_ID, RECIPES } from '../../content/recipes/recipes';
 import type { GameState, HelpRole, OfflineReport, ProfessionId } from '../../core/types';
 import { productionDuration } from '../cooking/ProductionService';
-import { updateRestaurantLevel } from '../progression/progression';
-import { chargePayroll, tickTraining } from '../staff/StaffService';
+import { chargePayroll } from '../staff/StaffService';
 import { createStations } from '../map/initialMap';
 import { completeProductionTask, deferProductionTask, markProductionTaskStarted, prepareNextProductionTask, preparedQuantity, refreshMaintainTargetPlans } from '../cooking/ProductionPlanningService';
 
@@ -23,8 +22,6 @@ export function calculateOfflineProgress(state:GameState, now=Date.now()): Offli
   state.offlineClaimId=claimId; state.lastActiveAt=now;
   const professionLevel=state.profile?.professions[PROFESSION_BY_ROLE[role]].level??1;
   report.bonusPercent=Math.round((professionLevel-1)*BALANCE.professionSpeedPerLevel*100);
-  tickTraining(state,calculatedSeconds,now);
-
   refreshMaintainTargetPlans(state,state.construction.serviceCounters,now);
   const stations=createStations(state.construction);
   const cooks=state.staff.instances.filter((member)=>member.enabled&&member.role==='cook');
@@ -34,7 +31,9 @@ export function calculateOfflineProgress(state:GameState, now=Date.now()): Offli
     if(!prepared)break;
     if(prepared.duration>workSeconds){deferProductionTask(state,prepared.task.id,state.construction.serviceCounters,'Tempo offline insuficiente para concluir o próximo lote.');break;}
     markProductionTaskStarted(state,prepared.task.id,cooks[0]?.id??'offline-cook',now);
+    const restaurantXpBefore=state.restaurantXp;
     if(!completeProductionTask(state,prepared.task.id,state.construction.serviceCounters,now)){deferProductionTask(state,prepared.task.id,state.construction.serviceCounters);break;}
+    state.restaurantXp=restaurantXpBefore;
     workSeconds-=prepared.duration; report.produced[prepared.task.recipeId]=(report.produced[prepared.task.recipeId]??0)+prepared.task.batchQuantity;
   }
 
@@ -46,7 +45,7 @@ export function calculateOfflineProgress(state:GameState, now=Date.now()): Offli
     const needed=Math.max(0,duration-item.progressSeconds);
     if(legacySeconds<needed){item.progressSeconds+=legacySeconds;report.idleSeconds=Math.max(0,report.idleSeconds-legacySeconds);legacySeconds=0;break;}
     legacySeconds-=needed; report.idleSeconds=Math.max(0,report.idleSeconds-needed); item.progressSeconds=0; item.completed+=1;
-    state.readyDishes[item.recipeId]+=recipe.yield; state.stats.dishesProduced+=recipe.yield; state.restaurantXp+=recipe.experience; report.experience+=recipe.experience; report.produced[item.recipeId]=(report.produced[item.recipeId]??0)+recipe.yield;
+    state.readyDishes[item.recipeId]+=recipe.yield; state.stats.dishesProduced+=recipe.yield; report.produced[item.recipeId]=(report.produced[item.recipeId]??0)+recipe.yield;
     if(item.completed>=item.quantity)state.productionQueue.shift(); else item.costPaid=false;
   }
 
@@ -55,14 +54,13 @@ export function calculateOfflineProgress(state:GameState, now=Date.now()): Offli
     if(saleBudget<=0)break; const available=state.readyDishes[recipe.id]+preparedQuantity(state.construction.serviceCounters,recipe.id); const sold=Math.min(available,saleBudget); if(!sold)continue;
     const legacy=Math.min(sold,state.readyDishes[recipe.id]); state.readyDishes[recipe.id]-=legacy; let counterAmount=sold-legacy;
     for(const module of state.construction.serviceCounters.filter((item)=>item.assignedRecipeId===recipe.id)){const removed=Math.min(counterAmount,Math.max(0,module.currentQuantity-module.reservedQuantity));module.currentQuantity-=removed;counterAmount-=removed;if(!counterAmount)break;}
-    saleBudget-=sold; report.sold[recipe.id]=sold; const revenue=sold*recipe.salePrice; report.coins+=revenue; report.grossRevenue+=revenue; state.coins+=revenue; state.restaurantXp+=sold*2; state.stats.customersServed+=sold; state.stats.coinsEarned+=revenue;
+    saleBudget-=sold; report.sold[recipe.id]=sold; const revenue=sold*recipe.salePrice; report.coins+=revenue; report.grossRevenue+=revenue; state.coins+=revenue; state.stats.customersServed+=sold; state.stats.coinsEarned+=revenue;
   }
   const producedCount=Object.values(report.produced).reduce<number>((sum,value)=>sum+(value??0),0); const soldCount=Object.values(report.sold).reduce<number>((sum,value)=>sum+(value??0),0);
-  report.characterTasks=role==='kitchen'?producedCount:role==='service'?soldCount*2:role==='cleaning'?soldCount:0;
-  if(state.profile&&report.characterTasks>0){const professionalXp=report.characterTasks*2;const generalXp=Math.max(1,Math.floor(report.characterTasks*.8));const profession=state.profile.professions[PROFESSION_BY_ROLE[role]];profession.xp+=professionalXp;profession.tasksCompleted+=report.characterTasks;profession.level=levelFromXp(profession.xp,BALANCE.professionLevels);state.profile.xp+=generalXp;state.profile.level=levelFromXp(state.profile.xp,BALANCE.playerLevels);report.characterProfessionXp=professionalXp;report.characterGeneralXp=generalXp;}
+  report.characterTasks=0;
   const payrollPeriods=Math.floor(calculatedSeconds/BALANCE.staff.payrollIntervalSeconds);if(payrollPeriods>0)report.salariesCharged=chargePayroll(state,payrollPeriods,now).charged;
   report.costs+=report.salariesCharged; report.netProfit=report.grossRevenue-report.costs;
   const blocked=state.production.tasks.filter((task)=>!['completed','cancelled','failed'].includes(task.state)&&task.blockedReason);for(const task of blocked)report.blockedTasks.push({kind:'production',reason:`${RECIPE_BY_ID[task.recipeId].name}: ${task.blockedReason}`});
   if(!producedCount&&!state.productionQueue.length&&!state.production.tasks.some((task)=>!['completed','cancelled','failed'].includes(task.state)))report.stoppedReasons.push('Não havia produção programada.');
-  if(!soldCount)report.stoppedReasons.push('Não havia pratos prontos para vender.');if(absentSeconds>BALANCE.offline.maxSeconds)report.stoppedReasons.push('O limite de 8 horas foi aplicado.');report.stoppedReasons=[...new Set(report.stoppedReasons)];updateRestaurantLevel(state);return report;
+  if(!soldCount)report.stoppedReasons.push('Não havia pratos prontos para vender.');if(absentSeconds>BALANCE.offline.maxSeconds)report.stoppedReasons.push('O limite de 8 horas foi aplicado.');report.stoppedReasons.push('Nenhuma experiência é concedida com o jogo fechado.');report.stoppedReasons=[...new Set(report.stoppedReasons)];return report;
 }

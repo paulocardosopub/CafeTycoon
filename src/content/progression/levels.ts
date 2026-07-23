@@ -1,16 +1,16 @@
 import { RECIPES } from '../recipes/recipes';
 
-export type RewardKind = 'recipe'|'station'|'profession'|'candidate'|'furniture'|'expansion'|'staffSlot'|'system'|'upgrade'|'decorationPack'|'restaurantStar'|'endgame';
+export type RewardKind = 'recipe'|'station'|'profession'|'candidate'|'furniture'|'expansion'|'staffSlot'|'system'|'upgrade'|'decorationPack'|'restaurantStar'|'endgame'|'currency';
 export interface RewardDefinition { id:string; type:RewardKind; title:string; description:string; icon:string; destination:string; condition:string }
 export interface LevelReward { level:number; rewards:RewardDefinition[]; kind:RewardKind; name:string; description:string }
 
 const PROFESSIONS: Record<number, { specialty:string; candidateId:string; stationId:string; station:string }> = {
   1:{specialty:'Barista',candidateId:'cook-0',stationId:'cooking.a8.coffee',station:'Cafeteira'},
-  2:{specialty:'Forneiro',candidateId:'cook-1',stationId:'cooking.a2.convection',station:'Forno/assadeira'},
-  3:{specialty:'Chef de Sopas',candidateId:'cook-3',stationId:'cooking.a5.kettle',station:'Sopeira'},
-  4:{specialty:'Cozinheiro Geral',candidateId:'cook-6',stationId:'cooking.a1.stove',station:'Fogão'},
-  5:{specialty:'Fritureiro',candidateId:'cook-7',stationId:'cooking.a4.fryer',station:'Fritadeira'},
-  7:{specialty:'Chapeiro',candidateId:'cook-2',stationId:'cooking.a3.griddle',station:'Chapa'},
+  5:{specialty:'Forneiro',candidateId:'cook-1',stationId:'cooking.a2.convection',station:'Forno/assadeira'},
+  10:{specialty:'Chef de Sopas',candidateId:'cook-3',stationId:'cooking.a5.kettle',station:'Sopeira'},
+  15:{specialty:'Cozinheiro Geral',candidateId:'cook-6',stationId:'cooking.a1.stove',station:'Fogão'},
+  20:{specialty:'Fritureiro',candidateId:'cook-7',stationId:'cooking.a4.fryer',station:'Fritadeira'},
+  25:{specialty:'Chapeiro',candidateId:'cook-2',stationId:'cooking.a3.griddle',station:'Chapa'},
   45:{specialty:'Chef Oriental',candidateId:'cook-4',stationId:'cooking.a1.stove',station:'Wok'},
   47:{specialty:'Assador',candidateId:'cook-5',stationId:'cooking.a6.grill',station:'Parrilla/defumador'},
   55:{specialty:'Confeiteiro',candidateId:'cook-8',stationId:'preparation.b8.pastry',station:'Confeitaria'},
@@ -18,6 +18,16 @@ const PROFESSIONS: Record<number, { specialty:string; candidateId:string; statio
 };
 
 const EXTRA: Record<number, RewardDefinition[]> = {
+  2:[reward('currency','coins:level-2:150','Caixa de boas-vindas','150 moedas para fortalecer o início.','●','progression','level>=2')],
+  3:[reward('currency','coins:level-3:200','Bônus de primeiros clientes','200 moedas para o próximo investimento.','●','progression','level>=3')],
+  4:[reward('currency','coins:level-4:250','Fundo para a fornearia','250 moedas para contratar e equipar a nova área.','●','progression','level>=4')],
+  6:[reward('currency','coins:level-6:180','Retorno de divulgação','180 moedas de incentivo.','●','progression','level>=6')],
+  7:[reward('currency','coins:level-7:220','Bônus de movimento','220 moedas para novos lotes.','●','progression','level>=7')],
+  8:[reward('currency','coins:level-8:260','Reserva operacional','260 moedas para preparar a próxima estação.','●','progression','level>=8')],
+  9:[reward('currency','coins:level-9:300','Fundo para a sopeira','300 moedas antes do novo profissional.','●','progression','level>=9')],
+  11:[reward('currency','coins:level-11:220','Bônus de clientela','220 moedas para reinvestimento.','●','progression','level>=11')],
+  12:[reward('currency','coins:level-12:260','Caixa em crescimento','260 moedas para novos lotes.','●','progression','level>=12')],
+  14:[reward('currency','coins:level-14:350','Fundo para o fogão','350 moedas antes da próxima especialidade.','●','progression','level>=14')],
   13:[reward('station','station:cold-prep-basic','Bancada fria básica','Prepara a Salada Caesar.','▰','shop','level>=13')],
   20:[reward('restaurantStar','star:1','Primeira estrela','O restaurante alcançou uma estrela.','★','progression','level>=20')],
   23:[reward('staffSlot','slot:23','Vaga de cozinheiro','Mais uma vaga de funcionário.','♟','staff','level>=23')],

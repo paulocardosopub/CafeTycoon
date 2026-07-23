@@ -72,7 +72,7 @@ describe('Cafe Mania 0.0.8 · alpha de gameplay', () => {
   });
 
   it('bloqueia receita sem profissional e informa a especialidade ausente', () => {
-    const state = createDefaultState(0); state.restaurantLevel = 10; state.coins = 10_000;
+    const state = createDefaultState(0); state.restaurantLevel = 28; state.coins = 10_000;
     const result = createProductionPlan(state, { recipeId: 'burger', targetQuantity: 16 });
     expect(result).toMatchObject({ ok: false });
     expect(result.reason).toContain('Chapeiro');
@@ -173,8 +173,8 @@ describe('Cafe Mania 0.0.8 · alpha de gameplay', () => {
   });
 
   it.each([
-    ['coffee',1,30,12],['chocolate-cookies',2,21600,160],['omelette',4,45,8],['burger',10,300,16],
-    ['caldo-verde',18,21600,140],['croissant',22,14400,80],['feijoada',36,28800,180],['mexican-tacos',40,480,24],
+    ['coffee',1,30,12],['chocolate-cookies',5,300,24],['omelette',15,45,8],['burger',28,300,16],
+    ['caldo-verde',11,1200,36],['croissant',9,1800,30],['feijoada',36,28800,180],['mexican-tacos',40,480,24],
     ['ramen',46,3000,36],['barbecue-ribs',48,28800,160],['gratin-onion-soup',60,3600,48],['sushi-combo',64,720,20],
     ['picanha',72,900,18],['latte-art',80,120,10],['butter-lobster',88,3600,20],['filet-mignon-madeira',91,2700,24],
     ['premium-seafood-board',98,14400,40],['truffle-medallion-puree',100,3600,18],

@@ -15,7 +15,7 @@ import { STAFF_BY_ID, STAFF_CANDIDATES } from '../game/data/staff';
 import { cancelTraining, dismissStaff, estimatedPayrollCost, hireStaff, setStaffEnabled, startTraining } from '../game/staff/StaffService';
 import { planStorageAllocation, storageCapacityByType, storageUsed } from '../game/inventory/StorageService';
 import { approvePurchaseRequest, cancelPurchaseRequest, createPurchaseRequest, evaluateAutoPurchases } from '../game/inventory/ProcurementService';
-import { cancelProductionPlan, createProductionPlan, pauseProductionPlan, preparedQuantity } from '../game/cooking/ProductionPlanningService';
+import { cancelProductionPlan, createProductionPlan, pauseProductionPlan, preparedQuantity, setRecipeRepeat } from '../game/cooking/ProductionPlanningService';
 import { FURNITURE_BY_ID } from '../game/data/furniture/catalog';
 import { availableStaffFurniture, staffFurnitureRequirement } from '../game/systems/construction/StaffStartSystem';
 import { recipeRequirements } from '../game/recipes/RecipeAvailability';
@@ -44,6 +44,7 @@ const ROLE_INFO: Record<HelpRole, { name: string; icon: string; profession: Prof
   cleaning: { name: 'Limpeza', icon: '✨', profession: 'cleaner', text: 'Libera mesas para os próximos clientes.' },
   stock: { name: 'Estoque e apoio', icon: '📦', profession: 'stocker', text: 'Organiza insumos e apoia a operação.' },
 };
+const PLAYER_HELP_ROLES: readonly HelpRole[] = ['kitchen', 'service', 'cleaning'];
 
 export class GameUI {
   private activePanel?: PanelId;
@@ -57,6 +58,7 @@ export class GameUI {
   private pendingTrainingStaffId?: string;
   private pendingDismissStaffId?: string;
   private resetArmed = false;
+  private productionPanelSignature = '';
   private readonly constructionShop: ConstructionShop;
 
   constructor(
@@ -149,9 +151,11 @@ export class GameUI {
       else if (action === 'cancel-production') this.cancelProduction(target.dataset.id!);
       else if (action === 'adjust-production') this.adjustProductionQuantity(target.dataset.id as RecipeId, Number(target.dataset.amount));
       else if (action === 'create-production-plan') this.createPlan(target.dataset.id as RecipeId);
+      else if (action === 'toggle-recipe-repeat') this.toggleRecipeRepeat(target.dataset.id as RecipeId, target.dataset.enabled === 'true');
       else if (action === 'toggle-production-plan') { pauseProductionPlan(this.state, target.dataset.id!, target.dataset.enabled === 'true'); this.renderPanel(); }
       else if (action === 'cancel-production-plan') { this.simulation.cancelProduction(target.dataset.id!); this.renderPanel(); }
       else if (action === 'cancel-production-task') { this.simulation.cancelProduction(target.dataset.id!); this.toast('Produção cancelada; funcionário e estação foram liberados.', 'info'); this.renderPanel(); }
+      else if (action === 'cancel-production-recipe') this.cancelProductionRecipe(target.dataset.id as RecipeId);
       else if (action === 'save-stock-target') this.saveStockTarget(target.dataset.id as RecipeId);
       else if (action === 'choose-role') this.chooseRole(target.dataset.id as HelpRole);
       else if (action === 'prioritize-task') this.prioritizeTask(target.dataset.id!);
@@ -234,7 +238,7 @@ export class GameUI {
     this.root.querySelector<HTMLElement>('#operation-alerts')!.innerHTML = alerts.map((alert) => `<span>! ${alert}</span>`).join('');
 
     const profile = this.state.profile!;
-    const role = ROLE_INFO[profile.helpRole];
+    const role = ROLE_INFO[PLAYER_HELP_ROLES.includes(profile.helpRole) ? profile.helpRole : 'service'];
     const profession = profile.professions[role.profession];
     this.root.querySelector<HTMLElement>('#owner-card')!.innerHTML = `
       <button class="owner-portrait" data-open="player" aria-label="Abrir perfil"><img src="${playerSpriteThumb(profile.appearance)}" alt="" /><i>✦</i></button>
@@ -308,18 +312,9 @@ export class GameUI {
     this.state.tutorial008.minimized = false;
     const step = pendingTutorialStep(this.state);
     if (!step) { if (pendingJourneyChapter(this.state)) this.open('progression'); else this.renderDynamic(); return; }
-    const owned = [...this.state.construction.placedFurniture, ...this.state.construction.storedFurniture];
-    const ownedCount = (functionId: string) => owned.filter((item) => FURNITURE_BY_ID[item.definitionId]?.functionId === functionId).length;
-    const shopTarget: Partial<Record<typeof step.id, string>> = {
-      'buy-counter': 'service.c1.isolated',
-      'buy-sink': 'washing.b5.sink',
-      'buy-dining': ownedCount('table') < 1 ? 'dining.table.basic' : 'dining.chair.basic',
-      'buy-coffee-machine': 'cooking.a8.coffee',
-    };
-    const definitionId = shopTarget[step.id];
-    if (definitionId) {
+    if (['buy-counter', 'buy-sink', 'buy-dining', 'buy-coffee-machine'].includes(step.id)) {
       this.close();
-      this.constructionShop.open('shop', definitionId);
+      this.constructionShop.open('shop', 'tutorial-kit');
       return;
     }
     if (step.id === 'open-editor' || step.id === 'place-setup') {
@@ -451,8 +446,12 @@ export class GameUI {
   }
 
   private productionPanel(): string {
-    const plans = this.state.production.plans.slice().reverse();
+    this.productionPanelSignature = this.currentProductionSignature();
     const tasks = this.state.production.tasks.filter((task) => !['completed', 'cancelled', 'failed'].includes(task.state));
+    const groupedTasks = [...tasks.reduce((groups, task) => {
+      const current = groups.get(task.recipeId) ?? { recipeId: task.recipeId, tasks: [] as typeof tasks };
+      current.tasks.push(task); groups.set(task.recipeId, current); return groups;
+    }, new Map<RecipeId, { recipeId: RecipeId; tasks: typeof tasks }>()).values()];
     const availableSpecialties = new Set(this.state.staff.instances
       .filter((instance) => instance.enabled && instance.role === 'cook')
       .flatMap((instance) => STAFF_BY_ID[instance.definitionId]?.specialties ?? []));
@@ -462,25 +461,35 @@ export class GameUI {
       const missing = [...missingPrerequisites, ...missingSpecialties];
       const html = missing.length
         ? `<article class="production-locked"><header><span>${recipeVisual(recipe.id)}</span><div><strong>${recipe.name}</strong><small>Bloqueada · ${escapeHtml(missing.join(' + '))}</small></div></header></article>`
-        : `<article><header><span>${recipeVisual(recipe.id)}</span><div><strong>${recipe.name}</strong><small>${recipe.batchYield} porções · ${formatDuration(recipe.baseDurationSeconds)} · ${recipe.requiredSpecialties.join(' + ')}</small></div></header><div class="plan-options"><label>Custo<strong>${recipe.batchCost} ●</strong></label><label>Faturamento<strong>${recipe.grossRevenue} ●</strong></label><label>Lucro<strong>${recipe.estimatedProfit} ●</strong></label></div><input id="qty-${recipe.id}" type="hidden" value="${recipe.batchYield}"/><input id="batch-${recipe.id}" type="hidden" value="${recipe.batchYield}"/><input id="priority-${recipe.id}" type="hidden" value="50"/><select id="mode-${recipe.id}" hidden><option value="singleBatch">Lote único</option></select><button class="primary-button" data-action="create-production-plan" data-id="${recipe.id}">Produzir lote</button></article>`;
+        : (() => {
+          const repeating = this.state.production.plans.some((plan) => plan.recipeId === recipe.id && plan.repeat && plan.enabled);
+          return `<article><header><span>${recipeVisual(recipe.id)}</span><div><strong>${recipe.name}</strong><small>${recipe.batchYield} porções · ${formatDuration(recipe.baseDurationSeconds)} · ${recipe.requiredSpecialties.join(' + ')}</small></div></header><div class="plan-options"><label>Custo<strong>${recipe.batchCost} ●</strong></label><label>Faturamento<strong>${recipe.grossRevenue} ●</strong></label><label>Lucro<strong>${recipe.estimatedProfit} ●</strong></label></div><input id="qty-${recipe.id}" type="hidden" value="${recipe.batchYield}"/><input id="batch-${recipe.id}" type="hidden" value="${recipe.batchYield}"/><input id="priority-${recipe.id}" type="hidden" value="50"/><select id="mode-${recipe.id}" hidden><option value="singleBatch">Lote único</option></select><div class="production-actions"><button class="primary-button" data-action="create-production-plan" data-id="${recipe.id}">Produzir lote</button><button class="repeat-recipe ${repeating ? 'active' : ''}" data-action="toggle-recipe-repeat" data-id="${recipe.id}" data-enabled="${!repeating}" title="${repeating ? 'Parar repetição' : 'Repetir continuamente'}" aria-label="${repeating ? 'Parar repetição de ' : 'Repetir continuamente '}${escapeHtml(recipe.name)}">↻</button></div>${repeating ? '<small class="repeat-status">↻ Repetição contínua ativa</small>' : ''}</article>`;
+        })();
       return { html, locked:Boolean(missing.length), level:recipe.requiredLevel };
     }).sort((a,b)=>Number(a.locked)-Number(b.locked)||a.level-b.level).map((entry)=>entry.html).join('');
-    return `<section class="production-guide"><strong>Como funciona</strong><span>1. Escolha uma receita liberada.</span><span>2. Pague o custo do lote.</span><span>3. Um profissional compatível assume o preparo.</span><span>4. Porções iguais acumulam no mesmo balcão, sem limite.</span></section><p class="panel-intro">Produza lotes antecipadamente. Clientes pedem somente comida disponível.</p>
+    return `<section class="production-guide compact"><strong>Produção</strong><span>Escolha, pague uma vez e acompanhe o lote; itens iguais usam o mesmo balcão.</span></section><p class="panel-intro">Produza lotes antecipadamente. Clientes pedem somente comida disponível.</p>
       <div class="ready-strip">${RECIPES.map((recipe) => `<span data-ready-id="${recipe.id}" title="${escapeHtml(recipe.name)} · armazenamento ilimitado">${recipeVisual(recipe.id)}<b>${preparedQuantity(this.simulation.counterModules, recipe.id) + this.state.readyDishes[recipe.id]}</b></span>`).join('')}<small>${this.simulation.counterModules.reduce((sum, module) => sum + module.currentQuantity, 0)} pratos · capacidade ∞</small></div>
-      <div class="active-production-top">${tasks.length ? tasks.slice(0,12).map((task)=>`<article>${recipeVisual(task.recipeId)}<div><strong>${escapeHtml(RECIPE_BY_ID[task.recipeId].name)}</strong><small>${productionTaskStatusLabel(task.state)} · ${task.batchQuantity} porções</small></div><button data-action="cancel-production-task" data-id="${task.productionPlanId}">Cancelar</button></article>`).join('') : '<small>Nenhuma receita em produção.</small>'}</div>
-      <h3>Novo lote</h3><div class="production-planner">${productionCards}</div>
-      <h3>Planos ativos</h3><div class="plan-list">${plans.length ? plans.map((plan) => { const planTasks = this.state.production.tasks.filter((task) => task.productionPlanId === plan.id); const complete = planTasks.filter((task) => task.state === 'completed').reduce((sum, task) => sum + task.batchQuantity, 0); return `<article><span>${RECIPE_BY_ID[plan.recipeId].icon}</span><div><strong>${RECIPE_BY_ID[plan.recipeId].name} · ${plan.mode === 'maintainTarget' ? 'estoque-alvo' : `${plan.currentProgress}/${plan.targetQuantity}`}</strong><small>Lotes de ${plan.batchSize} · prioridade ${plan.priority} · ${planTasks.length} lotes</small><i><em style="width:${plan.mode === 'maintainTarget' ? Math.min(100, preparedQuantity(this.simulation.counterModules, plan.recipeId) / Math.max(1, plan.targetQuantity) * 100) : Math.min(100, complete / Math.max(1, plan.targetQuantity) * 100)}%"></em></i></div><button data-action="toggle-production-plan" data-id="${plan.id}" data-enabled="${!plan.enabled}">${plan.enabled ? 'Pausar' : 'Retomar'}</button><button data-action="cancel-production-plan" data-id="${plan.id}">×</button></article>`; }).join('') : emptyState('☕', 'Nenhum plano', 'Defina quantidade, lote e prioridade para começar.')}</div>
-      <h3>Fila dividida em lotes</h3><div class="production-task-list">${tasks.length ? tasks.slice(0, 60).map((task, index) => `<article><b>${index + 1}</b><div><strong>${RECIPE_BY_ID[task.recipeId].icon} ${task.batchQuantity} unidades</strong><small>${productionTaskStatusLabel(task.state)}${task.blockedReason ? ` · ${task.blockedReason}` : ''}</small></div><span>${task.workSlotId ?? 'Aguardando WorkSlot'}</span></article>`).join('') : emptyState('✓', 'Fila livre', 'Todos os lotes foram concluídos ou ainda não há planos.')}</div>`;
+      <div class="active-production-top">${groupedTasks.length ? groupedTasks.slice(0,12).map((group) => { const representative = group.tasks.find((task) => task.state === 'cooking') ?? group.tasks.find((task) => task.state === 'reserved') ?? group.tasks[0]; const portions = group.tasks.reduce((sum, task) => sum + task.batchQuantity, 0); return `<article>${recipeVisual(group.recipeId)}<div><strong>${escapeHtml(RECIPE_BY_ID[group.recipeId].name)} <b>×${group.tasks.length}</b></strong><small>${productionTaskStatusLabel(representative.state)} · ${group.tasks.length} ${group.tasks.length === 1 ? 'lote' : 'lotes'} · ${portions} porções</small></div><button data-action="cancel-production-recipe" data-id="${group.recipeId}">Cancelar</button></article>`; }).join('') : '<small>Nenhuma receita em produção.</small>'}</div>
+      <h3>Novo lote</h3><div class="production-planner">${productionCards}</div>`;
   }
 
   private refreshProductionPanel(): void {
     if (this.activePanel !== 'production') return;
+    const signature = this.currentProductionSignature();
+    if (signature !== this.productionPanelSignature) { this.renderPanel(); return; }
     for (const recipe of RECIPES) {
       const cell = this.root.querySelector<HTMLElement>(`[data-ready-id="${recipe.id}"] b`);
       if (cell) cell.textContent = String(preparedQuantity(this.simulation.counterModules, recipe.id) + this.state.readyDishes[recipe.id]);
     }
     const capacity = this.root.querySelector<HTMLElement>('.ready-strip > small');
     if (capacity) capacity.textContent = `${this.simulation.counterModules.reduce((sum, module) => sum + module.currentQuantity, 0)} pratos · capacidade ∞`;
+  }
+
+  private currentProductionSignature(): string {
+    return JSON.stringify({
+      tasks: this.state.production.tasks.filter((task) => !['completed', 'cancelled', 'failed'].includes(task.state)).map((task) => [task.id, task.state, task.blockedReason]),
+      repeats: this.state.production.plans.filter((plan) => plan.repeat && plan.enabled).map((plan) => plan.recipeId).sort(),
+    });
   }
 
   private ordersPanel(): string {
@@ -505,16 +514,16 @@ export class GameUI {
 
   private rolesPanel(): string {
     const current = this.state.profile!.helpRole;
-    return `<p class="panel-intro">Seu personagem conclui uma tarefa por vez dentro da prioridade escolhida.</p><div class="role-list">${(Object.entries(ROLE_INFO) as [HelpRole, typeof ROLE_INFO[HelpRole]][]).map(([id, role]) => `<button data-action="choose-role" data-id="${id}" class="role-card ${current === id ? 'selected' : ''}"><span>${role.icon}</span><div><strong>${role.name}</strong><small>${role.text}</small></div>${current === id ? '<b>ATUAL</b>' : '<i>Escolher</i>'}</button>`).join('')}</div>`;
+    return `<p class="panel-intro">Seu personagem conclui uma tarefa por vez dentro da prioridade escolhida.</p><div class="role-list">${PLAYER_HELP_ROLES.map((id) => { const role = ROLE_INFO[id]; return `<button data-action="choose-role" data-id="${id}" class="role-card ${current === id ? 'selected' : ''}"><span>${role.icon}</span><div><strong>${role.name}</strong><small>${role.text}</small></div>${current === id ? '<b>ATUAL</b>' : '<i>Escolher</i>'}</button>`; }).join('')}</div>`;
   }
 
   private professionsPanel(): string {
     const profile = this.state.profile!;
-    return `<div class="profession-list">${(Object.entries(ROLE_INFO) as [HelpRole, typeof ROLE_INFO[HelpRole]][]).map(([, role]) => { const progress = profile.professions[role.profession]; return `<article><span>${role.icon}</span><div><strong>${role.name} · Nível ${progress.level}</strong><small>${progress.tasksCompleted} tarefas concluídas · ${progress.xp} XP</small><i><em style="width:${professionProgress(progress.xp, progress.level)}%"></em></i><p>Bônus atual: +${(progress.level - 1) * 8}% de velocidade</p></div></article>`; }).join('')}</div>`;
+    return `<div class="profession-list">${PLAYER_HELP_ROLES.map((id) => ROLE_INFO[id]).map((role) => { const progress = profile.professions[role.profession]; return `<article><span>${role.icon}</span><div><strong>${role.name} · Nível ${progress.level}</strong><small>${progress.tasksCompleted} tarefas concluídas · ${progress.xp} XP</small><i><em style="width:${professionProgress(progress.xp, progress.level)}%"></em></i><p>Bônus atual: +${(progress.level - 1) * 8}% de velocidade</p></div></article>`; }).join('')}</div>`;
   }
 
   private playerPanel(): string {
-    const profile = this.state.profile!; const role = ROLE_INFO[profile.helpRole];
+    const profile = this.state.profile!; const role = ROLE_INFO[PLAYER_HELP_ROLES.includes(profile.helpRole) ? profile.helpRole : 'service'];
     const totalTasks = Object.values(profile.taskHistory).reduce((sum, value) => sum + value, 0);
     return `<div class="profile-hero"><div class="large-portrait"><img src="${playerSpriteThumb(profile.appearance.hairStyle, profile.appearance.presentation)}" alt="Sprite de ${escapeHtml(profile.name)}" /></div><div><small>PROPRIETÁRIO DO BISTRÔ</small><h3>${escapeHtml(profile.name)}</h3><p>Nível geral ${profile.level} · ${profile.xp} XP</p></div></div>
       <div class="profile-stats"><span><small>Função atual</small><b>${role.icon} ${role.name}</b></span><span><small>Tarefa atual</small><b>${this.simulation.playerTaskLabel()}</b></span><span><small>Tarefas feitas</small><b>${totalTasks}</b></span></div>
@@ -536,8 +545,8 @@ export class GameUI {
     const produced = Object.entries(report.produced).map(([id, amount]) => `${RECIPE_BY_ID[id as RecipeId].icon} ${amount}`).join('  ') || 'Nenhum';
     const sold = Object.entries(report.sold).map(([id, amount]) => `${RECIPE_BY_ID[id as RecipeId].icon} ${amount}`).join('  ') || 'Nenhum';
     return `<div class="offline-hero"><span>☀</span><div><small>TEMPO AUSENTE</small><strong>${formatDuration(report.absentSeconds)}</strong><p>${formatDuration(report.calculatedSeconds)} calculadas ${report.capped ? '· limite aplicado' : ''}</p></div></div>
-      <div class="report-grid"><span><small>Produzidos</small><b>${produced}</b></span><span><small>Vendidos</small><b>${sold}</b></span><span><small>Receita bruta</small><b>${report.grossRevenue} ●</b></span><span><small>Compras</small><b>−${report.purchaseCosts} ●</b></span><span><small>Salários</small><b>−${report.salariesCharged} ●</b></span><span><small>Lucro líquido</small><b>${report.netProfit >= 0 ? '+' : ''}${report.netProfit} ●</b></span><span><small>Experiência</small><b>+${report.experience} XP</b></span><span><small>Bloqueios</small><b>${report.blockedTasks.length}</b></span></div>
-      <article class="character-report"><span>${ROLE_INFO[report.characterRole].icon}</span><div><strong>${this.state.profile!.name} ajudou em ${ROLE_INFO[report.characterRole].name}</strong><small>${report.characterTasks} tarefas estimadas · +${report.characterGeneralXp} XP geral · +${report.characterProfessionXp} XP profissional</small><p>Bônus aplicado: ${report.bonusPercent}% · sem tarefas/bloqueado: ${formatDuration(report.idleSeconds)}</p></div></article>
+      <div class="report-grid"><span><small>Produzidos</small><b>${produced}</b></span><span><small>Vendidos</small><b>${sold}</b></span><span><small>Receita bruta</small><b>${report.grossRevenue} ●</b></span><span><small>Compras</small><b>−${report.purchaseCosts} ●</b></span><span><small>Salários</small><b>−${report.salariesCharged} ●</b></span><span><small>Lucro líquido</small><b>${report.netProfit >= 0 ? '+' : ''}${report.netProfit} ●</b></span><span><small>Experiência</small><b>Desativada offline</b></span><span><small>Bloqueios</small><b>${report.blockedTasks.length}</b></span></div>
+      <article class="character-report"><span>${ROLE_INFO[report.characterRole].icon}</span><div><strong>Sem progressão automática</strong><small>Nenhum XP geral, profissional ou de restaurante é concedido com o jogo fechado.</small><p>A produção e as vendas podem avançar, mas você só sobe de nível enquanto joga.</p></div></article>
       ${report.stoppedReasons.length ? `<div class="stop-reasons"><strong>Observações</strong>${report.stoppedReasons.map((reason) => `<span>• ${reason}</span>`).join('')}</div>` : ''}
       ${developmentMode() ? `<h3>Ferramentas de desenvolvimento</h3>${this.devTimeButtons()}` : ''}`;
   }
@@ -549,7 +558,7 @@ export class GameUI {
 
   private settingsPanel(): string {
     return `<div class="settings-list"><label><span>Volume geral <b data-audio-value="master">${Math.round(this.audio.settings.master * 100)}%</b></span><input data-audio="master" type="range" min="0" max="1" step="0.05" value="${this.audio.settings.master}" /></label><label><span>Efeitos <b data-audio-value="effects">${Math.round(this.audio.settings.effects * 100)}%</b></span><input data-audio="effects" type="range" min="0" max="1" step="0.05" value="${this.audio.settings.effects}" /></label><button class="secondary-button" data-action="toggle-mute">${this.audio.settings.muted ? 'Ativar áudio' : 'Silenciar tudo'}</button>${developmentMode() ? `<button class="secondary-button" data-action="toggle-technical">${this.technicalMode ? 'Desativar' : 'Ativar'} modo técnico</button>` : ''}</div>
-      <div class="settings-section"><h3>Progresso offline</h3><p>O cálculo usa no máximo 8 horas e respeita dinheiro, tempo, profissionais, estações e a fila de produção.</p>${developmentMode() ? '<button class="secondary-button" data-open="offline">Abrir simulador</button>' : ''}</div>
+      <div class="settings-section"><h3>Progresso offline</h3><p>O cálculo usa no máximo 8 horas para produção e vendas, sem conceder XP ou subir níveis com o jogo fechado.</p>${developmentMode() ? '<button class="secondary-button" data-open="offline">Abrir simulador</button>' : ''}</div>
       ${developmentMode() ? `<div class="settings-section"><h3>Filtros do modo técnico</h3><div class="dev-times">${[['customers','Clientes'],['kitchen','Cozinha'],['service','Serviço'],['production','Produção'],['pathfinding','Pathfinding'],['reservations','Reservas']].map(([id,label]) => `<button data-action="toggle-technical-filter" data-id="${id}" class="${this.technicalFilters.has(id) ? 'active' : ''}">${label}</button>`).join('')}</div><h3>Painel de desenvolvimento</h3><div class="dev-times"><button data-action="dev-add-customer">+ cliente</button><button data-action="dev-add-group">+ grupo 4</button><button data-action="dev-simulate-order">Simular pedido</button><button data-action="dev-low-patience">Paciência baixa</button><button data-action="dev-dirty-seat">Sujar lugar</button><button data-action="dev-swap-skins">Trocar conjunto visual</button></div><p>Modo técnico: grade, rotas, reservas e troca de skins sem alterar footprints.</p></div>` : ''}
       <div class="danger-zone"><h3>Recomeçar</h3><p>Apaga o restaurante, personagem e todo o progresso deste dispositivo.</p>${this.resetArmed
         ? '<strong>Esta ação não pode ser desfeita.</strong><div class="button-stack"><button data-action="confirm-reset">Confirmar e recomeçar</button><button class="secondary-button" data-action="cancel-reset">Cancelar</button></div>'
@@ -690,6 +699,23 @@ export class GameUI {
       const recipe = RECIPE_BY_ID[id];
       this.toast(`Lote de ${recipe.batchYield} porções iniciado por ${recipe.batchCost} moedas.`, 'success');
     } else this.toast(result.reason ?? 'Plano inválido.', 'warning');
+    this.renderPanel();
+  }
+
+  private toggleRecipeRepeat(id: RecipeId, enabled: boolean): void {
+    const result = setRecipeRepeat(this.state, id, enabled, Date.now());
+    const recipe = RECIPE_BY_ID[id];
+    this.toast(
+      result.ok ? (enabled ? `${recipe.name}: repetição contínua ativada.` : `${recipe.name}: repetição desligada após o lote atual.`) : result.reason ?? 'Não foi possível alterar a repetição.',
+      result.ok ? 'success' : 'warning',
+    );
+    this.renderPanel();
+  }
+
+  private cancelProductionRecipe(id: RecipeId): void {
+    const planIds = new Set(this.state.production.tasks.filter((task) => task.recipeId === id && !['completed', 'cancelled', 'failed'].includes(task.state)).map((task) => task.productionPlanId));
+    for (const planId of planIds) this.simulation.cancelProduction(planId);
+    this.toast(`${RECIPE_BY_ID[id].name}: ${planIds.size} ${planIds.size === 1 ? 'lote cancelado' : 'lotes cancelados'}.`, 'info');
     this.renderPanel();
   }
 

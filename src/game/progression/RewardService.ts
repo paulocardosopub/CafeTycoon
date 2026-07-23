@@ -23,7 +23,8 @@ export function applyProgressionThroughLevel(state:GameState, level:number, opti
   for (const manifest of LEVEL_REWARDS.filter((entry)=>entry.level<=capped)) {
     let appliedAtLevel=false;
     for (const reward of manifest.rewards) if (!state.progression.appliedRewardIds.includes(reward.id)) {
-      applyReward(state,reward); state.progression.appliedRewardIds.push(reward.id); appliedAtLevel=true;
+      if (!(options.retroactive && reward.type === 'currency')) applyReward(state,reward);
+      state.progression.appliedRewardIds.push(reward.id); appliedAtLevel=true;
     }
     if (appliedAtLevel) newlyAppliedLevels.push(manifest.level);
   }
@@ -56,6 +57,7 @@ function applyReward(state:GameState,reward:RewardDefinition):void {
   else if ((reward.type==='system'||reward.type==='upgrade'||reward.type==='endgame') && !state.progression.unlockedSystemIds.includes(reward.id)) state.progression.unlockedSystemIds.push(reward.id);
   else if (reward.type==='staffSlot') state.staff.maxStaff+=1;
   else if (reward.type==='restaurantStar') state.progression.restaurantStars=Math.max(state.progression.restaurantStars,Number(value)||0);
+  else if (reward.type==='currency') state.coins+=Math.max(0,Number(reward.id.split(':').at(-1))||0);
 }
 
 function uniqueStrings(input:unknown):string[]{return [...new Set(Array.isArray(input)?input.filter((value):value is string=>typeof value==='string'):[])];}

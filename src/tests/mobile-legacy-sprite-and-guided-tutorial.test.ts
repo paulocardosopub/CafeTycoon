@@ -33,6 +33,45 @@ describe('mobile sem sprites antigas e tutorial acionável', () => {
     expect(TUTORIAL_SETUP_PLACEMENTS.map((item) => [item.x, item.y])).toEqual([[3,3],[7,3],[11,3],[9,11],[8,11],[10,11]]);
   });
 
+  it('posiciona e salva o kit inicial inteiro com um único clique', () => {
+    const state = createDefaultState(0);
+    state.coins = 100_000;
+    state.construction.placedFurniture = [];
+    state.construction.storedFurniture = [];
+    const buyer = new ConstructionEditor(state);
+    for (const placement of TUTORIAL_SETUP_PLACEMENTS) expect(buyer.purchase(placement.definitionId).ok).toBe(true);
+    expect(buyer.confirmPurchases().ok).toBe(true);
+    const editor = new ConstructionEditor(state);
+    const stored = [...editor.draft.construction.storedFurniture];
+    const placements = TUTORIAL_SETUP_PLACEMENTS.map((placement) => {
+      const index = stored.findIndex((item) => item.definitionId === placement.definitionId);
+      const [item] = stored.splice(index, 1);
+      return { definitionId: placement.definitionId, gridX: placement.x, gridY: placement.y, orientation: placement.orientation, storedItemId: item.id };
+    });
+    expect(editor.placeStoredBatch(placements).ok).toBe(true);
+    expect(editor.confirm().ok).toBe(true);
+    expect(state.construction.placedFurniture).toHaveLength(6);
+    expect(state.construction.placedFurniture.filter((item) => item.definitionId === 'dining.chair.basic').every((item) => item.state.linkedTableId)).toBe(true);
+  });
+
+  it('leva o tutorial ao kit e usa o botão único de posicionamento', () => {
+    const ui = source('../ui/GameUI.ts');
+    const shop = source('../ui/ConstructionShop.ts');
+    expect(ui).toContain("constructionShop.open('shop', 'tutorial-kit')");
+    expect(shop).toContain('data-editor-action="tutorial-place-all"');
+    expect(shop).toContain('.tutorial-placement-guide');
+    expect(source('../styles.css')).toContain('.construction-live-overlay .tutorial-placement-guide{pointer-events:auto}');
+    expect(shop).not.toContain('tutorial-place-suggested');
+  });
+
+  it('compacta a produção e agrupa lotes iguais por receita', () => {
+    const ui = source('../ui/GameUI.ts');
+    expect(ui).toContain('const groupedTasks =');
+    expect(ui).toContain('${group.tasks.length} ${group.tasks.length === 1 ? \'lote\' : \'lotes\'}');
+    expect(ui).not.toContain('<h3>Planos ativos</h3>');
+    expect(ui).toContain('production-guide compact');
+  });
+
   it('impõe o limite temporário de dez balcões de serviço', () => {
     const state = createDefaultState(0);
     state.coins = 100_000;
