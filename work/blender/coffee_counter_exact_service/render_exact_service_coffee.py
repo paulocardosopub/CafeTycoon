@@ -139,11 +139,28 @@ def appliance_materials():
     }
 
 
+def paint_counter_shell_silver():
+    """Repaint the canonical shell without changing any approved geometry."""
+    silver = material("Industrial_Cabinet_Silver", (.47, .51, .52), .62, .38)
+    silver_dark = material("Industrial_Cabinet_Trim", (.17, .20, .21), .58, .42)
+    for name in ("delivery_counter:body", "delivery_counter:door:0", "delivery_counter:door:1"):
+        obj = bpy.data.objects.get(name)
+        if obj is None:
+            raise RuntimeError(f"Missing exact counter part while painting silver: {name}")
+        obj.data.materials.clear()
+        obj.data.materials.append(silver)
+    for name in ("delivery_counter:plinth", "delivery_counter:trim", "delivery_counter:handle:0", "delivery_counter:handle:1"):
+        obj = bpy.data.objects.get(name)
+        if obj is None:
+            raise RuntimeError(f"Missing exact counter part while painting silver: {name}")
+        obj.data.materials.clear()
+        obj.data.materials.append(silver_dark)
+
+
 def add_stove(collection, root, mats):
     cube(f"{ASSET_ID}:cooktop", (0, .02, 1.135), (.78, .66, .055), mats["steel_dark"], collection, .012, root)
-    # Controls live on the operator side (-Y), while the raised guard marks
-    # the wall side (+Y). This makes front/back unmistakable in every view.
-    cube(f"{ASSET_ID}:back-guard", (0, .36, 1.255), (.80, .055, .24), mats["steel"], collection, .010, root)
+    # Controls live on the operator side (-Y). The approved cabinet doors
+    # remain the primary front marker; no oversized rear guard is needed.
     cube(f"{ASSET_ID}:front-controls", (0, -.355, 1.205), (.76, .070, .16), mats["steel"], collection, .010, root)
     for index, (x, y) in enumerate(((-.22, -.18), (.22, -.18), (-.22, .18), (.22, .18))):
         cylinder(f"{ASSET_ID}:burner:{index}", (x, y, 1.18), .13, .035, mats["black"], collection, 10, None, root)
@@ -186,9 +203,8 @@ def add_preparation(collection, root, mats, ingredients=False):
 
 
 def add_sink(collection, root, mats):
-    # The basin is pulled toward the operator (-Y); faucet, knobs and guard
-    # are fixed at the rear (+Y), producing a readable front in all rotations.
-    cube(f"{ASSET_ID}:back-guard", (0, .38, 1.255), (.78, .055, .25), mats["steel"], collection, .010, root)
+    # The basin is pulled toward the operator (-Y); faucet and knobs are fixed
+    # at the rear (+Y). The cabinet doors remain the unambiguous front marker.
     cube(f"{ASSET_ID}:basin-rim", (0, -.09, 1.15), (.64, .50, .07), mats["steel_dark"], collection, .020, root)
     cube(f"{ASSET_ID}:basin", (0, -.09, 1.175), (.51, .37, .035), mats["water"], collection, .018, root)
     cylinder(f"{ASSET_ID}:tap", (0, .30, 1.43), .035, .39, mats["chrome"], collection, 10, None, root)
@@ -216,6 +232,8 @@ def add_appliance(collection, root):
 def configure_scene():
     source_collection, root = open_exact_service_counter(PROJECT, ASSET_ID)
     validate_exact_service_counter(source_collection)
+    if ASSET_ID in {"a1_stove_industrial", "b5_industrial_sink"}:
+        paint_counter_shell_silver()
     add_appliance(source_collection, root)
 
     scene = bpy.data.scenes.new("Exact_Service_Coffee_Render")
@@ -314,7 +332,7 @@ scene, collection, root = configure_scene()
 render(scene, collection, root)
 BLEND.parent.mkdir(parents=True, exist_ok=True)
 scene["coffeeCounterBase"] = "exact approved service counter"
-scene["renderVersion"] = "0.0.8-exact-service-counter-2"
+scene["renderVersion"] = "0.0.8-exact-service-counter-3"
 bpy.ops.wm.save_as_mainfile(filepath=str(BLEND))
 PREVIEW_BLEND.parent.mkdir(parents=True, exist_ok=True)
 shutil.copy2(BLEND, PREVIEW_BLEND)

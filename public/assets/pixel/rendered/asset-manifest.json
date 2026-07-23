@@ -4076,7 +4076,7 @@
         "overhangCells": 0.25
       },
       "counterBaseAssetId": "c1_service_isolated",
-      "renderVersion": "0.0.8-exact-service-counter-2",
+      "renderVersion": "0.0.8-exact-service-counter-3",
       "renderedFile": "/assets/pixel/rendered/equipment/stoves/a1_stove_industrial.png",
       "spriteSheet": "/assets/pixel/rendered/equipment/stoves/a1_stove_industrial.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/a1_stove_industrial.png",
@@ -4187,7 +4187,7 @@
         "overhangCells": 0.25
       },
       "counterBaseAssetId": "c1_service_isolated",
-      "renderVersion": "0.0.8-exact-service-counter-2",
+      "renderVersion": "0.0.8-exact-service-counter-3",
       "renderedFile": "/assets/pixel/rendered/equipment/griddles/a3_griddle.png",
       "spriteSheet": "/assets/pixel/rendered/equipment/griddles/a3_griddle.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/a3_griddle.png",
@@ -4243,7 +4243,7 @@
         "overhangCells": 0.25
       },
       "counterBaseAssetId": "c1_service_isolated",
-      "renderVersion": "0.0.8-exact-service-counter-2",
+      "renderVersion": "0.0.8-exact-service-counter-3",
       "renderedFile": "/assets/pixel/rendered/equipment/fryers/a4_fryer.png",
       "spriteSheet": "/assets/pixel/rendered/equipment/fryers/a4_fryer.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/a4_fryer.png",
@@ -4299,7 +4299,7 @@
         "overhangCells": 0.25
       },
       "counterBaseAssetId": "c1_service_isolated",
-      "renderVersion": "0.0.8-exact-service-counter-2",
+      "renderVersion": "0.0.8-exact-service-counter-3",
       "renderedFile": "/assets/pixel/rendered/equipment/kettles/a5_kettle.png",
       "spriteSheet": "/assets/pixel/rendered/equipment/kettles/a5_kettle.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/a5_kettle.png",
@@ -4355,7 +4355,7 @@
         "overhangCells": 0.25
       },
       "counterBaseAssetId": "c1_service_isolated",
-      "renderVersion": "0.0.8-exact-service-counter-2",
+      "renderVersion": "0.0.8-exact-service-counter-3",
       "renderedFile": "/assets/pixel/rendered/equipment/grills/a6_grill.png",
       "spriteSheet": "/assets/pixel/rendered/equipment/grills/a6_grill.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/a6_grill.png",
@@ -4466,7 +4466,7 @@
         "overhangCells": 0.25
       },
       "counterBaseAssetId": "c1_service_isolated",
-      "renderVersion": "0.0.8-exact-service-counter-2",
+      "renderVersion": "0.0.8-exact-service-counter-3",
       "renderedFile": "/assets/pixel/rendered/equipment/coffee-machines/a8_coffee_machine.png",
       "spriteSheet": "/assets/pixel/rendered/equipment/coffee-machines/a8_coffee_machine.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/a8_coffee_machine.png",
@@ -4636,7 +4636,7 @@
         "overhangCells": 0.25
       },
       "counterBaseAssetId": "c1_service_isolated",
-      "renderVersion": "0.0.8-exact-service-counter-2",
+      "renderVersion": "0.0.8-exact-service-counter-3",
       "renderedFile": "/assets/pixel/rendered/equipment/preparation/b3_preparation_counter.png",
       "spriteSheet": "/assets/pixel/rendered/equipment/preparation/b3_preparation_counter.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/b3_preparation_counter.png",
@@ -4692,7 +4692,7 @@
         "overhangCells": 0.25
       },
       "counterBaseAssetId": "c1_service_isolated",
-      "renderVersion": "0.0.8-exact-service-counter-2",
+      "renderVersion": "0.0.8-exact-service-counter-3",
       "renderedFile": "/assets/pixel/rendered/equipment/preparation/b4_ingredient_station.png",
       "spriteSheet": "/assets/pixel/rendered/equipment/preparation/b4_ingredient_station.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/b4_ingredient_station.png",
@@ -4748,7 +4748,7 @@
         "overhangCells": 0.25
       },
       "counterBaseAssetId": "c1_service_isolated",
-      "renderVersion": "0.0.8-exact-service-counter-2",
+      "renderVersion": "0.0.8-exact-service-counter-3",
       "renderedFile": "/assets/pixel/rendered/equipment/sinks/b5_industrial_sink.png",
       "spriteSheet": "/assets/pixel/rendered/equipment/sinks/b5_industrial_sink.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/b5_industrial_sink.png",

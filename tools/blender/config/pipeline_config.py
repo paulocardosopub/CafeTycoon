@@ -159,7 +159,7 @@ for _asset in EQUIPMENT:
         # Its dedicated source contains that approved shell plus only the
         # industrial espresso machine mounted on the countertop.
         _asset["sourceBlend"] = f"assets/blender/equipment/exact-counters/{_asset['assetId']}.blend"
-        _asset["renderVersion"] = "0.0.8-exact-service-counter-2"
+        _asset["renderVersion"] = "0.0.8-exact-service-counter-3"
 
 ASSETS = CHARACTERS + FURNITURE + EQUIPMENT
 
