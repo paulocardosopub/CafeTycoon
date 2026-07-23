@@ -12,6 +12,7 @@ import { JOURNEY_CHAPTER_LEVELS } from '../game/tutorial/Tutorial008Service';
 import type { GameState, PlacedFurniture } from '../core/types';
 import { createStaffInstance } from '../game/staff/StaffService';
 import { STAFF_BY_ID } from '../game/data/staff';
+import { BLENDER_RENDERED_ASSETS } from '../assets/pixel/blenderManifest';
 
 function addProfile(state: GameState): void {
   state.profile = {
@@ -22,6 +23,12 @@ function addProfile(state: GameState): void {
 }
 
 describe('correções integradas de operação e layout', () => {
+  it('mantém um quadro por direção nos utensílios sobre balcão', () => {
+    const exactCounters = BLENDER_RENDERED_ASSETS.filter((asset) => asset.counterBaseAssetId === 'c1_service_isolated');
+    expect(exactCounters.length).toBeGreaterThan(0);
+    expect(exactCounters.every((asset) => asset.frameCount === 1)).toBe(true);
+  });
+
   it('gerente aceita qualquer setor e uma especialização aceita somente o setor escolhido', () => {
     const state=createDefaultState(0); addProfile(state); const simulation=new RestaurantSimulation(state);
     const service=simulation.tasks.add({ key:'test-service', kind:'take_order', role:'service', target:{x:9,y:16}, duration:1, priority:10, payload:{} });

@@ -193,6 +193,7 @@ def add_sink(collection, root, mats):
     cube(f"{ASSET_ID}:basin", (0, -.09, 1.175), (.51, .37, .035), mats["water"], collection, .018, root)
     cylinder(f"{ASSET_ID}:tap", (0, .30, 1.43), .035, .39, mats["chrome"], collection, 10, None, root)
     cube(f"{ASSET_ID}:spout", (0, .18, 1.59), (.07, .24, .07), mats["chrome"], collection, .015, root)
+    cylinder(f"{ASSET_ID}:nozzle", (0, .055, 1.515), .028, .15, mats["chrome"], collection, 10, None, root)
     for index, x in enumerate((-.17, .17)):
         cylinder(f"{ASSET_ID}:tap-knob:{index}", (x, .315, 1.38), .045, .045, mats["black"], collection, 10, (radians(90), 0, 0), root)
 
@@ -313,7 +314,7 @@ scene, collection, root = configure_scene()
 render(scene, collection, root)
 BLEND.parent.mkdir(parents=True, exist_ok=True)
 scene["coffeeCounterBase"] = "exact approved service counter"
-scene["renderVersion"] = "0.0.8-exact-service-counter-1"
+scene["renderVersion"] = "0.0.8-exact-service-counter-2"
 bpy.ops.wm.save_as_mainfile(filepath=str(BLEND))
 PREVIEW_BLEND.parent.mkdir(parents=True, exist_ok=True)
 shutil.copy2(BLEND, PREVIEW_BLEND)

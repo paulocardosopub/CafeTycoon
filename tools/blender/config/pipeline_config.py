@@ -152,14 +152,14 @@ _EXACT_COUNTER_APPLIANCES = {
 for _asset in EQUIPMENT:
     if _asset["equipmentFamilyId"] == "refrigerator":
         _asset["animations"] = {"closed": 1, "open": 2, "complete": 1}
-    if _asset["assetId"].startswith(("a2_", "a3_", "a4_", "a5_", "a6_", "a7_", "a8_", "b3_", "b4_", "b5_", "b6_", "b7_", "b8_")):
+    if _asset["assetId"].startswith(("a1_", "a2_", "a3_", "a4_", "a5_", "a6_", "a7_", "a8_", "b3_", "b4_", "b5_", "b6_", "b7_", "b8_")):
         _asset["animations"] = {"idle": 1}
     if _asset["assetId"] in _EXACT_COUNTER_APPLIANCES:
         # This asset intentionally reuses the exact service-counter shell.
         # Its dedicated source contains that approved shell plus only the
         # industrial espresso machine mounted on the countertop.
         _asset["sourceBlend"] = f"assets/blender/equipment/exact-counters/{_asset['assetId']}.blend"
-        _asset["renderVersion"] = "0.0.8-exact-service-counter-1"
+        _asset["renderVersion"] = "0.0.8-exact-service-counter-2"
 
 ASSETS = CHARACTERS + FURNITURE + EQUIPMENT
 

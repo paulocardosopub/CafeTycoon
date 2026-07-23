@@ -12,7 +12,7 @@ import { C3_BR_LEGACY_ALIASES } from '../assets/pixel/c3brManifest';
 import { playerSkinAsset } from '../content/characters/playerSkins';
 
 const CONSTRUCTION_RELOAD_SESSION_KEY = 'bistro-bloom-construction-reload';
-const ASSET_VERSION = '0.0.8-exact-service-counter-1';
+const ASSET_VERSION = '0.0.8-exact-service-counter-2';
 
 export const TUTORIAL_SETUP_PLACEMENTS = [
   { definitionId: 'service.c1.isolated', label: 'Balcão de serviço', x: 3, y: 3, orientation: 'sw' as Direction },
