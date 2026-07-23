@@ -99,7 +99,7 @@ export interface PreparedProductionTask {
   duration: number;
 }
 
-export function prepareNextProductionTask(state: GameState, stations: StationRuntime[], counters: ServiceCounterModule[], now = Date.now()): PreparedProductionTask | undefined {
+export function prepareNextProductionTask(state: GameState, stations: StationRuntime[], _counters: ServiceCounterModule[], now = Date.now()): PreparedProductionTask | undefined {
   const candidates = state.production.tasks.filter((task) => ['queued', 'waitingForStaff', 'waitingForWorkstation'].includes(task.state))
     .filter((task) => state.production.plans.find((plan) => plan.id === task.productionPlanId)?.enabled)
     .sort((left, right) => planPriority(state, right.productionPlanId) - planPriority(state, left.productionPlanId) || left.createdAt - right.createdAt);
@@ -111,11 +111,11 @@ export function prepareNextProductionTask(state: GameState, stations: StationRun
     const station = stations.find((candidate) => (!compatibleStationId || candidate.id === compatibleStationId || candidate.id.startsWith(`${compatibleStationId}:`))
       && candidate.state === 'free' && (!plan.preferredEquipmentIds.length || plan.preferredEquipmentIds.includes(candidate.id)));
     if (!station) { task.state = 'waitingForWorkstation'; task.blockedReason = 'Equipamento ou WorkSlot indisponível.'; continue; }
-    const output = reserveOutputCapacity(counters, task.recipeId, task.batchQuantity, plan.preferredCounterIds);
-    if (!output) { task.state = 'waitingForWorkstation'; task.blockedReason = 'Instale ao menos um balcão de serviço.'; continue; }
     task.reservedIngredients = {};
-    task.outputReservations = output;
-    task.outputCounterId = output[0]?.moduleId;
+    // O lote começa mesmo sem balcão livre. A saída só é procurada quando a
+    // comida termina e, se necessário, fica visível sobre esta estação.
+    task.outputReservations = [];
+    task.outputCounterId = undefined;
     task.workstationId = station.id;
     task.workSlotId = `${station.id}:primary`;
     task.state = 'reserved';
@@ -134,11 +134,32 @@ export function markProductionTaskStarted(state: Pick<GameState, 'production'>, 
 
 export function completeProductionTask(state: GameState, taskId: string, counters: ServiceCounterModule[], now = Date.now()): boolean {
   const task = state.production.tasks.find((item) => item.id === taskId);
-  if (!task || !['reserved', 'inPreparation', 'cooking', 'delivering'].includes(task.state)) return false;
-  if (!task.outputReservations.length || task.outputReservations.some((part) => {
+  if (!task || !['reserved', 'inPreparation', 'cooking', 'delivering', 'waitingForCounterSpace'].includes(task.state)) return false;
+  if (!task.outputReservations.length) {
+    const plan = state.production.plans.find((item) => item.id === task.productionPlanId);
+    const output = reserveOutputCapacity(counters, task.recipeId, task.batchQuantity, plan?.preferredCounterIds ?? []);
+    if (!output) {
+      task.state = 'waitingForCounterSpace';
+      task.completedAt ??= now;
+      task.endsAt = now;
+      task.assignedStaffId = undefined;
+      task.blockedReason = 'Pronto na estação; aguardando um balcão de serviço livre.';
+      return false;
+    }
+    task.outputReservations = output;
+    task.outputCounterId = output[0]?.moduleId;
+  }
+  if (task.outputReservations.some((part) => {
     const module = counters.find((item) => item.id === part.moduleId);
     return !module || (module.incomingReservedQuantity ?? 0) < part.quantity;
-  })) { task.state = 'queued'; task.blockedReason = 'Balcão removido; lote devolvido à fila.'; task.outputReservations = []; return false; }
+  })) {
+    releaseOutputCapacity(counters, task.outputReservations);
+    task.outputReservations = [];
+    task.outputCounterId = undefined;
+    task.state = 'waitingForCounterSpace';
+    task.blockedReason = 'Pronto na estação; aguardando um balcão de serviço livre.';
+    return false;
+  }
   for (const part of task.outputReservations) {
     const module = counters.find((item) => item.id === part.moduleId)!;
     module.incomingReservedQuantity = Math.max(0, (module.incomingReservedQuantity ?? 0) - part.quantity);
@@ -163,6 +184,16 @@ export function completeProductionTask(state: GameState, taskId: string, counter
   }
   state.production.tasks = trimProductionTasks(state.production.tasks);
   return true;
+}
+
+/** Transfere lotes prontos assim que algum balcão compatível fica livre. */
+export function transferWaitingProductionOutputs(state: GameState, counters: ServiceCounterModule[], now = Date.now()): string[] {
+  const transferred: string[] = [];
+  const waiting = state.production.tasks
+    .filter((task) => task.state === 'waitingForCounterSpace')
+    .sort((left, right) => (left.completedAt ?? left.createdAt) - (right.completedAt ?? right.createdAt));
+  for (const task of waiting) if (completeProductionTask(state, task.id, counters, now)) transferred.push(task.id);
+  return transferred;
 }
 
 export function setRecipeRepeat(state: GameState, recipeId: RecipeId, enabled: boolean, now = Date.now()): ProductionPlanResult {
@@ -245,7 +276,7 @@ function releaseOutputCapacity(counters: ServiceCounterModule[], reservation: re
 }
 
 function sanitizeTask(task: ProductionTask): ProductionTask {
-  const obsoleteWaitingState = ['waitingForIngredients', 'waitingForStorage', 'waitingForCounterSpace'].includes(task.state);
+  const obsoleteWaitingState = ['waitingForIngredients', 'waitingForStorage'].includes(task.state);
   return {
     ...task,
     state: obsoleteWaitingState ? 'queued' : task.state,

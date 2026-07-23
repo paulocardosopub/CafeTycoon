@@ -147,7 +147,7 @@ for _asset in EQUIPMENT:
     if _asset["assetId"].startswith(("a2_", "a3_", "a4_", "a5_", "a6_", "a7_", "a8_", "b3_", "b4_", "b5_", "b6_", "b7_", "b8_")):
         _asset["animations"] = {"idle": 1}
     if _asset["assetId"] == "a8_coffee_machine":
-        _asset["renderVersion"] = "0.0.8-coffee-counter-2"
+        _asset["renderVersion"] = "0.0.8-coffee-counter-4"
 
 ASSETS = CHARACTERS + FURNITURE + EQUIPMENT
 

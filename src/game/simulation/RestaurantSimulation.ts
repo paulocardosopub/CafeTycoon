@@ -28,6 +28,7 @@ import { completePurchaseRequest, evaluateAutoPurchases, failPurchaseRequest, se
 import { storageTargetPoint } from '../inventory/StorageService';
 import {
   cancelProductionPlan, completeProductionTask, markProductionTaskStarted, prepareNextProductionTask, refreshMaintainTargetPlans,
+  transferWaitingProductionOutputs,
 } from '../cooking/ProductionPlanningService';
 import { compatibleStationFunction, recipeIsOperational } from '../recipes/RecipeAvailability';
 import { playerSkinAsset } from '../../content/characters/playerSkins';
@@ -228,6 +229,7 @@ export class RestaurantSimulation {
     this.createRestockTasks();
     this.productionSchedulerCountdown -= delta;
     if (this.productionSchedulerCountdown <= 0) {
+      this.transferReadyProductionOutputs();
       refreshMaintainTargetPlans(this.state, this.counterModules, Date.now());
       this.createProductionTask();
       this.productionSchedulerCountdown = BALANCE.production.schedulerIntervalSeconds;
@@ -816,7 +818,19 @@ export class RestaurantSimulation {
       } else gameEvents.emit('toast', { message: result.reason ?? 'Reposição bloqueada.', tone: 'warning' });
     } else if (task.kind === 'production_batch') {
       const completed = completeProductionTask(this.state, String(task.payload.productionTaskId), this.counterModules, Date.now());
-      gameEvents.emit('toast', { message: completed ? 'Lote entregue ao balcão ilimitado.' : 'O balcão foi removido; lote devolvido à fila.', tone: completed ? 'success' : 'warning' });
+      const productionTask = this.state.production.tasks.find((item) => item.id === task.payload.productionTaskId);
+      if (!completed && productionTask?.state === 'waitingForCounterSpace') {
+        const station = this.stationFromTask(task);
+        if (station) {
+          station.state = 'complete';
+          station.workerId = undefined;
+          station.remaining = 0;
+          station.currentStep = `Pronto: ${RECIPE_BY_ID[productionTask.recipeId].name} ×${productionTask.batchQuantity}`;
+        }
+        gameEvents.emit('toast', { message: 'Lote pronto na estação; aguardando um balcão de serviço livre.', tone: 'info' });
+      } else {
+        gameEvents.emit('toast', { message: completed ? 'Lote entregue ao balcão de serviço.' : 'Não foi possível concluir o lote.', tone: completed ? 'success' : 'warning' });
+      }
     } else if (task.kind === 'stock_support') {
       actor.carrying = undefined;
       const order = this.orderFor(task.payload.orderId);
@@ -1118,6 +1132,10 @@ export class RestaurantSimulation {
     if (open && this.activeCustomerCount() === 0) this.spawnCountdown = Math.min(this.spawnCountdown, .35);
   }
   cancelProduction(planId: string): boolean {
+    const heldStationIds = this.state.production.tasks
+      .filter((task) => task.productionPlanId === planId && task.state === 'waitingForCounterSpace')
+      .map((task) => task.workstationId)
+      .filter((id): id is string => Boolean(id));
     const cancelled = cancelProductionPlan(this.state, planId, this.counterModules, Date.now());
     if (!cancelled) return false;
     const runtimeTasks = this.tasks.cancelWhere((task) => task.kind === 'production_batch' && task.payload.productionPlanId === planId, 'Produção cancelada pelo jogador.');
@@ -1125,7 +1143,33 @@ export class RestaurantSimulation {
       for (const actor of this.actors.filter((entry) => entry.taskId === task.id)) this.clearActorTask(actor);
       this.releaseTaskStation(task);
     }
+    for (const stationId of heldStationIds) {
+      const station = this.stations.find((item) => item.id === stationId);
+      if (station) {
+        station.state = 'free';
+        station.workerId = undefined;
+        station.remaining = 0;
+        station.currentStep = undefined;
+      }
+    }
     return true;
+  }
+
+  private transferReadyProductionOutputs(): void {
+    const waitingStations = new Map(this.state.production.tasks
+      .filter((task) => task.state === 'waitingForCounterSpace' && task.workstationId)
+      .map((task) => [task.id, task.workstationId!]));
+    const transferred = transferWaitingProductionOutputs(this.state, this.counterModules, Date.now());
+    for (const taskId of transferred) {
+      const station = this.stations.find((item) => item.id === waitingStations.get(taskId));
+      if (station) {
+        station.state = 'free';
+        station.workerId = undefined;
+        station.remaining = 0;
+        station.currentStep = undefined;
+      }
+    }
+    if (transferred.length) gameEvents.emit('toast', { message: `${transferred.length} lote${transferred.length === 1 ? '' : 's'} transferido${transferred.length === 1 ? '' : 's'} para o balcão.`, tone: 'success' });
   }
   debugBeginDeparture(customer: CustomerRuntime, gaveUp = false): void { if (gaveUp) this.customerGivesUp(customer); else this.beginDeparture(customer, false); }
 
@@ -1311,6 +1355,14 @@ export class RestaurantSimulation {
         if (slot) { slot.state = 'occupied'; order.counterSlotId = slot.id; this.createDelivery(order); }
       }
       if (order.state === 'awaiting_station') this.createCookStep(order);
+    }
+    for (const task of this.state.production.tasks.filter((item) => item.state === 'waitingForCounterSpace' && item.workstationId)) {
+      const station = this.stations.find((item) => item.id === task.workstationId);
+      if (!station) continue;
+      station.state = 'complete';
+      station.workerId = undefined;
+      station.remaining = 0;
+      station.currentStep = `Pronto: ${RECIPE_BY_ID[task.recipeId].name} ×${task.batchQuantity}`;
     }
     for (const customer of this.customers) {
       if (customer.state === 'leaving' || customer.state === 'gave_up') { if (!customer.cleanupCompleted) this.cleanupCustomerReferences(customer); this.routeCustomerToExit(customer); }

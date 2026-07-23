@@ -4462,7 +4462,7 @@
         "heightBlocks": 1.8,
         "overhangCells": 0.25
       },
-      "renderVersion": "0.0.8-coffee-counter-2",
+      "renderVersion": "0.0.8-coffee-counter-4",
       "renderedFile": "/assets/pixel/rendered/equipment/coffee-machines/a8_coffee_machine.png",
       "spriteSheet": "/assets/pixel/rendered/equipment/coffee-machines/a8_coffee_machine.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/a8_coffee_machine.png",

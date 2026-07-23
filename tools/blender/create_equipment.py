@@ -228,15 +228,15 @@ def create_equipment(definition, collection, materials):
             cube(f"{asset_id}:countertop", (0, 0, 1.13), (width+.045, .51, .055), materials["cream_light"], collection, .020),
             cube(f"{asset_id}:countertop-edge", (0, -.50, 1.15), (width+.035, .025, .045), materials["cream_shadow"], collection, .010),
             cube(f"{asset_id}:bottom-plinth", (0, 0, .13), (width+.015, .47, .09), materials["steel_dark"], collection, .014),
-            cube(f"{asset_id}:espresso-body", (0, .08, 1.52), (.40, .29, .27), materials["steel_mid"], collection, .045),
-            cube(f"{asset_id}:espresso-top", (0, .08, 1.81), (.42, .31, .035), materials["chrome"], collection, .015),
-            cube(f"{asset_id}:espresso-front", (0, -.225, 1.54), (.37, .026, .20), materials["steel_dark"], collection, .014),
-            cube(f"{asset_id}:control-strip", (0, -.257, 1.70), (.34, .018, .055), materials["chrome"], collection, .008),
+            cube(f"{asset_id}:espresso-body", (0, .08, 1.43), (.49, .29, .18), materials["steel_mid"], collection, .040),
+            cube(f"{asset_id}:espresso-top", (0, .08, 1.63), (.50, .31, .035), materials["chrome"], collection, .015),
+            cube(f"{asset_id}:espresso-front", (0, -.225, 1.45), (.46, .026, .13), materials["steel_dark"], collection, .014),
+            cube(f"{asset_id}:control-strip", (0, -.257, 1.55), (.43, .018, .040), materials["chrome"], collection, .008),
             cube(f"{asset_id}:drip-tray", (0, -.12, 1.215), (.38, .27, .025), materials["steel_dark"], collection, .010),
             cube(f"{asset_id}:drip-grid-a", (0, -.12, 1.245), (.34, .018, .012), materials["chrome"], collection, .003),
             cube(f"{asset_id}:drip-grid-b", (0, -.04, 1.245), (.34, .018, .012), materials["chrome"], collection, .003),
-            cylinder(f"{asset_id}:steam-wand", (.43, -.22, 1.43), .025, .42, materials["chrome"], collection, 10),
-            cylinder(f"{asset_id}:steam-knob", (.43, -.22, 1.70), .055, .055, materials["outline"], collection, 10),
+            cylinder(f"{asset_id}:steam-wand", (.48, -.22, 1.38), .025, .32, materials["chrome"], collection, 10),
+            cylinder(f"{asset_id}:steam-knob", (.48, -.22, 1.57), .050, .050, materials["outline"], collection, 10),
         ]
         for index, x in enumerate((-.255, .255)):
             parts += [
@@ -245,11 +245,11 @@ def create_equipment(definition, collection, materials):
             ]
         for index, x in enumerate((-.18, .18)):
             parts += [
-                cylinder(f"{asset_id}:group-head:{index}", (x, -.282, 1.52), .095, .09, materials["chrome"], collection, 14, (radians(90), 0, 0)),
-                cylinder(f"{asset_id}:group-dark:{index}", (x, -.335, 1.52), .068, .035, materials["outline"], collection, 12, (radians(90), 0, 0)),
-                cube(f"{asset_id}:portafilter:{index}", (x + (.14 if x > 0 else -.14), -.36, 1.49), (.16, .025, .025), materials["steel_dark"], collection, .010),
-                cylinder(f"{asset_id}:spout:{index}", (x, -.35, 1.40), .018, .15, materials["chrome"], collection, 8),
-                cylinder(f"{asset_id}:control:{index}", (x, -.282, 1.70), .028, .025, materials["green" if index == 0 else "terracotta"], collection, 10, (radians(90), 0, 0)),
+                cylinder(f"{asset_id}:group-head:{index}", (x, -.282, 1.45), .085, .09, materials["chrome"], collection, 14, (radians(90), 0, 0)),
+                cylinder(f"{asset_id}:group-dark:{index}", (x, -.335, 1.45), .060, .035, materials["outline"], collection, 12, (radians(90), 0, 0)),
+                cube(f"{asset_id}:portafilter:{index}", (x + (.14 if x > 0 else -.14), -.36, 1.43), (.16, .025, .025), materials["steel_dark"], collection, .010),
+                cylinder(f"{asset_id}:spout:{index}", (x, -.35, 1.35), .016, .11, materials["chrome"], collection, 8),
+                cylinder(f"{asset_id}:control:{index}", (x, -.282, 1.55), .024, .025, materials["green" if index == 0 else "terracotta"], collection, 10, (radians(90), 0, 0)),
             ]
         parts += [
             _active(cylinder(f"{asset_id}:state-active:coffee.L", (-.18, -.35, 1.30), .014, .19, materials["wood_dark"], collection, 8)),
@@ -275,8 +275,9 @@ def create_equipment(definition, collection, materials):
     if asset_id in ("b1_industrial_fridge", "b2_industrial_freezer"):
         root.scale.x = .52
     if family == "coffee_machine":
-        # Match the 64 px isometric base of the existing 1x1 service counter.
-        root.scale = (.60, .60, 1.0)
+        # Keep the exact 1x1 counter proportions used by the sink.  Scaling X/Y
+        # independently made this body read as a narrow, tall cabinet.
+        root.scale = (1.0, 1.0, 1.0)
     root["visualHeight"] = visual_height; root["qualityProfile"] = "bistro-bloom-character-bible-v2"; root["fillsFootprint"] = True
     add_markers(asset_id, collection, equipment=True); tag_collection(collection, definition)
     return root

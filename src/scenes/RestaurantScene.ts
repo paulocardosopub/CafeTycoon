@@ -557,15 +557,12 @@ export class RestaurantScene extends Phaser.Scene {
     const labelOffset = rendered ? Math.round(rendered.frameSize[1] * .72 * (station.visualScale ?? 1)) : station.visualHeight + 16;
     const label = this.add.text(Math.round(point.x), Math.round(point.y - labelOffset), station.name, this.pixelTextStyle('#fff8e9', '#294b3ae6'))
       .setOrigin(.5).setDepth(isoDepth(base, 96)).setVisible(false);
-    const isServiceCounter = station.id === 'pickup' || station.id.startsWith('pickup:');
-    const dish = isServiceCounter
-      ? this.add.image(Math.round(point.x), Math.round(point.y - 56), `blender:${recipeFoodAssetId(undefined)}`, 0)
-        .setOrigin(.5).setDepth(stationDepth + 6).setScale(FOOD_DISPLAY_SCALE).setVisible(false)
-      : undefined;
-    const dishCount = isServiceCounter
-      ? this.add.text(Math.round(point.x), Math.round(point.y - 82), '', this.pixelTextStyle('#fff8e9', '#294b3ae6'))
-        .setOrigin(.5).setDepth(stationDepth + 7).setVisible(false)
-      : undefined;
+    // Todas as estações podem exibir um lote concluído. Nos balcões, este é o
+    // estoque; nos equipamentos, é a saída aguardando transferência.
+    const dish = this.add.image(Math.round(point.x), Math.round(point.y - 56), `blender:${recipeFoodAssetId(undefined)}`, 0)
+      .setOrigin(.5).setDepth(stationDepth + 6).setScale(FOOD_DISPLAY_SCALE).setVisible(false);
+    const dishCount = this.add.text(Math.round(point.x), Math.round(point.y - 82), '', this.pixelTextStyle('#fff8e9', '#294b3ae6'))
+      .setOrigin(.5).setDepth(stationDepth + 7).setVisible(false);
     this.stationVisuals.set(station.id, { sprite, effect, progress, label, dish, dishCount });
   }
 
@@ -736,7 +733,8 @@ export class RestaurantScene extends Phaser.Scene {
       .setVisible(this.technicalMode && (station.state !== 'free' || Boolean(station.currentStep)));
     const active = station.state === 'in_use';
     const effect = station.id === 'stove' || station.id === 'grill' ? 'flame' : station.id === 'oven' ? 'oven-glow' : station.id === 'cauldron' ? 'bubble' : 'steam';
-    visual.effect.setVisible(active).setFrame(effectFrame(effect, Math.floor(this.time.now / 140) % 4));
+    const hasDiscreetEffect = active && !['stove', 'oven', 'grill'].some((id) => station.id === id || station.id.startsWith(`${id}:`));
+    visual.effect.setVisible(hasDiscreetEffect).setFrame(effectFrame(effect, Math.floor(this.time.now / 180) % 4));
     if (active && station.remaining > 0) {
       const point = gridToWorld(station.interaction);
       visual.progress.fillStyle(0x241a18, .6).fillRect(Math.round(point.x - 19), Math.round(point.y - 41), 38, 5);
@@ -748,13 +746,14 @@ export class RestaurantScene extends Phaser.Scene {
       const stateFrame = station.state === 'complete' ? 3 : active ? 1 + Math.floor(this.simulation.animationClockMs() / 240) % 2 : 0;
       visual.sprite.setFrame(worldRenderedFrame(station.orientation, stateFrame, blenderId));
     }
-    if (isServiceCounter) {
-      const readyCount = counter?.currentQuantity ?? 0;
-      const foodAssetId = recipeFoodAssetId(counter?.assignedRecipeId);
-      visual.dish?.setTexture(`blender:${foodAssetId}`, worldRenderedFrame(station.orientation, 0, foodAssetId)).setVisible(readyCount > 0);
-      visual.dishCount?.setText(String(readyCount)).setVisible(readyCount >= 2);
-      visual.effect.setVisible(false);
-    }
+    const pendingOutput = isServiceCounter ? undefined : this.simulation.state.production.tasks.find((task) =>
+      task.state === 'waitingForCounterSpace' && task.workstationId === station.id);
+    const readyCount = isServiceCounter ? counter?.currentQuantity ?? 0 : pendingOutput?.batchQuantity ?? 0;
+    const readyRecipeId = isServiceCounter ? counter?.assignedRecipeId : pendingOutput?.recipeId;
+    const foodAssetId = recipeFoodAssetId(readyRecipeId);
+    visual.dish?.setTexture(`blender:${foodAssetId}`, worldRenderedFrame(station.orientation, 0, foodAssetId)).setVisible(readyCount > 0);
+    visual.dishCount?.setText(String(readyCount)).setVisible(isServiceCounter ? readyCount >= 2 : readyCount > 0);
+    if (isServiceCounter || pendingOutput) visual.effect.setVisible(false);
   }
 
   private syncTable(table: TableRuntime): void {
