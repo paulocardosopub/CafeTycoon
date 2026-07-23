@@ -1,12 +1,11 @@
 import Phaser from 'phaser';
 import { installWorldAtlas } from '../assets/pixel/PixelAtlasFactory';
 import { REQUIRED_CHARACTER_ANIMATIONS, WORLD_ASSETS, effectFrame } from '../assets/pixel/manifest';
-import { BLENDER_RENDERED_ASSETS } from '../assets/pixel/blenderManifest';
 import { C3_BR_CHARACTER_ASSETS, C3_BR_LEGACY_ALIASES } from '../assets/pixel/c3brManifest';
 import { C3_BR_VARIANT_ASSETS, CUSTOMER_CHARACTER_ASSET_IDS } from '../assets/pixel/characterVariantManifest';
-import { STAGE_2B_FURNITURE_ASSETS, STAGE_2B_RENDERED_ASSET_IDS } from '../assets/pixel/stage2bPrototypeManifest';
 import { STAGE_2C_CHARACTER_ASSETS } from '../assets/pixel/stage2cCharacterManifest';
-import { FOOD_DIRTY_ASSET_ID, FOOD_DISPLAY_SCALE, STAGE_2D_FOOD_ASSETS, recipeFoodAssetId } from '../assets/pixel/stage2dFoodManifest';
+import { FOOD_DIRTY_ASSET_ID, FOOD_DISPLAY_SCALE, recipeFoodAssetId } from '../assets/pixel/stage2dFoodManifest';
+import { RUNTIME_RENDERED_ASSETS, runtimeWorldRenderedFrame } from '../assets/pixel/runtimeRenderedAssets';
 import { footprintDepthPoint, VISUAL_METRICS } from '../assets/pixel/VisualMetrics';
 import { gameEvents } from '../core/events';
 import type { ConstructionSaveState, Direction, FurnitureEditSession, GridPoint, PixelAnimationName, StationRuntime, TableRuntime, WorldAssetId } from '../core/types';
@@ -58,18 +57,7 @@ interface TableVisual {
 
 const ZOOM_LEVELS = VISUAL_METRICS.zoomLevels;
 const SEATED_STATES = ['sitting', 'waiting_order', 'waiting_food', 'eating', 'paying'];
-const REMOVED_DINING_SKINS = new Set([
-  'chair', 'chair_bistro', 'chair_bistro_back', 'chair_bistro_front',
-  'chair_upholstered', 'chair_upholstered_back', 'chair_upholstered_front',
-  'table_four', 'table_four_green', 'table_two_green',
-]);
-const RENDERED_ASSETS = [
-  ...BLENDER_RENDERED_ASSETS.filter((asset) => asset.kind !== 'character' && !STAGE_2B_RENDERED_ASSET_IDS.has(asset.assetId) && !REMOVED_DINING_SKINS.has(asset.assetId)),
-  ...STAGE_2C_CHARACTER_ASSETS,
-  ...C3_BR_VARIANT_ASSETS,
-  ...STAGE_2B_FURNITURE_ASSETS,
-  ...STAGE_2D_FOOD_ASSETS,
-];
+const RENDERED_ASSETS = RUNTIME_RENDERED_ASSETS;
 const CHARACTER_RENDER_ASSET_IDS = new Set([...STAGE_2C_CHARACTER_ASSETS, ...C3_BR_VARIANT_ASSETS].map((asset) => asset.assetId));
 
 export class RestaurantScene extends Phaser.Scene {
@@ -983,11 +971,7 @@ function carriedDishPoint(characterPoint: GridPoint, direction: Direction): Grid
 }
 
 function worldRenderedFrame(direction: Direction, stateFrame: number, assetId: string): number {
-  const asset = blenderAsset(assetId);
-  if (!asset) return 0;
-  const directionIndex = renderedDirectionRow(direction, asset);
-  if (asset.category.startsWith('food/')) return directionIndex;
-  return directionIndex * asset.frameCount + Phaser.Math.Clamp(stateFrame, 0, Math.max(0, asset.frameCount - 1));
+  return runtimeWorldRenderedFrame(direction, stateFrame, assetId);
 }
 
 function isDevelopmentHost(): boolean {

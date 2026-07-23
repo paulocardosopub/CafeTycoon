@@ -13,6 +13,7 @@ import type { GameState, PlacedFurniture } from '../core/types';
 import { createStaffInstance } from '../game/staff/StaffService';
 import { STAFF_BY_ID } from '../game/data/staff';
 import { BLENDER_RENDERED_ASSETS } from '../assets/pixel/blenderManifest';
+import { RUNTIME_RENDERED_ASSETS, runtimeWorldRenderedFrame } from '../assets/pixel/runtimeRenderedAssets';
 
 function addProfile(state: GameState): void {
   state.profile = {
@@ -27,6 +28,16 @@ describe('correções integradas de operação e layout', () => {
     const exactCounters = BLENDER_RENDERED_ASSETS.filter((asset) => asset.counterBaseAssetId === 'c1_service_isolated');
     expect(exactCounters.length).toBeGreaterThan(0);
     expect(exactCounters.every((asset) => asset.frameCount === 1)).toBe(true);
+    for (const exact of exactCounters) {
+      const runtimeMatches = RUNTIME_RENDERED_ASSETS.filter((asset) => asset.assetId === exact.assetId);
+      expect(runtimeMatches).toHaveLength(1);
+      expect(runtimeMatches[0]).toBe(exact);
+      expect(runtimeMatches[0].frameCount).toBe(1);
+    }
+    for (const assetId of ['a1_stove_industrial', 'b5_industrial_sink']) {
+      expect((['ne', 'nw', 'se', 'sw'] as const).map((direction) => runtimeWorldRenderedFrame(direction, 0, assetId)))
+        .toEqual([0, 1, 2, 3]);
+    }
   });
 
   it('gerente aceita qualquer setor e uma especialização aceita somente o setor escolhido', () => {
