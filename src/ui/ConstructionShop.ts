@@ -14,6 +14,15 @@ import { playerSkinAsset } from '../content/characters/playerSkins';
 const CONSTRUCTION_RELOAD_SESSION_KEY = 'bistro-bloom-construction-reload';
 const ASSET_VERSION = '0.0.7-c3-br-2';
 
+export const TUTORIAL_SETUP_PLACEMENTS = [
+  { definitionId: 'service.c1.isolated', label: 'Balcão de serviço', x: 3, y: 3, orientation: 'sw' as Direction },
+  { definitionId: 'washing.b5.sink', label: 'Pia', x: 7, y: 3, orientation: 'sw' as Direction },
+  { definitionId: 'cooking.a8.coffee', label: 'Cafeteira', x: 11, y: 3, orientation: 'sw' as Direction },
+  { definitionId: 'dining.table.basic', label: 'Mesa', x: 9, y: 11, orientation: 'sw' as Direction },
+  { definitionId: 'dining.chair.basic', label: 'Banco esquerdo', x: 8, y: 11, orientation: 'se' as Direction },
+  { definitionId: 'dining.chair.basic', label: 'Banco direito', x: 10, y: 11, orientation: 'nw' as Direction },
+] as const;
+
 // Curated for the recipes and core restaurant loop currently available.
 // Alternatives remain registered and save-safe, but no longer crowd purchases.
 const CURRENT_PURCHASABLE_FURNITURE_IDS = new Set([
@@ -45,6 +54,7 @@ export class ConstructionShop {
   private mode: 'shop' | 'organize' = 'shop';
   private selectedShopDefinitionId?: string;
   private pendingPurchaseDefinitionId?: string;
+  private pendingTutorialKitPurchase = false;
   private previewUnsubscribers: (() => void)[] = [];
   private pendingWorldCellTimer?: number;
   private lastWorldItemAt = 0;
@@ -70,6 +80,15 @@ export class ConstructionShop {
     this.status = mode === 'shop' ? 'Escolha um item para ver os detalhes e confirmar a compra.' : 'Escolha um móvel comprado e toque em um quadrado livre.';
     if (mode === 'organize' && !this.simulation.prepareConstructionMode()) return;
     this.editor = new ConstructionEditor(this.state);
+    if (mode === 'organize' && focusDefinitionId) {
+      const stored = this.editor.draft.construction.storedFurniture.find((item) => item.definitionId === focusDefinitionId);
+      if (stored) {
+        this.pendingDefinitionId = stored.definitionId;
+        this.pendingStoredItemId = stored.id;
+        this.status = `${FURNITURE_BY_ID[stored.definitionId].name} selecionado. Toque em um quadrado livre para posicionar.`;
+      }
+    }
+    if (mode === 'organize') this.selectNextTutorialStoredItem();
     this.originalChairLayout = mode === 'organize' ? new Map(this.state.construction.placedFurniture
       .filter((item) => FURNITURE_BY_ID[item.definitionId]?.functionId === 'chair')
       .map((item) => [item.id, { gridX: item.gridX, gridY: item.gridY, orientation: item.orientation }])) : new Map();
@@ -182,6 +201,37 @@ export class ConstructionShop {
       this.render();
       return;
     }
+    if (action === 'purchase-tutorial-kit') {
+      this.pendingTutorialKitPurchase = true;
+      this.render();
+      return;
+    }
+    if (action === 'cancel-tutorial-kit') {
+      this.pendingTutorialKitPurchase = false;
+      this.render();
+      return;
+    }
+    if (action === 'confirm-tutorial-kit') {
+      const missing = this.missingTutorialSetupItems();
+      const total = missing.reduce((sum, item) => sum + FURNITURE_BY_ID[item.definitionId].price, 0);
+      if (this.editor.draft.coins < total) { this.setStatus(`Faltam ${total - this.editor.draft.coins} moedas para o kit inicial.`, 'warning'); return; }
+      for (const item of missing) {
+        const result = this.editor.purchase(item.definitionId);
+        if (!result.ok) { this.apply(result, ''); return; }
+      }
+      const confirmed = this.editor.confirmPurchases();
+      if (!confirmed.ok) { this.apply(confirmed, ''); return; }
+      await this.repository.save(this.state);
+      this.editor = new ConstructionEditor(this.state);
+      this.pendingTutorialKitPurchase = false;
+      this.setStatus('Kit inicial comprado. Abra Editar restaurante para posicionar na ordem guiada.', 'success');
+      return;
+    }
+    if (action === 'tutorial-place-suggested') {
+      const next = this.nextTutorialPlacement();
+      if (next) this.useCell(next.x, next.y);
+      return;
+    }
     if (action === 'confirm-purchase') {
       const definitionId = this.pendingPurchaseDefinitionId;
       if (!definitionId) return;
@@ -280,7 +330,9 @@ export class ConstructionShop {
     }
     if (this.pendingDefinitionId) {
       const before = new Set(this.editor.draft.construction.placedFurniture.map((item) => item.id));
-      const result = this.editor.place(this.pendingDefinitionId, x, y, 'sw', undefined, this.pendingStoredItemId);
+      const suggested = this.nextTutorialPlacement();
+      const orientation = suggested?.definitionId === this.pendingDefinitionId && suggested.x === x && suggested.y === y ? suggested.orientation : 'sw';
+      const result = this.editor.place(this.pendingDefinitionId, x, y, orientation, undefined, this.pendingStoredItemId);
       if (!result.ok && result.reason) result.reason = `Quadrado ${x},${y}: ${result.reason}`;
       if (result.ok) {
         this.selectedItemId = this.editor.draft.construction.placedFurniture.find((item) => !before.has(item.id))?.id;
@@ -322,8 +374,44 @@ export class ConstructionShop {
   private confirmSelectedEdit(): void {
     if (!this.editor?.editSession) return;
     const result = this.editor.confirmFurnitureEdit();
-    if (result.ok) { this.moveMode = false; this.selectedItemId = undefined; }
+    if (result.ok) { this.moveMode = false; this.selectedItemId = undefined; this.selectNextTutorialStoredItem(); }
     this.apply(result, 'Posição confirmada. Móvel desselecionado.');
+  }
+
+  private tutorialGuidanceActive(): boolean {
+    return this.state.tutorial008.started && !this.state.tutorial008.completedSteps.includes('place-setup');
+  }
+
+  private missingTutorialSetupItems() {
+    const counts = new Map<string, number>();
+    for (const item of [...this.editor!.draft.construction.placedFurniture, ...this.editor!.draft.construction.storedFurniture]) counts.set(item.definitionId, (counts.get(item.definitionId) ?? 0) + 1);
+    const used = new Map<string, number>();
+    return TUTORIAL_SETUP_PLACEMENTS.filter((item) => {
+      const occurrence = (used.get(item.definitionId) ?? 0) + 1; used.set(item.definitionId, occurrence);
+      return (counts.get(item.definitionId) ?? 0) < occurrence;
+    });
+  }
+
+  private nextTutorialPlacement() {
+    if (!this.tutorialGuidanceActive() || !this.editor) return undefined;
+    const placedCounts = new Map<string, number>();
+    for (const item of this.editor.draft.construction.placedFurniture) placedCounts.set(item.definitionId, (placedCounts.get(item.definitionId) ?? 0) + 1);
+    const required = new Map<string, number>();
+    return TUTORIAL_SETUP_PLACEMENTS.find((item) => {
+      const occurrence = (required.get(item.definitionId) ?? 0) + 1; required.set(item.definitionId, occurrence);
+      return (placedCounts.get(item.definitionId) ?? 0) < occurrence;
+    });
+  }
+
+  private selectNextTutorialStoredItem(): void {
+    const next = this.nextTutorialPlacement();
+    if (!next || !this.editor) return;
+    const stored = this.editor.draft.construction.storedFurniture.find((item) => item.definitionId === next.definitionId);
+    if (!stored) return;
+    this.pendingDefinitionId = stored.definitionId;
+    this.pendingStoredItemId = stored.id;
+    this.status = `Agora: ${next.label}. Use o lugar sugerido (${next.x}, ${next.y}) ou escolha outro quadrado válido.`;
+    this.statusTone = 'info';
   }
 
   private cancelSelectedEdit(): void {
@@ -411,7 +499,13 @@ export class ConstructionShop {
     }).join('');
     const selectedShopDefinition = this.selectedShopDefinitionId ? FURNITURE_BY_ID[this.selectedShopDefinitionId] : undefined;
     const pendingPurchase = this.pendingPurchaseDefinitionId ? FURNITURE_BY_ID[this.pendingPurchaseDefinitionId] : undefined;
+    const missingTutorialItems = this.tutorialGuidanceActive() ? this.missingTutorialSetupItems() : [];
+    const tutorialKitTotal = missingTutorialItems.reduce((sum, item) => sum + FURNITURE_BY_ID[item.definitionId].price, 0);
+    const tutorialKit = missingTutorialItems.length ? `<section class="tutorial-shop-kit"><div><small>TUTORIAL · COMPRA RÁPIDA</small><strong>Kit inicial completo</strong><p>Balcão, Pia, Cafeteira, Mesa e 2 Bancos em uma única confirmação.</p></div><button data-editor-action="purchase-tutorial-kit" ${draft.coins < tutorialKitTotal ? 'disabled' : ''}>Comprar tudo · ${tutorialKitTotal}</button></section>` : '';
+    const nextTutorial = this.nextTutorialPlacement();
+    const tutorialPlacementGuide = this.mode === 'organize' && nextTutorial ? `<section class="tutorial-placement-guide"><small>ORDEM GUIADA</small><strong>${escapeHtml(nextTutorial.label)}</strong><span>Lugar inicial sugerido: quadrado ${nextTutorial.x}, ${nextTutorial.y}</span><button data-editor-action="tutorial-place-suggested">Colocar no lugar sugerido</button></section>` : '';
     const shopCatalog = `
+      ${tutorialKit}
       <div class="catalog-tabs">${GROUPS.map((group) => `<button data-editor-action="category" data-id="${group.id}" class="${this.group === group.id ? 'active' : ''}">${group.label}</button>`).join('')}</div>
       <div class="catalog-items">${visibleCatalog.length ? visibleCatalog.map((definition) => `<article class="catalog-card shop-card ${this.selectedShopDefinitionId === definition.id ? 'selected' : ''}">
         <button class="shop-card-info" data-editor-action="shop-info" data-id="${definition.id}" ${definition.level > this.state.restaurantLevel ? 'disabled' : ''}><img src="${thumbnail(definition.spriteSet.sw)}" alt=""/><span><small>${definition.code} · ${definition.footprintWidth}×${definition.footprintDepth}</small><b>${escapeHtml(definition.name)}</b><em>${escapeHtml(furniturePurpose(definition.functionId))}</em></span></button>
@@ -419,6 +513,7 @@ export class ConstructionShop {
       </article>`).join('') : '<p class="catalog-empty">Nenhum móvel funcional nesta categoria por enquanto.</p>'}</div>
       ${selectedShopDefinition ? `<section class="shop-detail"><strong>${escapeHtml(selectedShopDefinition.name)}</strong><span>${escapeHtml(furniturePurpose(selectedShopDefinition.functionId))}</span><p>${escapeHtml(furnitureDescription(selectedShopDefinition.id, selectedShopDefinition.functionId))}</p></section>` : ''}
       ${pendingPurchase ? `<div class="shop-purchase-confirm" role="dialog" aria-modal="true"><section><small>CONFIRMAR COMPRA</small><img src="${thumbnail(pendingPurchase.spriteSet.sw)}" alt=""/><strong>${escapeHtml(pendingPurchase.name)}</strong><p>${pendingPurchase.price} moedas serão descontadas uma única vez. O item ficará guardado.</p><div><button data-editor-action="cancel-purchase">Cancelar</button><button class="primary" data-editor-action="confirm-purchase">Confirmar compra</button></div></section></div>` : ''}
+      ${this.pendingTutorialKitPurchase ? `<div class="shop-purchase-confirm" role="dialog" aria-modal="true"><section><small>CONFIRMAR KIT INICIAL</small><strong>6 itens essenciais</strong><p>${tutorialKitTotal} moedas serão descontadas uma única vez. Depois, a edição guiará a posição de cada item.</p><div><button data-editor-action="cancel-tutorial-kit">Cancelar</button><button class="primary" data-editor-action="confirm-tutorial-kit">Confirmar kit</button></div></section></div>` : ''}
       ${unavailableCatalog.length ? `<details class="unavailable-catalog"><summary>Indisponíveis por enquanto (${unavailableCatalog.length})</summary><p>Alternativas sem função exclusiva nas receitas atuais.</p><div class="catalog-items unavailable-items">${unavailableCatalog.map((definition) => `<button class="catalog-card" disabled><img src="${thumbnail(definition.spriteSet.sw)}" alt=""/><span><small>${definition.code} · futuro</small><b>${escapeHtml(definition.name)}</b><em>Indisponível</em></span></button>`).join('')}</div></details>` : ''}`;
     const organizeCatalog = `<section class="organize-owned"><h2>Seus itens</h2><p>Somente móveis que você já comprou ou guardou aparecem aqui.</p><div class="stored-list">${stored || '<p>Nenhum item guardado. Compre um item na Loja para vê-lo aqui.</p>'}</div></section>`;
     const staffIds = new Set(draft.construction.staffStartPositions.map((item) => item.staffId));
@@ -442,7 +537,7 @@ export class ConstructionShop {
         <div class="construction-toolbar">${this.mode === 'organize' ? `<button data-editor-action="undo" ${this.editor.canUndo ? '' : 'disabled'}>↶ Desfazer</button><button data-editor-action="redo" ${this.editor.canRedo ? '' : 'disabled'}>↷ Refazer</button>` : ''}<span class="construction-status ${this.statusTone}">${escapeHtml(this.status)}</span>${this.mode === 'shop' ? '<button class="primary" data-editor-action="close-shop">Fechar Loja</button>' : '<button class="secondary" data-editor-action="cancel">Cancelar</button><button class="primary" data-editor-action="confirm">Salvar edição e reabrir</button>'}</div>
         <div class="construction-workspace construction-live-workspace">
           <aside class="construction-catalog">
-            ${this.mode === 'shop' ? shopCatalog : `${organizeCatalog}<section class="organize-paint-hint"><strong>Pintar o restaurante</strong><p>Use Revestimentos ao lado para aplicar uma única cor de piso em todo o espaço construído e trocar as paredes.</p></section>`}
+            ${this.mode === 'shop' ? shopCatalog : `${tutorialPlacementGuide}${organizeCatalog}<section class="organize-paint-hint"><strong>Pintar o restaurante</strong><p>Use Revestimentos ao lado para aplicar uma única cor de piso em todo o espaço construído e trocar as paredes.</p></section>`}
           </aside>
           ${this.mode === 'organize' ? `<main class="construction-live-stage" aria-label="Edição diretamente no restaurante">
             <div class="construction-live-hint"><strong>Editando no próprio salão</strong><span>Toque para colocar. Arraste o fundo para mover a tela e use dois dedos para aproximar ou afastar.</span></div>

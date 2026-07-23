@@ -22,6 +22,11 @@ export function installPixelAtlases(scene: Phaser.Scene, appearance?: CharacterA
   if (!scene.textures.exists('character-atlas')) createCharacterAtlas(scene, appearance);
 }
 
+// Runtime restaurant scenes use only the approved C3-BR character sheets.
+export function installWorldAtlas(scene: Phaser.Scene): void {
+  if (!scene.textures.exists('world-atlas')) createWorldAtlas(scene);
+}
+
 function createWorldAtlas(scene: Phaser.Scene): void {
   const worldFrames = [...new Set(Object.values(WORLD_ASSETS).map((asset) => asset.frame))];
   const effectFrames = (['flame', 'steam', 'oven-glow', 'bubble', 'ready'] as const)

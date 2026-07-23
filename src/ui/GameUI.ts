@@ -102,8 +102,8 @@ export class GameUI {
           <aside class="panel-host" id="panel-host" aria-live="polite"></aside>
         </main>
         <nav class="management-bar" aria-label="Gestão do restaurante">
-          ${navButton('staff', '♟', 'Equipe')}${navButton('recipes', '▤', 'Receitas')}${navButton('production', '▶', 'Produção')}
-          ${navButton('orders', '✎', 'Pedidos')}${navButton('upgrades', '↑', 'Melhorias')}<button data-action="open-construction" data-mode="shop"><span>🛒</span><small>Loja</small></button><button data-action="open-construction" data-mode="organize"><span>▧</span><small>Editar restaurante</small></button>${navButton('tasks', '✓', 'Tarefas')}
+          ${navButton('staff', '♟', 'Equipe')}${navButton('production', '▶', 'Produção')}
+          ${navButton('upgrades', '↑', 'Melhorias')}<button data-action="open-construction" data-mode="shop"><span>🛒</span><small>Loja</small></button><button data-action="open-construction" data-mode="organize"><span>▧</span><small>Editar restaurante</small></button>${navButton('tasks', '✓', 'Tarefas')}
         </nav>
         <div class="toast-stack" id="toast-stack"></div>
         <div id="tutorial-008-host">${this.tutorialWidget()}</div>
@@ -165,6 +165,7 @@ export class GameUI {
       else if (action === 'open-construction') { const mode = target.dataset.mode === 'organize' ? 'organize' : 'shop'; if (mode === 'organize') acknowledgeTutorialStep(this.state, 'open-editor'); this.close(); this.constructionShop.open(mode); }
       else if (action === 'tutorial-ack') { const step = INITIAL_TUTORIAL_STEPS[this.state.tutorial008.currentStep]; if (step) acknowledgeTutorialStep(this.state, step.id); this.renderDynamic(); }
       else if (action === 'tutorial-chapter-ack') { const level = Number(target.dataset.level); acknowledgeJourneyChapter(this.state, level); this.open('progression'); this.renderDynamic(); }
+      else if (action === 'tutorial-chapter-action') this.runJourneyTutorialAction(Number(target.dataset.level));
       else if (action === 'tutorial-minimize') { this.state.tutorial008.minimized = true; this.renderDynamic(); }
       else if (action === 'tutorial-show') this.showTutorialTarget();
       else if (action === 'toggle-restaurant') this.toggleRestaurant();
@@ -293,7 +294,8 @@ export class GameUI {
     if (this.state.tutorial008.minimized) return '<button class="tutorial-reopen" data-action="tutorial-show">Jornada · objetivo atual</button>';
     if (journeyLevel) {
       const rewards = LEVEL_REWARD_BY_LEVEL[journeyLevel]?.rewards.map((reward) => `${reward.icon} ${reward.title}`).join(' · ') ?? 'Novas possibilidades foram liberadas.';
-      return `<aside class="tutorial-008 tutorial-level" aria-live="polite"><header><small>NOVO TUTORIAL · NÍVEL ${journeyLevel}</small><button data-action="tutorial-minimize" aria-label="Minimizar">—</button></header><strong>Novidade desbloqueada!</strong><p>${escapeHtml(rewards)}</p><button data-action="tutorial-chapter-ack" data-level="${journeyLevel}">Ver novidades</button></aside>`;
+      const action = this.journeyTutorialAction(journeyLevel);
+      return `<aside class="tutorial-008 tutorial-level" aria-live="polite"><header><small>TUTORIAL REAL · NÍVEL ${journeyLevel}</small><button data-action="tutorial-minimize" aria-label="Minimizar">—</button></header><strong>${escapeHtml(action?.title ?? 'Novidade desbloqueada!')}</strong><p>${escapeHtml(action?.description ?? rewards)}</p>${action ? `<button data-action="tutorial-chapter-action" data-level="${journeyLevel}">${escapeHtml(action.label)}</button>` : `<button data-action="tutorial-chapter-ack" data-level="${journeyLevel}">Concluir tutorial</button>`}</aside>`;
     }
     if (!step) return '';
     const done = this.state.tutorial008.completedSteps.includes(step.id);
@@ -344,6 +346,47 @@ export class GameUI {
       this.toast('Use “Abrir restaurante” no quadro de operação.', 'info');
       return;
     }
+    this.renderDynamic();
+  }
+
+  private journeyTutorialAction(level: number): { kind: 'shop'|'organize'|'staff'|'panel'; title: string; description: string; label: string; target?: string; panel?: PanelId; rewardId?: string } | undefined {
+    const entry = LEVEL_REWARD_BY_LEVEL[level];
+    if (!entry) return undefined;
+    const placed = this.state.construction.placedFurniture;
+    const owned = [...placed, ...this.state.construction.storedFurniture];
+    for (const reward of entry.rewards) {
+      if (reward.type === 'station') {
+        const definitionId = reward.id.split(':')[1];
+        if (!definitionId || !FURNITURE_BY_ID[definitionId]) continue;
+        if (!owned.some((item) => item.definitionId === definitionId)) return { kind:'shop', target:definitionId, title:`Compre: ${reward.title}`, description:'Abra a Loja, confirme a compra e mantenha o restaurante funcionando.', label:'Abrir Loja' };
+        if (!placed.some((item) => item.definitionId === definitionId)) return { kind:'organize', target:definitionId, title:`Posicione: ${reward.title}`, description:'Escolha um quadrado válido, confirme a posição e salve a edição.', label:'Posicionar estação' };
+        continue;
+      }
+      if (reward.type === 'candidate') {
+        const staffId = reward.id.split(':')[1];
+        if (staffId && !this.state.staff.instances.some((staff) => staff.definitionId === staffId)) return { kind:'staff', target:staffId, title:`Contrate: ${reward.title}`, description:'Abra Equipe, confira a profissão e confirme a contratação.', label:'Abrir Equipe' };
+        continue;
+      }
+      if (reward.type === 'profession') continue;
+      const viewedKey = `journey:${level}:${reward.id}`;
+      if (this.state.tutorial008.highlightsShown.includes(viewedKey)) continue;
+      const panel = reward.destination === 'shop' ? undefined : reward.destination === 'recipes' ? 'production' : (reward.destination as PanelId);
+      return reward.destination === 'shop'
+        ? { kind:'shop', title:reward.title, description:reward.description, label:'Ver na Loja', rewardId:viewedKey }
+        : { kind:'panel', panel:panel ?? 'progression', title:reward.title, description:reward.description, label:'Conhecer desbloqueio', rewardId:viewedKey };
+    }
+    return undefined;
+  }
+
+  private runJourneyTutorialAction(level: number): void {
+    const action = this.journeyTutorialAction(level);
+    if (!action) { acknowledgeJourneyChapter(this.state, level); this.renderDynamic(); return; }
+    if (action.rewardId && !this.state.tutorial008.highlightsShown.includes(action.rewardId)) this.state.tutorial008.highlightsShown.push(action.rewardId);
+    this.close();
+    if (action.kind === 'shop') this.constructionShop.open('shop', action.target);
+    else if (action.kind === 'organize') this.constructionShop.open('organize', action.target);
+    else if (action.kind === 'staff') this.open('staff');
+    else this.open(action.panel ?? 'progression');
     this.renderDynamic();
   }
 
@@ -727,8 +770,9 @@ export class GameUI {
 
   private toast(message: string, tone = 'info'): void {
     const stack = this.root.querySelector<HTMLElement>('#toast-stack'); if (!stack) return;
-    const item = document.createElement('div'); item.className = `toast ${tone}`; item.textContent = message; stack.append(item);
-    setTimeout(() => item.classList.add('leaving'), 3200); setTimeout(() => item.remove(), 3600);
+    const item = document.createElement('div'); item.className = `toast ${tone}`; item.textContent = message; stack.replaceChildren(item);
+    setTimeout(() => { if (item.isConnected) item.classList.add('leaving'); }, 3200);
+    setTimeout(() => { if (item.isConnected) item.remove(); }, 3600);
   }
 }
 

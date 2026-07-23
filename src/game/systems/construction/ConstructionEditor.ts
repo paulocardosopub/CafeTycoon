@@ -114,6 +114,11 @@ export class ConstructionEditor {
   purchase(definitionId: string, skinId?: string): EditorResult {
     const definition = FURNITURE_BY_ID[definitionId];
     if (!definition) return { ok: false, reason: `Móvel desconhecido: ${definitionId}.` };
+    if (definition.functionId === 'pickup') {
+      const ownedCounters = [...this.current.construction.placedFurniture, ...this.current.construction.storedFurniture]
+        .filter((item) => FURNITURE_BY_ID[item.definitionId]?.functionId === 'pickup').length;
+      if (ownedCounters >= 10) return { ok: false, reason: 'Limite temporário de 10 balcões de serviço atingido.' };
+    }
     if (this.current.coins < definition.price) return { ok: false, reason: 'Moedas insuficientes.' };
     const orientation: Direction = 'sw';
     const item: PlacedFurniture = {
