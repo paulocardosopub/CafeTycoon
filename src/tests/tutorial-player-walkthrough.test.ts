@@ -34,10 +34,12 @@ describe('jornada do tutorial como jogador', () => {
 
     const hired = hireStaff(state, 'cook-0', undefined, 1);
     expect(hired.ok, hired.reason).toBe(true);
+    const waiter = hireStaff(state, 'waiter-0', undefined, 1);
+    expect(waiter.ok, waiter.reason).toBe(true);
     const cleaner = hireStaff(state, 'cleaner-0', undefined, 1);
     expect(cleaner.ok, cleaner.reason).toBe(true);
-    expect(state.staff.instances).toHaveLength(2);
-    state.profile = { id: state.playerId, name: 'Jogador', appearance: { presentation: 'masculina', skin: 'honey', hairStyle: 'short', hairColor: 'espresso', face: 'soft', outfit: 'casual', outfitColor: 'green' }, level: 1, xp: 0, helpRole: 'service', professions: { cook:{xp:0,level:1,tasksCompleted:0}, waiter:{xp:0,level:1,tasksCompleted:0}, cleaner:{xp:0,level:1,tasksCompleted:0}, stocker:{xp:0,level:1,tasksCompleted:0} }, taskHistory: { take_order:0,cook_step:0,deliver:0,payment:0,clean:0,stock_support:0,restock_purchase:0,production_batch:0 } };
+    expect(state.staff.instances).toHaveLength(3);
+    state.profile = { id: state.playerId, name: 'Jogador', appearance: { presentation: 'masculina', skin: 'honey', hairStyle: 'short', hairColor: 'espresso', face: 'soft', outfit: 'casual', outfitColor: 'green' }, level: 1, xp: 0, helpRole: 'kitchen', professions: { cook:{xp:0,level:1,tasksCompleted:0}, waiter:{xp:0,level:1,tasksCompleted:0}, cleaner:{xp:0,level:1,tasksCompleted:0}, stocker:{xp:0,level:1,tasksCompleted:0} }, taskHistory: { take_order:0,cook_step:0,deliver:0,payment:0,clean:0,stock_support:0,restock_purchase:0,production_batch:0 } };
 
     const simulation = new RestaurantSimulation(state);
     const plan = createProductionPlan(state, { recipeId: 'coffee', targetQuantity: 12 }, 2);
@@ -48,7 +50,7 @@ describe('jornada do tutorial como jogador', () => {
     expect(simulation.counterModules.reduce((sum, counter) => sum + counter.currentQuantity, 0)).toBeGreaterThan(0);
     state.restaurantOpen = true;
     reconcileTutorial(state);
-    expect(state.tutorial008.completedSteps).toEqual(expect.arrayContaining(['buy-counter','buy-sink','buy-dining','buy-coffee-machine','place-setup','hire-barista','hire-cleaner','first-production','player-waiter','understand-counter','open-restaurant']));
+    expect(state.tutorial008.completedSteps).toEqual(expect.arrayContaining(['buy-counter','buy-sink','buy-dining','buy-coffee-machine','place-setup','hire-barista','hire-waiter','hire-cleaner','first-production','understand-counter','open-restaurant']));
     expect(state.coins).toBeGreaterThanOrEqual(0);
   });
 });

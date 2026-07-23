@@ -828,12 +828,12 @@ export class RestaurantSimulation {
     if (customer.orderId) return;
     const enabledRecipes = new Set(this.state.enabledRecipeIds);
     const available = RECIPES.filter((recipe) => enabledRecipes.has(recipe.id) && recipe.requiredLevel <= this.state.restaurantLevel
-      && (this.state.readyDishes[recipe.id] > 0 || this.counterModules.some((module) => module.assignedRecipeId === recipe.id && module.currentQuantity - module.reservedQuantity > 0)));
+      && this.counterModules.some((module) => module.assignedRecipeId === recipe.id && module.currentQuantity - module.reservedQuantity > 0));
     if (!available.length) {
       gameEvents.emit('toast', { message: 'Nenhum prato pronto disponível. Produza um lote antes de receber novos pedidos.', tone: 'warning' });
       return;
     }
-    const recipe = available[(this.customerSequence + this.orders.length) % available.length];
+    const recipe = available[Math.floor(Math.random() * available.length)];
     const order: OrderRuntime = {
       id: stableRuntimeId('order'), customerId: customer.id, tableId: table.id, seatId: seat.seatId, chairId: seat.chairId,
       recipeId: recipe.id, quantity: 1, state: 'requested', createdAt: this.simulationTime, priority: 80,
@@ -841,7 +841,6 @@ export class RestaurantSimulation {
     };
     this.orders.push(order); customer.orderId = order.id; seat.orderId = order.id; seat.state = 'waiting_food'; this.setCustomerState(customer, 'waiting_food'); this.refreshTableState(table);
     if (this.placePreparedCounterDish(order)) return;
-    if (this.state.readyDishes[recipe.id] > 0 && this.placeReadyDishOnCounter(order)) return;
     order.state = 'cancelled'; customer.orderId = undefined; seat.orderId = undefined; seat.state = 'waiting_order'; this.setCustomerState(customer, 'waiting_order');
   }
 

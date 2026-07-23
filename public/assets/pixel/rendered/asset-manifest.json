@@ -3503,7 +3503,7 @@
       "gameplayLevel": 1,
       "equipmentFamilyId": "stove",
       "footprint": [
-        2,
+        1,
         1
       ],
       "anchor": [
@@ -3537,7 +3537,7 @@
       "visualSkinId": "equipment-steel-level-1",
       "layerRole": "full",
       "visualBounds": {
-        "widthCells": 2,
+        "widthCells": 1,
         "depthCells": 1,
         "heightBlocks": 1.8,
         "overhangCells": 0.25
@@ -3867,7 +3867,7 @@
       "gameplayLevel": 1,
       "equipmentFamilyId": "sink",
       "footprint": [
-        2,
+        1,
         1
       ],
       "anchor": [
@@ -3901,7 +3901,7 @@
       "visualSkinId": "equipment-steel-level-1",
       "layerRole": "full",
       "visualBounds": {
-        "widthCells": 2,
+        "widthCells": 1,
         "depthCells": 1,
         "heightBlocks": 1.8,
         "overhangCells": 0.25
@@ -4038,7 +4038,7 @@
       "gameplayLevel": 1,
       "equipmentFamilyId": "stove",
       "footprint": [
-        2,
+        1,
         1
       ],
       "anchor": [
@@ -4072,7 +4072,7 @@
       "visualSkinId": "equipment-steel-level-1",
       "layerRole": "full",
       "visualBounds": {
-        "widthCells": 2,
+        "widthCells": 1,
         "depthCells": 1,
         "heightBlocks": 1.8,
         "overhangCells": 0.25
@@ -4462,12 +4462,12 @@
         "heightBlocks": 1.8,
         "overhangCells": 0.25
       },
+      "renderVersion": "0.0.8-coffee-counter-1",
       "renderedFile": "/assets/pixel/rendered/equipment/coffee-machines/a8_coffee_machine.png",
       "spriteSheet": "/assets/pixel/rendered/equipment/coffee-machines/a8_coffee_machine.png",
       "thumbnail": "/assets/pixel/rendered/thumbnails/a8_coffee_machine.png",
       "frameCount": 1,
       "paletteVersion": "bistro-bloom-original-v1",
-      "renderVersion": "0.0.4-blender-7",
       "transparent": true
     },
     {

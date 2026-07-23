@@ -53,7 +53,7 @@ def manifest_entry(project_root, definition, output, thumbnail):
         "spriteSheet": "/" + deployed_output.relative_to(project_root / "public").as_posix(),
         "thumbnail": "/" + deployed_thumbnail.relative_to(project_root / "public").as_posix(),
         "frameCount": frame_count,
-        "paletteVersion": PALETTE_VERSION, "renderVersion": RENDER_VERSION,
+        "paletteVersion": PALETTE_VERSION, "renderVersion": definition.get("renderVersion", RENDER_VERSION),
         "transparent": True,
     }
 

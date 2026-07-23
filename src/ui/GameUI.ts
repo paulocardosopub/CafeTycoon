@@ -44,7 +44,7 @@ const ROLE_INFO: Record<HelpRole, { name: string; icon: string; profession: Prof
   cleaning: { name: 'Limpeza', icon: '✨', profession: 'cleaner', text: 'Libera mesas para os próximos clientes.' },
   stock: { name: 'Estoque e apoio', icon: '📦', profession: 'stocker', text: 'Organiza insumos e apoia a operação.' },
 };
-const PLAYER_HELP_ROLES: readonly HelpRole[] = ['kitchen', 'service', 'cleaning'];
+const PLAYER_HELP_ROLES: readonly HelpRole[] = ['kitchen', 'cleaning'];
 
 export class GameUI {
   private activePanel?: PanelId;
@@ -119,8 +119,23 @@ export class GameUI {
       const target = (event.target as HTMLElement).closest<HTMLElement>('[data-open],[data-action]');
       if (!target) return;
       const panel = target.dataset.open as PanelId | undefined;
-      if (panel) { if (this.activePanel === panel) this.close(); else this.open(panel); return; }
       const action = target.dataset.action;
+      if (this.constructionShop.isOrganizing() && (panel || action === 'open-construction')) {
+        const shouldSave = this.constructionShop.hasUnsavedChanges()
+          ? await this.confirmConstructionNavigation()
+          : false;
+        const closed = shouldSave
+          ? await this.constructionShop.saveAndClose()
+          : (this.constructionShop.discardAndClose(), true);
+        if (!closed) return;
+        if (action === 'open-construction' && target.dataset.mode === 'organize') return;
+      }
+      const activeShopClose = this.root.querySelector<HTMLElement>('.shop-only-overlay [data-editor-action="close-shop"]');
+      if (activeShopClose && (panel || action === 'open-construction')) {
+        activeShopClose.click();
+        if (action === 'open-construction' && target.dataset.mode === 'shop') return;
+      }
+      if (panel) { if (this.activePanel === panel) this.close(); else this.open(panel); return; }
       if (action === 'close-panel') this.close();
       else if (action === 'prepare-purchase') this.preparePurchase(target.dataset.id as IngredientId, target.dataset.mode as PurchaseMode);
       else if (action === 'prepare-chosen-purchase') this.prepareChosenPurchase(target.dataset.id as IngredientId);
@@ -197,13 +212,9 @@ export class GameUI {
 
   private open(panel: PanelId): void {
     this.activePanel = panel;
-    if (this.state.tutorial008.started && (pendingTutorialStep(this.state) || pendingJourneyChapter(this.state))) {
-      this.state.tutorial008.minimized = true;
-      const tutorialHost = this.root.querySelector<HTMLElement>('#tutorial-008-host');
-      if (tutorialHost) tutorialHost.innerHTML = this.tutorialWidget();
-    }
     this.root.querySelectorAll('[data-open]').forEach((item) => item.classList.toggle('active', (item as HTMLElement).dataset.open === panel));
     this.renderPanel();
+    requestAnimationFrame(() => this.root.querySelector<HTMLElement>('.tutorial-target')?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
   }
 
   private close(): void {
@@ -225,7 +236,7 @@ export class GameUI {
     const xpStart = BALANCE.restaurantLevels[this.state.restaurantLevel - 1] ?? 0;
     const xpEnd = BALANCE.restaurantLevels[this.state.restaurantLevel] ?? BALANCE.restaurantLevels.at(-1)!;
     const xpRatio = this.state.restaurantLevel >= 100 ? 1 : Math.max(0, (this.state.restaurantXp - xpStart) / Math.max(1, xpEnd - xpStart));
-    const readyPortions = RECIPES.reduce((sum, recipe) => sum + preparedQuantity(this.simulation.counterModules, recipe.id) + this.state.readyDishes[recipe.id], 0);
+    const readyPortions = this.simulation.counterModules.reduce((sum, module) => sum + module.currentQuantity, 0);
     this.root.querySelector<HTMLElement>('#hud-stats')!.innerHTML = `
       ${hudPill('coin', '●', this.state.coins.toLocaleString('pt-BR'), 'Moedas')}
       <button class="hud-pill level-pill" data-open="progression"><span class="level-badge">${this.state.restaurantLevel}</span><div><small>NÍVEL</small><b>${this.state.restaurantXp}/${this.state.restaurantLevel >= 100 ? this.state.restaurantXp : xpEnd} XP</b><i><em style="width:${Math.min(100, xpRatio * 100)}%"></em></i><small>Próximo: ${escapeHtml(LEVEL_REWARD_BY_LEVEL[Math.min(100,this.state.restaurantLevel+1)]?.name ?? 'Concluído')}</small></div></button>
@@ -243,7 +254,7 @@ export class GameUI {
     this.root.querySelector<HTMLElement>('#operation-alerts')!.innerHTML = alerts.map((alert) => `<span>! ${alert}</span>`).join('');
 
     const profile = this.state.profile!;
-    const role = ROLE_INFO[PLAYER_HELP_ROLES.includes(profile.helpRole) ? profile.helpRole : 'service'];
+    const role = ROLE_INFO[PLAYER_HELP_ROLES.includes(profile.helpRole) ? profile.helpRole : 'kitchen'];
     const profession = profile.professions[role.profession];
     this.root.querySelector<HTMLElement>('#owner-card')!.innerHTML = `
       <button class="owner-portrait" data-open="player" aria-label="Abrir perfil"><img src="${playerSpriteThumb(profile.appearance)}" alt="" /><i>✦</i></button>
@@ -261,6 +272,25 @@ export class GameUI {
     this.root.querySelector<HTMLElement>('#shift-occupancy')!.textContent = `OCUPAÇÃO: ${this.simulation.seatedCustomerCount()}/${this.simulation.totalCapacity()}`;
     this.root.querySelectorAll<HTMLButtonElement>('[data-action="set-speed"]').forEach((button) => button.classList.toggle('active', Number(button.dataset.speed) === this.simulation.timeScale()));
     this.renderProgressionModal();
+  }
+
+  private confirmConstructionNavigation(): Promise<boolean> {
+    return new Promise((resolve) => {
+      this.root.querySelector('.construction-save-prompt')?.remove();
+      const prompt = document.createElement('div');
+      prompt.className = 'construction-save-prompt';
+      prompt.setAttribute('role', 'dialog');
+      prompt.setAttribute('aria-modal', 'true');
+      prompt.setAttribute('aria-labelledby', 'construction-save-title');
+      prompt.innerHTML = `<section><small>EDITAR RESTAURANTE</small><h2 id="construction-save-title">Salvar alterações?</h2><p>Você fez mudanças no restaurante antes de navegar para outra tela.</p><div><button data-construction-save="no">Não</button><button class="primary" data-construction-save="yes">Sim</button></div></section>`;
+      const finish = (save: boolean) => { prompt.remove(); resolve(save); };
+      prompt.addEventListener('click', (event) => {
+        const choice = (event.target as HTMLElement).closest<HTMLElement>('[data-construction-save]')?.dataset.constructionSave;
+        if (choice) finish(choice === 'yes');
+      });
+      this.root.append(prompt);
+      prompt.querySelector<HTMLButtonElement>('[data-construction-save="yes"]')?.focus();
+    });
   }
 
   private renderPanel(): void {
@@ -300,7 +330,10 @@ export class GameUI {
     const step = pendingTutorialStep(this.state);
     const journeyLevel = step ? undefined : pendingJourneyChapter(this.state);
     if (!step && !journeyLevel) return '';
-    if (this.state.tutorial008.minimized) return '<button class="tutorial-reopen" data-action="tutorial-show">Jornada · objetivo atual</button>';
+    if (this.state.tutorial008.minimized) {
+      const label = step?.title ?? (journeyLevel ? `Tutorial do nível ${journeyLevel}` : 'Continuar tutorial');
+      return `<button class="tutorial-reopen" data-action="tutorial-show">Continuar · ${escapeHtml(label)}</button>`;
+    }
     if (journeyLevel) {
       const rewards = LEVEL_REWARD_BY_LEVEL[journeyLevel]?.rewards.map((reward) => `${reward.icon} ${reward.title}`).join(' · ') ?? 'Novas possibilidades foram liberadas.';
       const action = this.journeyTutorialAction(journeyLevel);
@@ -330,9 +363,9 @@ export class GameUI {
     }
     const panel: Partial<Record<typeof step.id, PanelId>> = {
       'hire-barista': 'staff',
+      'hire-waiter': 'staff',
       'hire-cleaner': 'staff',
       'first-production': 'production',
-      'player-waiter': 'roles',
       'understand-counter': 'production',
       'first-customer': 'tasks',
       'chapter-complete': 'progression',
@@ -354,6 +387,15 @@ export class GameUI {
     if (!entry) return undefined;
     const placed = this.state.construction.placedFurniture;
     const owned = [...placed, ...this.state.construction.storedFurniture];
+    if (level === 2) {
+      const countersOwned = owned.filter((item) => FURNITURE_BY_ID[item.definitionId]?.functionId === 'pickup').length;
+      const countersPlaced = placed.filter((item) => FURNITURE_BY_ID[item.definitionId]?.functionId === 'pickup').length;
+      if (countersOwned < 2) return { kind:'shop', target:'service.c1.isolated', title:'Compre o segundo Balcão de serviço', description:'Um segundo balcão permite manter outro tipo de comida disponível ao mesmo tempo.', label:'Comprar segundo balcão' };
+      if (countersPlaced < 2) return { kind:'organize', target:'service.c1.isolated', title:'Posicione o segundo balcão', description:'Coloque-o ao lado do primeiro ou em outro ponto acessível do salão.', label:'Posicionar balcão' };
+      const viewedKey = 'journey:2:multiple-counters';
+      if (!this.state.tutorial008.highlightsShown.includes(viewedKey)) return { kind:'panel', panel:'production', title:'Exponha mais de uma receita', description:'Cada balcão pode guardar um tipo diferente. Produza Cappuccino para servir Café preto e Cappuccino simultaneamente.', label:'Abrir Produção', rewardId:viewedKey };
+      return undefined;
+    }
     for (const reward of entry.rewards) {
       if (reward.type === 'station') {
         const definitionId = reward.id.split(':')[1];
@@ -402,8 +444,8 @@ export class GameUI {
 
   private staffPanel(): string {
     const payroll = estimatedPayrollCost(this.state);
-    const tutorial = !this.state.tutorial006.completed && !this.state.tutorial006.dismissed
-      ? `<div class="tutorial-card"><small>NOVIDADE 0.0.6</small><strong>Automatize sem perder o controle</strong><p>Gerencie a equipe, defina estoques mínimos e crie um plano de produção. Compras automáticas começam desligadas.</p></div>` : '';
+    const tutorial = '';
+    const tutorialHireId = ({ 'hire-barista': 'cook-0', 'hire-waiter': 'waiter-0', 'hire-cleaner': 'cleaner-0' } as Record<string, string>)[pendingTutorialStep(this.state)?.id ?? ''];
     const hireConfirmation = this.pendingHireId ? (() => {
       const candidate = STAFF_BY_ID[this.pendingHireId!];
       const furniture = availableStaffFurniture(candidate.role, this.state.construction.placedFurniture, this.state.construction.staffStartPositions, candidate.id);
@@ -432,13 +474,13 @@ export class GameUI {
       speed: this.state.staff.instances.reduce((sum, item) => sum + STAFF_BY_ID[item.definitionId].taskSpeed, 0) / this.state.staff.instances.length,
       quality: this.state.staff.instances.reduce((sum, item) => sum + STAFF_BY_ID[item.definitionId].quality, 0) / this.state.staff.instances.length,
     } : { speed: 1, quality: 1 };
-    const candidates = STAFF_CANDIDATES.filter((candidate) => candidate.minimumLevel <= this.state.restaurantLevel && this.state.staff.candidateDefinitionIds.includes(candidate.id)).map((candidate) => { const requirement = staffFurnitureRequirement(candidate.role); const furniture = availableStaffFurniture(candidate.role, this.state.construction.placedFurniture, this.state.construction.staffStartPositions); return `<article class="candidate-card"><img src="/assets/pixel/rendered/thumbnails/${candidate.assetId}.png" alt="${candidate.name}"/><div><strong>${candidate.name} <span>NOVO · ${escapeHtml(candidate.primaryProfession)}</span></strong><small>Nível mínimo ${candidate.minimumLevel} · ${candidate.traits.join(' · ')}</small>${candidate.specialties.length ? `<small>Especialidades: ${candidate.specialties.join(' + ')}</small>` : ''}<p>Velocidade ${Math.round(candidate.taskSpeed * 100)} ${candidate.taskSpeed >= averages.speed ? '↑' : '↓'} · Qualidade ${Math.round(candidate.quality * 100)} ${candidate.quality >= averages.quality ? '↑' : '↓'} · Carga ${candidate.carryingCapacity}</p><b>${candidate.hiringCost} agora · ${candidate.salary}/período · ${requirement ? furniture ? `${requirement} livre` : `requer ${requirement} livre` : ''}</b></div><button data-action="select-hire" data-id="${candidate.id}" ${this.state.coins < candidate.hiringCost || this.state.staff.instances.length >= this.state.staff.maxStaff || (requirement && !furniture) ? 'disabled' : ''}>Comparar e contratar</button></article>`; }).join('');
+    const candidates = STAFF_CANDIDATES.filter((candidate) => candidate.minimumLevel <= this.state.restaurantLevel && this.state.staff.candidateDefinitionIds.includes(candidate.id)).sort((a, b) => Number(b.id === tutorialHireId) - Number(a.id === tutorialHireId)).map((candidate) => { const requirement = staffFurnitureRequirement(candidate.role, candidate.id); const furniture = availableStaffFurniture(candidate.role, this.state.construction.placedFurniture, this.state.construction.staffStartPositions, candidate.id); const tutorialTarget = candidate.id === tutorialHireId; return `<article class="candidate-card ${tutorialTarget ? 'tutorial-target' : ''}"><img src="/assets/pixel/rendered/thumbnails/${candidate.assetId}.png" alt="${candidate.name}"/><div><strong>${candidate.name} <span>${tutorialTarget ? 'OBJETIVO · ' : 'NOVO · '}${escapeHtml(candidate.primaryProfession)}</span></strong><small>Nível mínimo ${candidate.minimumLevel} · ${candidate.traits.join(' · ')}</small>${candidate.specialties.length ? `<small>Especialidades: ${candidate.specialties.join(' + ')}</small>` : ''}<p>Velocidade ${Math.round(candidate.taskSpeed * 100)} ${candidate.taskSpeed >= averages.speed ? '↑' : '↓'} · Qualidade ${Math.round(candidate.quality * 100)} ${candidate.quality >= averages.quality ? '↑' : '↓'} · Carga ${candidate.carryingCapacity}</p><b>${candidate.hiringCost} agora · ${candidate.salary}/período · ${requirement ? furniture ? `${requirement} livre` : `requer ${requirement} livre` : ''}</b></div><button data-action="select-hire" data-id="${candidate.id}" ${this.state.coins < candidate.hiringCost || this.state.staff.instances.length >= this.state.staff.maxStaff || (requirement && !furniture) ? 'disabled' : ''}>${tutorialTarget ? 'Contratar este funcionário' : 'Comparar e contratar'}</button></article>`; }).join('');
     return `${tutorial}${hireConfirmation}${trainingConfirmation}${dismissConfirmation}<div class="staff-summary"><span><small>Equipe</small><b>${this.state.staff.instances.length}/${this.state.staff.maxStaff}</b></span><span><small>Folha por período</small><b>${payroll} moedas</b></span><span><small>Próxima cobrança</small><b>${Math.max(0, Math.ceil((this.state.staff.nextPayrollAt - Date.now()) / 60000))} min</b></span></div>${this.state.staff.payrollWarnings.length ? `<div class="stop-reasons">${this.state.staff.payrollWarnings.slice(-2).map((warning) => `<span>• ${warning}</span>`).join('')}</div>` : ''}<h3>Funcionários contratados</h3><div class="staff-list">${staffCards}</div><h3>Candidatos disponíveis</h3><div class="candidate-list">${candidates || emptyState('✓', 'Equipe completa', 'Novos candidatos aparecerão em futuras renovações.')}</div>`;
   }
 
   private stockPanel(): string {
     const unlockedRecipes = RECIPES.filter((recipe) => recipe.requiredLevel <= this.state.restaurantLevel);
-    const preparedStock = unlockedRecipes.map((recipe) => ({ recipe, quantity: preparedQuantity(this.simulation.counterModules, recipe.id) + this.state.readyDishes[recipe.id] })).filter((item) => item.quantity > 0);
+    const preparedStock = unlockedRecipes.map((recipe) => ({ recipe, quantity: preparedQuantity(this.simulation.counterModules, recipe.id) })).filter((item) => item.quantity > 0);
     return `<h3>Pratos prontos para venda</h3><p class="panel-intro">A produção usa somente dinheiro, tempo, estação e profissional compatíveis. As porções acumuladas nos balcões não possuem limite.</p><div class="prepared-stock-grid">${preparedStock.length ? preparedStock.map(({recipe,quantity}) => `<article>${recipeVisual(recipe.id)}<div><strong>${recipe.name}</strong><small>${quantity} porções disponíveis</small></div><b>${quantity}</b></article>`).join('') : emptyState('◌','Nenhum prato pronto','Abra Produção e prepare o primeiro lote antes de receber pedidos.')}</div>`;
   }
 
@@ -460,6 +502,11 @@ export class GameUI {
     const availableSpecialties = new Set(this.state.staff.instances
       .filter((instance) => instance.enabled && instance.role === 'cook')
       .flatMap((instance) => STAFF_BY_ID[instance.definitionId]?.specialties ?? []));
+    const stockRecipes = [...RECIPES].sort((a, b) => {
+      const quantityA = preparedQuantity(this.simulation.counterModules, a.id);
+      const quantityB = preparedQuantity(this.simulation.counterModules, b.id);
+      return Number(quantityB > 0) - Number(quantityA > 0) || quantityB - quantityA || a.menuOrder - b.menuOrder;
+    });
     const productionCards = RECIPES.map((recipe) => {
       const missingSpecialties = recipe.requiredSpecialties.filter((specialty) => !availableSpecialties.has(specialty));
       const requirementStatuses = recipeRequirements(this.state, recipe);
@@ -475,7 +522,7 @@ export class GameUI {
       return { html, locked:Boolean(missing.length), level:recipe.requiredLevel };
     }).sort((a,b)=>Number(a.locked)-Number(b.locked)||a.level-b.level).map((entry)=>entry.html).join('');
     return `<section class="production-guide compact"><strong>Produção</strong><span>Escolha, pague uma vez e acompanhe o lote; itens iguais usam o mesmo balcão.</span></section><p class="panel-intro">Produza lotes antecipadamente. Clientes pedem somente comida disponível.</p>
-      <div class="ready-strip">${RECIPES.map((recipe) => `<span data-ready-id="${recipe.id}" title="${escapeHtml(recipe.name)} · armazenamento ilimitado">${recipeVisual(recipe.id)}<b>${preparedQuantity(this.simulation.counterModules, recipe.id) + this.state.readyDishes[recipe.id]}</b></span>`).join('')}<small>${this.simulation.counterModules.reduce((sum, module) => sum + module.currentQuantity, 0)} pratos · capacidade ∞</small></div>
+      <div class="ready-strip">${stockRecipes.map((recipe) => `<span data-ready-id="${recipe.id}" title="${escapeHtml(recipe.name)} · armazenamento ilimitado">${recipeVisual(recipe.id)}<b>${preparedQuantity(this.simulation.counterModules, recipe.id)}</b></span>`).join('')}<small>${this.simulation.counterModules.reduce((sum, module) => sum + module.currentQuantity, 0)} pratos · capacidade ∞</small></div>
       <div class="active-production-top">${groupedTasks.length ? groupedTasks.slice(0,12).map((group) => { const representative = group.tasks.find((task) => task.state === 'cooking') ?? group.tasks.find((task) => task.state === 'reserved') ?? group.tasks[0]; const portions = group.tasks.reduce((sum, task) => sum + task.batchQuantity, 0); return `<article>${recipeVisual(group.recipeId)}<div><strong>${escapeHtml(RECIPE_BY_ID[group.recipeId].name)} <b>×${group.tasks.length}</b></strong><small>${productionTaskStatusLabel(representative.state)} · ${group.tasks.length} ${group.tasks.length === 1 ? 'lote' : 'lotes'} · ${portions} porções</small></div><button data-action="cancel-production-recipe" data-id="${group.recipeId}">Cancelar</button></article>`; }).join('') : '<small>Nenhuma receita em produção.</small>'}</div>
       <h3>Novo lote</h3><div class="production-planner">${productionCards}</div>`;
   }
@@ -486,10 +533,16 @@ export class GameUI {
     if (signature !== this.productionPanelSignature) { this.renderPanel(); return; }
     for (const recipe of RECIPES) {
       const cell = this.root.querySelector<HTMLElement>(`[data-ready-id="${recipe.id}"] b`);
-      if (cell) cell.textContent = String(preparedQuantity(this.simulation.counterModules, recipe.id) + this.state.readyDishes[recipe.id]);
+      if (cell) cell.textContent = String(preparedQuantity(this.simulation.counterModules, recipe.id));
     }
     const capacity = this.root.querySelector<HTMLElement>('.ready-strip > small');
     if (capacity) capacity.textContent = `${this.simulation.counterModules.reduce((sum, module) => sum + module.currentQuantity, 0)} pratos · capacidade ∞`;
+    const strip = this.root.querySelector<HTMLElement>('.ready-strip');
+    if (strip && capacity) [...RECIPES].sort((a, b) => {
+      const quantityA = preparedQuantity(this.simulation.counterModules, a.id);
+      const quantityB = preparedQuantity(this.simulation.counterModules, b.id);
+      return Number(quantityB > 0) - Number(quantityA > 0) || quantityB - quantityA || a.menuOrder - b.menuOrder;
+    }).forEach((recipe) => { const cell = strip.querySelector<HTMLElement>(`[data-ready-id="${recipe.id}"]`); if (cell) strip.insertBefore(cell, capacity); });
   }
 
   private currentProductionSignature(): string {
@@ -530,7 +583,7 @@ export class GameUI {
   }
 
   private playerPanel(): string {
-    const profile = this.state.profile!; const role = ROLE_INFO[PLAYER_HELP_ROLES.includes(profile.helpRole) ? profile.helpRole : 'service'];
+    const profile = this.state.profile!; const role = ROLE_INFO[PLAYER_HELP_ROLES.includes(profile.helpRole) ? profile.helpRole : 'kitchen'];
     const totalTasks = Object.values(profile.taskHistory).reduce((sum, value) => sum + value, 0);
     return `<div class="profile-hero"><div class="large-portrait"><img src="${playerSpriteThumb(profile.appearance.hairStyle, profile.appearance.presentation)}" alt="Sprite de ${escapeHtml(profile.name)}" /></div><div><small>PROPRIETÁRIO DO BISTRÔ</small><h3>${escapeHtml(profile.name)}</h3><p>Nível geral ${profile.level} · ${profile.xp} XP</p></div></div>
       <div class="profile-stats"><span><small>Função atual</small><b>${role.icon} ${role.name}</b></span><span><small>Tarefa atual</small><b>${this.simulation.playerTaskLabel()}</b></span><span><small>Tarefas feitas</small><b>${totalTasks}</b></span></div>
@@ -588,7 +641,8 @@ export class GameUI {
     const result = hireStaff(this.state, this.pendingHireId, undefined, Date.now());
     if (!result.ok) { this.toast(result.reason ?? 'Não foi possível contratar.', 'warning'); return; }
     this.pendingHireId = undefined; this.simulation.syncStaffRoster();
-    this.toast(`${result.instance!.customName} entrou para a equipe.`, 'success'); this.renderPanel();
+    reconcileTutorial(this.state);
+    this.toast(`${result.instance!.customName} entrou para a equipe.`, 'success'); this.renderDynamic(); this.renderPanel();
   }
 
   private toggleStaff(staffId: string): void {
@@ -758,9 +812,9 @@ export class GameUI {
     if (!count('table')) missing.push('uma mesa');
     if (count('chair') < 2) missing.push('duas cadeiras');
     if (!this.state.staff.instances.some((member) => member.enabled && STAFF_BY_ID[member.definitionId]?.specialties.includes('Barista'))) missing.push('Barista iniciante');
+    if (!this.state.staff.instances.some((member) => member.enabled && member.role === 'waiter')) missing.push('Atendente iniciante');
     if (!this.state.staff.instances.some((member) => member.enabled && member.role === 'cleaner')) missing.push('funcionária de limpeza');
-    if ((preparedQuantity(this.simulation.counterModules, 'coffee') + this.state.readyDishes.coffee) < 1) missing.push('uma porção de Café preto no balcão');
-    if (this.state.profile?.helpRole !== 'service') missing.push('seu personagem como Atendente/Garçom');
+    if (preparedQuantity(this.simulation.counterModules, 'coffee') < 1) missing.push('uma porção de Café preto no balcão');
     if (this.simulation.tables.every((table) => table.chairs.filter((chair) => chair.enabled && chair.accessible).length < 2)) missing.push('mesa e cadeiras com caminhos acessíveis');
     return missing;
   }

@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { createDefaultState } from '../game/save/defaultState';
 import { ConstructionEditor } from '../game/systems/construction/ConstructionEditor';
+import { availableStaffFurniture, staffFurnitureRequirement } from '../game/systems/construction/StaffStartSystem';
 import { TUTORIAL_SETUP_PLACEMENTS } from '../ui/ConstructionShop';
 
 const source = (path: string) => readFileSync(new URL(path, import.meta.url), 'utf8');
@@ -94,11 +95,60 @@ describe('mobile sem sprites antigas e tutorial acionável', () => {
     expect(css).toContain('.management-bar { position:relative; z-index:1200;');
   });
 
-  it('centers panels and minimizes the tutorial while a panel is in use', () => {
+  it('centers panels and keeps the current tutorial objective visible', () => {
     const ui = source('../ui/GameUI.ts');
     const css = source('../styles.css');
     expect(css).toContain('margin-inline:auto');
-    expect(ui).toContain('this.state.tutorial008.minimized = true');
-    expect(ui).toContain('tutorialHost.innerHTML = this.tutorialWidget()');
+    expect(ui).toContain('Continuar · ${escapeHtml(label)}');
+    expect(ui).not.toContain('Jornada · objetivo atual');
+  });
+
+  it('keeps tutorial, counters, dining placement and menu variety dynamic', () => {
+    const ui = source('../ui/GameUI.ts');
+    const shop = source('../ui/ConstructionShop.ts');
+    const simulation = source('../game/simulation/RestaurantSimulation.ts');
+    expect(ui).toContain("'hire-waiter': 'staff'");
+    expect(ui).toContain("level === 2");
+    expect(ui).toContain('Compre o segundo Balcão de serviço');
+    expect(ui).toContain('quantityB - quantityA');
+    expect(shop).toContain('diningPlacementCells');
+    expect(shop).not.toContain('data-editor-action="confirm-item"');
+    expect(shop).not.toContain('data-editor-action="cancel-item"');
+    expect(simulation).toContain('available[Math.floor(Math.random() * available.length)]');
+    expect(simulation).not.toContain('this.customerSequence + this.orders.length');
+  });
+
+  it('mantém a navegação ativa no editor e confirma mudanças antes de sair', () => {
+    const state = createDefaultState(0);
+    state.coins = 100_000;
+    const editor = new ConstructionEditor(state);
+    expect(editor.hasChanges).toBe(false);
+    expect(editor.purchase('service.c1.isolated').ok).toBe(true);
+    expect(editor.hasChanges).toBe(true);
+
+    const ui = source('../ui/GameUI.ts');
+    const shop = source('../ui/ConstructionShop.ts');
+    const css = source('../styles.css');
+    expect(ui).toContain('Salvar alterações?');
+    expect(ui).toContain('data-construction-save="no">Não');
+    expect(ui).toContain('data-construction-save="yes">Sim');
+    expect(ui).toContain('this.constructionShop.isOrganizing()');
+    expect(shop).toContain('async saveAndClose(): Promise<boolean>');
+    expect(css).toContain('.construction-save-prompt{position:fixed;z-index:110000');
+  });
+
+  it('reconhece o forno correto ao contratar o profissional de fornearia', () => {
+    const state = createDefaultState(0);
+    state.coins = 100_000;
+    const editor = new ConstructionEditor(state);
+    expect(editor.purchase('cooking.a2.convection').ok).toBe(true);
+    const stored = editor.draft.construction.storedFurniture.find((item) => item.definitionId === 'cooking.a2.convection')!;
+    expect(editor.place(stored.definitionId, 4, 4, 'sw', undefined, stored.id).ok).toBe(true);
+    expect(staffFurnitureRequirement('cook', 'cook-1')).toBe('Forno');
+    expect(availableStaffFurniture('cook', editor.draft.construction.placedFurniture, [], 'cook-1')?.definitionId).toBe('cooking.a2.convection');
+
+    const ui = source('../ui/GameUI.ts');
+    expect(ui).toContain('staffFurnitureRequirement(candidate.role, candidate.id)');
+    expect(ui).toContain('availableStaffFurniture(candidate.role, this.state.construction.placedFurniture, this.state.construction.staffStartPositions, candidate.id)');
   });
 });

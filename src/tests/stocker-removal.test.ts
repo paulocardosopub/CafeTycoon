@@ -30,7 +30,7 @@ describe('remoção do estoquista e reaproveitamento das skins', () => {
     };
     state.construction.staffStartPositions.push({ staffId: 'stocker-0', gridX: 3, gridY: 4, facing: 'ne', returnWhenIdle: true });
     const migrated = migrateAndSanitizeSave(state, 1);
-    expect(migrated.profile?.helpRole).toBe('service');
+    expect(migrated.profile?.helpRole).toBe('kitchen');
     expect(migrated.construction.staffStartPositions.some((position) => position.staffId === 'stocker-0')).toBe(false);
   });
 });

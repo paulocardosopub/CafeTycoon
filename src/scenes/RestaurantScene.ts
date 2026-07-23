@@ -366,15 +366,9 @@ export class RestaurantScene extends Phaser.Scene {
         }
         highlight.fillStyle(0xfff1ce, 1).fillCircle(Math.round(point.x), Math.round(point.y), 3);
         const controlY = Math.round(point.y - rendered.frameSize[1] * definition.visualScale * .74);
-        const confirm = this.add.text(Math.round(point.x - 18), controlY, '✓', this.pixelTextStyle('#173a36', valid ? '#8ce1a8ee' : '#777777dd'))
-          .setOrigin(.5).setDepth(isoDepth(base, VISUAL_METRICS.depth.status) + 2);
-        if (valid) confirm.setInteractive({ useHandCursor: true }).on('pointerdown', (_p: Phaser.Input.Pointer, _x: number, _y: number, event: Phaser.Types.Input.EventData) => { event.stopPropagation(); gameEvents.emit('construction:edit-confirm', undefined); });
-        const cancel = this.add.text(Math.round(point.x + 18), controlY, '×', this.pixelTextStyle('#fff8e9', '#c94b3cee'))
-          .setOrigin(.5).setDepth(isoDepth(base, VISUAL_METRICS.depth.status) + 2).setInteractive({ useHandCursor: true });
-        cancel.on('pointerdown', (_p: Phaser.Input.Pointer, _x: number, _y: number, event: Phaser.Types.Input.EventData) => { event.stopPropagation(); gameEvents.emit('construction:edit-cancel', undefined); });
-        const label = this.add.text(Math.round(point.x), controlY - 24, `${definition.code} · ${valid ? 'posição válida' : payload.editSession?.validationErrors[0] ?? 'posição inválida'}`, this.pixelTextStyle('#173a36', valid ? '#dff8e4ee' : '#ffd4cfee'))
+        const label = this.add.text(Math.round(point.x), controlY, `${definition.code} · ${valid ? 'posição salva' : payload.editSession?.validationErrors[0] ?? 'posição inválida'}`, this.pixelTextStyle('#173a36', valid ? '#dff8e4ee' : '#ffd4cfee'))
           .setOrigin(.5).setDepth(isoDepth(base, VISUAL_METRICS.depth.status));
-        this.constructionPreviewObjects.push(highlight, confirm, cancel, label);
+        this.constructionPreviewObjects.push(highlight, label);
       }
     }
 

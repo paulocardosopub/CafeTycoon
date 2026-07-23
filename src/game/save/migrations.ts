@@ -59,7 +59,7 @@ export function migrateAndSanitizeSave(raw: GameState | null, now = Date.now()):
     tutorial008: raw.tutorial008 && typeof raw.tutorial008 === 'object' ? { ...fallback.tutorial008, ...raw.tutorial008 } : { ...fallback.tutorial008, started: false, mandatory: false },
     operation: containsQaResidue ? undefined : sanitizeOperation(raw.operation),
   };
-  if (state.profile?.helpRole === 'stock') state.profile.helpRole = 'service';
+  if (state.profile && ['stock', 'service'].includes(state.profile.helpRole)) state.profile.helpRole = 'kitchen';
   state.staff = sanitizeStaffState(raw.staff, state, now);
   state.storage = createInitialStorageState(state, now, raw.storage);
   state.procurement = sanitizeProcurementState(raw.procurement, now);

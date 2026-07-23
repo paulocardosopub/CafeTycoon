@@ -36,6 +36,7 @@ export class ConstructionEditor {
   get draft(): Readonly<ConstructionDraft> { return this.current; }
   get canUndo(): boolean { return this.undoStack.length > 0; }
   get canRedo(): boolean { return this.redoStack.length > 0; }
+  get hasChanges(): boolean { return JSON.stringify(this.current) !== JSON.stringify(this.original); }
   get editSession(): Readonly<FurnitureEditSession> | undefined { return this.furnitureEdit?.session; }
   get pendingExpansion(): Readonly<{ definition: ExpansionDefinition; side: ExpansionDefinition['allowedSides'][number] }> | undefined {
     return this.expansionEdit ? { definition: this.expansionEdit.definition, side: this.expansionEdit.side } : undefined;

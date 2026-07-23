@@ -11,17 +11,17 @@ export const INITIAL_TUTORIAL_STEPS = [
   { id: 'open-editor', title: 'Abra Editar restaurante', objective: 'Comprar e posicionar são ações separadas.', manual: true },
   { id: 'place-setup', title: 'Monte o restaurante', objective: 'Posicione Balcão, Pia, Cafeteira, mesa e duas cadeiras.' },
   { id: 'hire-barista', title: 'Contrate o Barista iniciante', objective: 'Nina opera a Cafeteira e prepara Café preto.' },
+  { id: 'hire-waiter', title: 'Contrate o primeiro Atendente', objective: 'Caio anota pedidos, serve os clientes e recebe os pagamentos.' },
+  { id: 'hire-cleaner', title: 'Contrate a funcionária de limpeza', objective: 'Iara limpa as mesas, recolhe as louças e leva tudo para lavar na Pia.' },
   { id: 'cost-and-time', title: 'Entenda custo e tempo', objective: 'O custo é cobrado uma única vez; estação e profissional ficam ocupados.', manual: true },
   { id: 'first-production', title: 'Produza o primeiro lote', objective: 'Confira custo, saldo, tempo, porções, faturamento, lucro e XP.' },
-  { id: 'hire-cleaner', title: 'Contrate a funcionária de limpeza', objective: 'Iara limpa as mesas, recolhe as louças e leva tudo para lavar na Pia.' },
-  { id: 'player-waiter', title: 'Trabalhe como Atendente/Garçom', objective: 'Seu personagem servirá clientes e recolherá louças.' },
   { id: 'understand-counter', title: 'Confira o Café no balcão', objective: 'Clientes pedem somente receitas realmente disponíveis.' },
   { id: 'open-restaurant', title: 'Abra o restaurante', objective: 'A abertura só é liberada quando todos os requisitos forem cumpridos.' },
   { id: 'first-customer', title: 'Atenda o primeiro cliente', objective: 'Sirva, receba o pagamento, recolha e lave a louça.' },
   { id: 'chapter-complete', title: 'Seu restaurante está funcionando!', objective: 'Consulte os próximos capítulos na Jornada do Restaurante.' },
 ] as const;
 
-export const JOURNEY_CHAPTER_LEVELS = [1,5,10,15,20,25,30,31,35,41,45,47,50,53,55,57,59,60,61,62,63,66,67,70,73,74,77,78,80,82,83,86,89,90,92,93,98,99,100] as const;
+export const JOURNEY_CHAPTER_LEVELS = [1,2,3,4,5,7,10,15,20,25,30,31,35,41,45,47,50,53,55,57,59,60,61,62,63,66,67,70,73,74,77,78,80,82,83,86,89,90,92,93,98,99,100] as const;
 export const JOURNEY_CHAPTER_TITLES: Partial<Record<number,string>> = {
   82:'Parceria comercial: redução do custo de produção',
   89:'Eficiência operacional: redução do tempo de preparo',
@@ -52,6 +52,7 @@ export function acknowledgeJourneyChapter(state: GameState, level: number): void
 }
 
 export function reconcileTutorial(state: GameState): void {
+  const previousStepIndex = state.tutorial008.currentStep;
   const completed = new Set(state.tutorial008.completedSteps);
   const owned = [...state.construction.placedFurniture, ...state.construction.storedFurniture].map((item) => FURNITURE_BY_ID[item.definitionId]);
   const placed = state.construction.placedFurniture.map((item) => FURNITURE_BY_ID[item.definitionId]);
@@ -62,9 +63,9 @@ export function reconcileTutorial(state: GameState): void {
   if (count(owned, 'coffee_machine')) completed.add('buy-coffee-machine');
   if (count(placed, 'pickup') && count(placed, 'sink') && count(placed, 'coffee_machine') && count(placed, 'table') && count(placed, 'chair') >= 2) completed.add('place-setup');
   if (state.staff.instances.some((member) => STAFF_BY_ID[member.definitionId]?.specialties.includes('Barista'))) completed.add('hire-barista');
+  if (state.staff.instances.some((member) => member.enabled && member.role === 'waiter')) completed.add('hire-waiter');
   if (state.production.plans.some((plan) => plan.recipeId === 'coffee')) completed.add('first-production');
   if (state.staff.instances.some((member) => member.enabled && member.role === 'cleaner')) completed.add('hire-cleaner');
-  if (state.profile?.helpRole === 'service') completed.add('player-waiter');
   if ((state.readyDishes.coffee ?? 0) + state.construction.serviceCounters.filter((counter) => counter.assignedRecipeId === 'coffee').reduce((sum, counter) => sum + counter.currentQuantity, 0) > 0) completed.add('understand-counter');
   if (state.restaurantOpen) completed.add('open-restaurant');
   if (state.stats.customersServed > 0) completed.add('first-customer');
@@ -72,6 +73,7 @@ export function reconcileTutorial(state: GameState): void {
   state.tutorial008.completedSteps = [...completed];
   const pendingStepIndex = INITIAL_TUTORIAL_STEPS.findIndex((step) => !completed.has(step.id));
   state.tutorial008.currentStep = pendingStepIndex < 0 ? INITIAL_TUTORIAL_STEPS.length : pendingStepIndex;
+  if (pendingStepIndex >= 0 && pendingStepIndex !== previousStepIndex) state.tutorial008.minimized = false;
   if (completed.has('chapter-complete') && !state.tutorial008.completedChapters.includes('level-1-first-service')) state.tutorial008.completedChapters.push('level-1-first-service');
   for (const level of JOURNEY_CHAPTER_LEVELS) {
     const id = level === 1 ? 'level-1-first-service' : `level-${level}`;
