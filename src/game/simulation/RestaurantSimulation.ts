@@ -300,11 +300,19 @@ export class RestaurantSimulation {
   }
 
   private assignWaitingParties(): void {
-    const partyIds = [...new Set(this.customers.filter((customer) => ['seeking_table', 'queueing'].includes(customer.state)).map((customer) => customer.partyId))];
-    for (const partyId of partyIds) {
-      const members = this.partyMembers(partyId).filter((customer) => customer.state !== 'gone');
-      if (!members.length || members.some((customer) => !['seeking_table', 'queueing'].includes(customer.state) || customer.path.length > 0)) continue;
-      if (!this.assignSeats(members)) this.sendPartyToQueue(members);
+    const parties = [...new Set(this.customers.filter((customer) => ['seeking_table', 'queueing'].includes(customer.state)).map((customer) => customer.partyId))]
+      .map((partyId) => this.partyMembers(partyId).filter((customer) => customer.state !== 'gone'))
+      .filter((members) => members.length > 0)
+      .sort((left, right) => Math.min(...left.map((customer) => customer.stateEnteredAt)) - Math.min(...right.map((customer) => customer.stateEnteredAt)));
+    let mayAssignSeat = true;
+    for (const members of parties) {
+      if (members.some((customer) => !['seeking_table', 'queueing'].includes(customer.state))) continue;
+      if (members.some((customer) => customer.path.length > 0)) { mayAssignSeat = false; continue; }
+      if (mayAssignSeat && this.assignSeats(members)) continue;
+      this.sendPartyToQueue(members);
+      // FIFO estrito: se o primeiro grupo não couber, nenhum recém-chegado
+      // pode ultrapassá-lo enquanto aguarda a próxima mesa livre.
+      mayAssignSeat = false;
     }
   }
 

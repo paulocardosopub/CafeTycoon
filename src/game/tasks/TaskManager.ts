@@ -60,7 +60,9 @@ export class TaskManager {
   claim(actorId: string, roles: HelpRole[], preferredId?: string, predicate: (task: RestaurantTask) => boolean = () => true): RestaurantTask | undefined {
     const available = [...this.tasks.values()]
       .filter((task) => task.status === 'pending' && roles.includes(task.role) && predicate(task))
-      .sort((a, b) => (a.id === preferredId ? -1 : b.id === preferredId ? 1 : (b.priority + b.waitSeconds * .02) - (a.priority + a.waitSeconds * .02)));
+      .sort((a, b) => (a.id === preferredId ? -1 : b.id === preferredId ? 1
+        : (b.priority + b.waitSeconds * .02) - (a.priority + a.waitSeconds * .02)
+          || a.createdAt - b.createdAt || a.id.localeCompare(b.id)));
     const task = available[0];
     if (task) { task.status = 'reserved'; task.assignedActorId = actorId; }
     return task;

@@ -70,6 +70,8 @@ describe('mobile sem sprites antigas e tutorial acionável', () => {
     expect(ui).toContain('${group.tasks.length} ${group.tasks.length === 1 ? \'lote\' : \'lotes\'}');
     expect(ui).not.toContain('<h3>Planos ativos</h3>');
     expect(ui).toContain('production-guide compact');
+    expect(ui).toContain('class="production-meta"');
+    expect(ui).toContain('class="production-requirement"');
   });
 
   it('impõe o limite temporário de dez balcões de serviço', () => {
