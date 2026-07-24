@@ -836,7 +836,9 @@ export class RestaurantSimulation {
     const options = available.map((recipe) => ({ recipe, weight: weight(recipe.salePrice) })); const noOrder = ({economic:10,regular:5,high_income:2} as const)[profile];
     let roll = Math.random() * (options.reduce((sum, item) => sum + item.weight, 0) + noOrder);
     const choice = options.find((item) => (roll -= item.weight) < 0)?.recipe;
-    if (!choice) { if (customer.noOrderRetried) { this.beginDeparture(customer, false); return; } customer.noOrderRetried = true; customer.noOrderRetryAt = this.simulationTime + 10; return; }
+    // If the menu remains unavailable after the single retry, this is a
+    // service failure rather than a neutral voluntary departure.
+    if (!choice) { if (customer.noOrderRetried) { this.customerGivesUp(customer); return; } customer.noOrderRetried = true; customer.noOrderRetryAt = this.simulationTime + 10; return; }
     const recipe = choice;
     const order: OrderRuntime = {
       id: stableRuntimeId('order'), customerId: customer.id, tableId: table.id, seatId: seat.seatId, chairId: seat.chairId,

@@ -96,6 +96,19 @@ describe('capacidade e assentos individuais', () => {
     expect(seat.state).not.toBe('dirty');
     expect(simulation.state.stats.customersServed).toBe(0);
   });
+  it('reduz a reputação quando o cardápio continua sem nenhuma porção após a única tentativa', () => {
+    const state = createDefaultState(0); installSixSeatLayout(state);
+    state.construction.serviceCounters = [];
+    const simulation = new RestaurantSimulation(state); simulation.debugSetAutoSpawn(false);
+    const reputation = state.reputation;
+    simulation.debugSeatCustomersAtFirstTable(1);
+    const random = vi.spyOn(Math, 'random').mockReturnValue(0);
+    expect(simulation.debugSimulateOrder()).toBe(false);
+    simulation.debugRunFor(12);
+    random.mockRestore();
+    expect(state.stats.customersLost).toBe(1);
+    expect(state.reputation).toBe(reputation - 2);
+  });
   it('calcula seis vagas pelas duas cadeiras opostas de cada mesa', () => {
     const simulation = stockedSimulation();
     expect(simulation.tables).toHaveLength(3);
