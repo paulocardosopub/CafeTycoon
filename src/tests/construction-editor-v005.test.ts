@@ -225,7 +225,7 @@ describe('editor físico e loja da 0.0.5', () => {
     const state = createDefaultState(0);
     for (const ingredient of INGREDIENTS) state.inventory[ingredient.id] = ingredient.maxStock;
     const simulation = new RestaurantSimulation(state); simulation.debugSetAutoSpawn(false);
-    simulation.debugSeatGroupAtFirstTable(1); simulation.debugRunFor(10);
+    simulation.debugSeatCustomersAtFirstTable(1); simulation.debugRunFor(10);
     expect(simulation.orders.length).toBeGreaterThan(0);
     expect(new Set(simulation.orders.map((order) => order.recipeId))).toEqual(new Set(['omelette']));
   });

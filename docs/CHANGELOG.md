@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.0.10 — 2026-07-23
+
+- Publicada a versão pública de teste do Cafe Mania.
+- Catálogo com 52 receitas, produção monetária por lote e limite de 300 unidades.
+- Clientes individuais, perfis econômicos persistentes, conforto e gorjetas.
+- Móveis T2, carência individual da primeira folha e expansões persistentes.
+- Save/load, processamento offline e callbacks de produção protegidos contra duplicação.
+- Permanece dívida técnica em testes históricos incompatíveis; despensa, estoque antigo e grupos não foram restaurados.
+
 ## 0.0.7 — 2026-07-22
 
 - Primeiro pacote definitivo C3-BR com exatamente dez personagens brasileiros originais.

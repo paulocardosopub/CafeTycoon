@@ -9,6 +9,7 @@ const TASKS: Record<StaffRole, TaskKind[]> = {
   cleaner: ['clean'],
   stocker: [],
 };
+const PAYROLL_010: Record<string, readonly [number, number]> = { Nina:[800,120], Caio:[0,100], Iara:[0,80], Lúcia:[1400,170], Célia:[2200,230], Rosa:[2800,260], Bia:[3500,300], João:[4500,340], Bento:[5000,180], Akira:[12000,520], Mauro:[14000,600], Dora:[18000,700], Kenji:[24000,850] };
 
 interface StaffInput {
   id: string;
@@ -33,8 +34,9 @@ interface StaffInput {
 }
 
 function staff(input: StaffInput): StaffDefinition {
+  const [hiringCost, salary] = PAYROLL_010[input.name] ?? [input.hiringCost, input.salary];
   return {
-    ...input,
+    ...input, hiringCost, salary,
     assetId: STAFF_ROLE_CHARACTER_ASSETS[input.role],
     label: `${input.name} · ${roleLabel(input.role)}`,
     visualModelId: STAFF_ROLE_CHARACTER_ASSETS[input.role],

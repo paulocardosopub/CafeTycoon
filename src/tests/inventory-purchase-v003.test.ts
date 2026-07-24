@@ -1,65 +1,43 @@
 import { describe, expect, it } from 'vitest';
-import { RECIPE_BY_ID } from '../content/recipes/recipes';
 import { createDefaultState } from '../game/save/defaultState';
-import { availableIngredient, consumeReservation, executePurchase, quotePurchase, releaseReservation, reserveRecipe } from '../game/inventory/InventoryService';
-import { INGREDIENTS, INGREDIENT_BY_ID } from '../content/ingredients/ingredients';
+import { migrateAndSanitizeSave } from '../game/save/migrations';
 import { RestaurantSimulation } from '../game/simulation/RestaurantSimulation';
+import { createProductionPlan, sanitizeProductionState } from '../game/cooking/ProductionPlanningService';
+import { createStaffInstance } from '../game/staff/StaffService';
+import { STAFF_BY_ID } from '../game/data/staff';
+import { RECIPE_BY_ID } from '../content/recipes/recipes';
 
-describe('reservas e compra rápida', () => {
-  it('reserva, consome e libera ingredientes exatamente uma vez', () => {
-    const state = createDefaultState(); const before = state.inventory.egg;
-    const reservation = reserveRecipe(state, RECIPE_BY_ID.omelette)!;
-    expect(availableIngredient(state, 'egg')).toBe(before - 2);
-    expect(consumeReservation(state, reservation)).toBe(true);
-    expect(state.inventory.egg).toBe(before - 2);
-    expect(state.inventoryReserved.egg).toBe(0);
-    expect(consumeReservation(state, reservation)).toBe(false);
-    releaseReservation(state, reservation);
-    expect(state.inventoryReserved.egg).toBe(0);
+describe('produção sem compras de ingredientes', () => {
+  it('preserva lote parcial no save sem nova cobrança ou duplicação', () => {
+    const state = createDefaultState(0); state.coins = 1000;
+    state.staff.instances.push(createStaffInstance(STAFF_BY_ID['cook-0'], 0));
+    const before = state.coins;
+    const plan = createProductionPlan(state, { recipeId: 'coffee', targetQuantity: 12 }).plan!;
+    state.production.tasks[0].state = 'cooking'; state.production.tasks[0].startedAt = 10; state.production.tasks[0].endsAt = 25;
+    const restored = migrateAndSanitizeSave(JSON.parse(JSON.stringify(state)), 20);
+    expect(restored.coins).toBe(before - RECIPE_BY_ID.coffee.batchCost);
+    expect(restored.production.plans.find((item) => item.id === plan.id)?.chargedCost).toBe(RECIPE_BY_ID.coffee.batchCost);
+    expect(restored.production.tasks).toHaveLength(1);
+    const reloaded = migrateAndSanitizeSave(JSON.parse(JSON.stringify(restored)), 30);
+    expect(reloaded.coins).toBe(restored.coins);
+    expect(reloaded.production.tasks).toEqual(restored.production.tasks);
   });
 
-  it('calcula custo, quantidade final e impede falta de moedas ou espaço', () => {
-    const state = createDefaultState(); state.inventory.beef = 0;
-    const quote = quotePurchase(state, 'beef', 'target');
-    expect(quote.ok).toBe(true); expect(quote.amount).toBeGreaterThan(0); expect(quote.finalAmount).toBe(quote.amount);
-    const coins = state.coins; expect(executePurchase(state, quote).ok).toBe(true); expect(state.coins).toBe(coins - quote.cost);
-    state.coins = 0; expect(quotePurchase(state, 'beef', 'pack').ok).toBe(false);
-    state.coins = 999; state.inventory.beef = INGREDIENT_BY_ID.beef.maxStock; expect(quotePurchase(state, 'beef', 'pack').reason).toContain('cheio');
-  });
-
-  it('impede confirmar duas vezes a mesma reposição', () => {
-    const state = createDefaultState(); state.inventory.beef = 0;
-    const quote = quotePurchase(state, 'beef', 'target');
-    expect(executePurchase(state, quote).ok).toBe(true);
-    const inventoryAfterFirst = state.inventory.beef; const coinsAfterFirst = state.coins;
-    expect(executePurchase(state, quote).ok).toBe(false);
-    expect(state.inventory.beef).toBe(inventoryAfterFirst);
-    expect(state.coins).toBe(coinsAfterFirst);
-  });
-
-  it('mantém a compra do estoquista manual na 0.0.5', () => {
+  it('normaliza estados legados de despensa sem criar bloqueio físico', () => {
     const state = createDefaultState(0);
-    for (const ingredient of INGREDIENTS) state.inventory[ingredient.id] = 0;
-    state.coins = 1_000;
-    const inventoryBefore = { ...state.inventory };
-    const coinsBefore = state.coins;
-    const simulation = new RestaurantSimulation(state);
+    state.production.tasks.push({ id: 'legacy', productionPlanId: 'missing', recipeId: 'coffee', batchQuantity: 1, state: 'waitingForIngredients', requiredIngredients: { coffee: 1 }, reservedIngredients: { coffee: 1 }, outputReservations: [], createdAt: 0 });
+    const sanitized = sanitizeProductionState({ ...state.production, plans: [{ id: 'missing', recipeId: 'coffee', mode: 'singleBatch', targetQuantity: 1, batchSize: 1, priority: 1, preferredEquipmentIds: [], preferredCounterIds: [], enabled: true, repeat: false, currentProgress: 0, createdAt: 0 }] });
+    expect(sanitized.tasks[0]).toMatchObject({ state: 'queued', reservedIngredients: {} });
+  });
+
+  it('mantém tutorial atual e clientes individuais sem estoque físico', () => {
+    const simulation = new RestaurantSimulation(createDefaultState(0));
     simulation.debugSetAutoSpawn(false);
-
-    simulation.debugRunFor(60);
-
-    expect(state.inventory).toEqual(inventoryBefore);
-    expect(state.coins).toBe(coinsBefore);
-  });
-
-  it('retoma pedido bloqueado depois da reposição', () => {
-    const state = createDefaultState(0);
-    for (const ingredient of INGREDIENTS) state.inventory[ingredient.id] = 0;
-    const simulation = new RestaurantSimulation(state); simulation.debugSetAutoSpawn(false);
-    simulation.debugAddCustomer(); simulation.debugRunFor(30);
-    expect(simulation.orders.some((order) => order.state === 'awaiting_ingredients')).toBe(true);
-    for (const ingredient of INGREDIENTS) state.inventory[ingredient.id] = ingredient.maxStock;
-    simulation.retryBlockedOrders(); simulation.debugRunFor(180);
-    expect(state.stats.customersServed).toBe(1);
+    const first = simulation.debugAddCustomer()!;
+    const second = simulation.debugAddCustomer()!;
+    expect(first.id).not.toBe(second.id);
+    expect(first.chairIds).toEqual([]);
+    expect(second.chairIds).toEqual([]);
+    expect(Object.values(simulation.state.inventory).every((value) => value === 0)).toBe(true);
   });
 });

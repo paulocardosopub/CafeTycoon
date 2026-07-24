@@ -7,12 +7,9 @@ describe('0.0.9 canonical recipe balance', () => {
     expect(RECIPES.map((recipe) => recipe.id)).toEqual(expect.arrayContaining(['coffee', 'cappuccino', 'hot-chocolate']));
     expect(RECIPE_ID_ALIASES['Café da Casa']).toBe('coffee'); expect(Object.values(RECIPE_ID_ALIASES).filter((id) => id === 'coffee')).toHaveLength(2);
   });
-  it('keeps authored economy positive and the required early high-volume choices', () => {
+  it('keeps the approved authored economy without legacy volume requirements', () => {
     expect(RECIPES.every((recipe) => recipe.batchCost > 0 && recipe.estimatedProfit > 0 && recipe.grossRevenue === recipe.salePrice * recipe.batchYield)).toBe(true);
-    expect(RECIPES.filter((recipe) => recipe.requiredLevel <= 10 && recipe.batchYield > 100).length).toBeGreaterThanOrEqual(3);
-    expect(RECIPES.find((recipe) => recipe.id === 'chocolate-cookies')?.batchYield).toBeGreaterThanOrEqual(120);
-    expect(RECIPES.find((recipe) => recipe.id === 'cheese-bread')?.batchYield).toBeGreaterThanOrEqual(200);
-    expect(RECIPES.find((recipe) => recipe.id === 'mozzarella-pizza')?.batchYield).toBeGreaterThanOrEqual(300);
-    expect(RECIPES.find((recipe) => recipe.id === 'croissant')?.batchYield).toBeGreaterThanOrEqual(500);
+    expect(RECIPES.find((recipe) => recipe.id === 'coffee')).toMatchObject({ batchYield: 12, batchCost: 20, salePrice: 3, baseDurationSeconds: 15 });
+    expect(RECIPES.find((recipe) => recipe.id === 'mozzarella-pizza')).toMatchObject({ batchYield: 60, batchCost: 340, salePrice: 9, baseDurationSeconds: 240 });
   });
 });

@@ -22,6 +22,17 @@ export const RECIPE_ROWS: readonly RecipeRow[] = [
 
 const aliases: Partial<Record<RecipeId, string[]>> = { coffee: ['Café da Casa'], omelette: ['Omelete Solar'], soup: ['Sopa do Jardim'], burger: ['Brasa Bloom'] };
 
+// The 0.0.10 economic matrix is intentionally data-only. Values are batch
+// values and XP is the total batch XP (never multiplied by portions).
+const ECONOMY_010: Record<RecipeId, readonly [Profile, number, number, number, number, number]> = {
+  coffee:['express',15,12,20,3,1], cappuccino:['express',45,24,54,4,2], 'hot-chocolate':['express',90,18,78,7,3], 'chocolate-cookies':['quick',300,120,240,3,8], 'cheese-bread':['stock',1080,240,420,3,18], 'mozzarella-pizza':['express',240,60,340,9,7], croissant:['stock',3600,500,1200,4,35], soup:['quick',720,160,480,5,12], 'caldo-verde':['stock',2700,360,1260,6,30], 'bolognese-lasagna':['medium',2700,200,1500,12,32],
+  omelette:['express',120,30,130,8,4], 'caesar-salad':['quick',900,180,1000,9,14], 'tomato-spaghetti':['medium',2100,260,1600,10,26], 'mushroom-risotto':['quick',720,90,780,14,14], 'fish-moqueca':['stock',5400,400,3900,15,45], 'french-fries':['express',360,150,650,7,8], coxinha:['stock',2700,500,2600,8,32], donuts:['medium',1800,300,1650,9,25], 'meat-pastel':['express',300,90,560,10,8], 'fish-and-chips':['quick',900,180,1500,13,18],
+  'hot-dog':['express',120,40,280,12,5], 'cheese-tapioca':['quick',720,160,1100,11,14], 'misto-quente':['medium',1800,300,1900,10,25], burger:['quick',480,100,850,14,12], 'honey-pancakes':['stock',5400,600,3900,10,40], 'grilled-chicken-rice':['medium',1800,240,2400,16,30], cheeseburger:['express',240,60,650,18,8], feijoada:['overnight',28800,1500,18000,18,140], 'roast-chicken-vegetables':['long',14400,800,11200,22,100], 'mexican-tacos':['quick',720,180,2000,18,18],
+  'strawberry-milkshake':['express',180,40,600,22,6], 'chicken-stroganoff':['stock',5400,500,7800,24,55], ramen:['long',7200,700,11500,25,70], 'barbecue-ribs':['overnight',28800,2000,33000,24,170], 'bacon-cheese-quiche':['long',7200,400,6500,26,85], 'acai-bowl':['quick',360,60,930,24,10], paella:['long',14400,900,18000,30,120], 'brownie-ice-cream':['quick',480,80,1700,34,18], 'onion-steak-fries':['quick',900,120,2600,35,28], 'gratin-onion-soup':['long',7200,600,8400,22,75],
+  'sushi-combo':['quick',720,120,3500,45,24], 'grilled-salmon-asparagus':['medium',2700,300,8100,42,55], picanha:['express',600,80,2800,55,20], 'petit-gateau':['express',480,70,2700,60,20], 'latte-art':['express',180,40,1050,40,8], 'roast-lamb-potatoes':['overnight',28800,1200,39000,48,200], 'butter-lobster':['premium',3600,50,6200,180,75], 'filet-mignon-madeira':['premium',2700,70,7800,170,80], 'shrimp-risotto':['premium',3600,100,10500,160,90], 'berry-cheesecake':['overnight',21600,200,30000,220,180],
+  'premium-seafood-board':['long',14400,60,9000,260,160], 'truffle-medallion-puree':['premium',3600,80,15600,300,120],
+};
+
 function stepsFor(id: RecipeId, stationId: StationId, duration: number, batchYield: number): RecipeStep[] {
   const perPortion = duration / batchYield;
   if (id === 'gratin-onion-soup') return [{ stationId: 'cauldron', duration: perPortion * .7, label: 'Cozinhar sopa' }, { stationId: 'oven', duration: perPortion * .3, label: 'Gratinar' }];
@@ -40,7 +51,8 @@ function categoryFor(name: string, profile: Profile): RecipeDefinition['category
   return 'main';
 }
 
-export const RECIPES: RecipeDefinition[] = RECIPE_ROWS.map(([id,name,requiredLevel,durationProfile,baseDurationSeconds,batchYield,stationId,specialist,salePrice,batchCost,experience], index) => {
+export const RECIPES: RecipeDefinition[] = RECIPE_ROWS.map(([id,name,requiredLevel,_durationProfile,_baseDurationSeconds,_batchYield,stationId,specialist], index) => {
+  const [durationProfile, baseDurationSeconds, batchYield, batchCost, salePrice, experience] = ECONOMY_010[id];
   const grossRevenue = salePrice * batchYield;
   return { id, name, aliases: aliases[id] ?? [], description: `${name}, preparado em lote no padrão Bistrô Bloom.`, icon: '', category: categoryFor(name, durationProfile), ingredients: [], steps: stepsFor(id, stationId, baseDurationSeconds, batchYield), yield: 1, batchYield, salePrice, experience, requiredLevel, storageSpace: 1, assetId: `food_v008_${String(index + 1).padStart(2,'0')}`, menuOrder: index + 1, durationProfile, baseDurationSeconds, batchCost, grossRevenue, estimatedProfit: grossRevenue - batchCost, reputationReward: durationProfile === 'legendary' ? 8 : durationProfile === 'premium' ? 4 : 1, requiredSpecialties: specialist.split(' + '), available: true };
 });

@@ -107,7 +107,30 @@ function sanitizeOperation(input: GameState['operation']): GameState['operation'
   if (!input || ![1, 2, 3].includes(input.dataVersion)) return undefined;
   const arrays = ['actors', 'customers', 'orders', 'tables', 'stations', 'tasks', 'counterSlots'] as const;
   if (arrays.some((key) => !Array.isArray(input[key]))) return undefined;
-  return { ...input, simulationTime: Math.max(0, Number(input.simulationTime) || 0), customerSequence: Math.max(0, Math.floor(Number(input.customerSequence) || 0)), spawnCountdown: Math.max(0, Number(input.spawnCountdown) || 0) };
+  // Saves anteriores a 0.0.10 recebem um perfil determinístico pelo id uma
+  // única vez; o campo normalizado passa a ser preservado nos saves seguintes.
+  const customers = input.customers.map((customer) => {
+    if (!customer || typeof customer !== 'object') return customer;
+    const legacy = customer as Record<string, unknown>;
+    return isEconomicProfile(legacy.economicProfile)
+      ? customer
+      : { ...legacy, economicProfile: stableLegacyEconomicProfile(String(legacy.id ?? 'legacy-customer')) };
+  });
+  return { ...input, customers, simulationTime: Math.max(0, Number(input.simulationTime) || 0), customerSequence: Math.max(0, Math.floor(Number(input.customerSequence) || 0)), spawnCountdown: Math.max(0, Number(input.spawnCountdown) || 0) };
+}
+
+function isEconomicProfile(value: unknown): value is 'economic' | 'regular' | 'high_income' {
+  return value === 'economic' || value === 'regular' || value === 'high_income';
+}
+
+function stableLegacyEconomicProfile(key: string): 'economic' | 'regular' | 'high_income' {
+  let hash = 2166136261;
+  for (const character of key) {
+    hash ^= character.charCodeAt(0);
+    hash = Math.imul(hash, 16777619);
+  }
+  const roll = (hash >>> 0) / 0x1_0000_0000;
+  return roll < 0.5 ? 'economic' : roll < 0.9 ? 'regular' : 'high_income';
 }
 
 function isObsoleteStorageFurniture(definitionId: string): boolean {
@@ -222,7 +245,7 @@ export function migrateGraphics004ToConstruction(
 function sanitizePlaced(item: PlacedFurniture): PlacedFurniture {
   const definition = FURNITURE_BY_ID[item.definitionId];
   const orientation = definition?.allowedOrientations.includes(item.orientation) ? item.orientation : definition?.allowedOrientations[0] ?? 'sw';
-  const normalized: PlacedFurniture = { ...item, gridX: Math.round(Number(item.gridX) || 0), gridY: Math.round(Number(item.gridY) || 0), orientation, skinId: definition?.skinIds.includes(item.skinId) ? item.skinId : definition?.skinIds[0] ?? item.skinId, level: Math.max(1, Math.floor(Number(item.level) || 1)), state: item.state && typeof item.state === 'object' ? { ...item.state } : {} };
+  const normalized: PlacedFurniture = { ...item, gridX: Math.round(Number(item.gridX) || 0), gridY: Math.round(Number(item.gridY) || 0), orientation, skinId: definition?.skinIds.includes(item.skinId) ? item.skinId : definition?.skinIds[0] ?? item.skinId, level: Math.max(1, Math.floor(Number(item.level) || 1)), state: item.state && typeof item.state === 'object' ? { ...item.state } : {}, purchasePricePaid: Math.max(0, Math.floor(Number(item.purchasePricePaid) || definition?.price || 0)) };
   if (!definition) return normalized;
   normalized.footprint = orientedFootprint(definition, orientation);
   normalized.anchor = getSpriteAnchor(definition);
@@ -256,8 +279,10 @@ function normalizeDiningFurniture(
         selected = [adjacent[i], adjacent[j]]; break outer;
       }
     }
-    if (!selected.length && adjacent[0]) selected = [adjacent[0]];
-    for (const chair of selected.slice(0, 2)) {
+    if (FURNITURE_BY_ID[table.definitionId]?.footprintWidth === 2) selected = adjacent.slice(0, 4);
+    else if (!selected.length && adjacent[0]) selected = [adjacent[0]];
+    const chairLimit = FURNITURE_BY_ID[table.definitionId]?.footprintWidth === 2 ? 4 : 2;
+    for (const chair of selected.slice(0, chairLimit)) {
       assigned.add(chair.id);
       const facing = seatFacingTowardTable({ x: chair.gridX, y: chair.gridY }, { x: table.gridX, y: table.gridY });
       chair.state = { ...chair.state, linkedTableId: table.id, seatFacing: facing };
@@ -265,9 +290,9 @@ function normalizeDiningFurniture(
       chair.seatSlotIds = [`${chair.id}:seat`];
       chair.approachSlotIds = [`${chair.id}:approach`];
     }
-    table.attachedFurnitureIds = selected.slice(0, 2).map((chair) => chair.id);
-    table.seatSlotIds = selected.slice(0, 2).map((chair) => `${chair.id}:seat`);
-    table.approachSlotIds = getApproachSlotCells(table, selected.slice(0, 2)).map((point) => `${point.x},${point.y}`);
+    table.attachedFurnitureIds = selected.slice(0, chairLimit).map((chair) => chair.id);
+    table.seatSlotIds = selected.slice(0, chairLimit).map((chair) => `${chair.id}:seat`);
+    table.approachSlotIds = getApproachSlotCells(table, selected.slice(0, chairLimit)).map((point) => `${point.x},${point.y}`);
   }
   const extras = chairs.filter((chair) => !assigned.has(chair.id));
   if (extras.length) {

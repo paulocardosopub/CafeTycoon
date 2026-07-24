@@ -1,6 +1,6 @@
-# Bistrô Bloom — v0.0.7
+# Cafe Mania — v0.0.10
 
-Jogo web de gerenciamento de restaurante em Pixel 2.5D isométrico. A v0.0.7 integra o primeiro pacote definitivo C3-BR com dez personagens brasileiros originais modelados, rigados e animados no Blender.
+Versão pública de teste do jogo web de gerenciamento de restaurante em Pixel 2.5D isométrico.
 
 A correção estrutural da v0.0.6 unifica grade, footprints, contato visual com o piso, direção de personagens, mesas de dois lugares e edição transacional diretamente no salão. Consulte [o contrato espacial](docs/STRUCTURAL_GRID_FIX.md) e [as evidências de QA](docs/QA_STRUCTURAL_FIX.md).
 
@@ -28,10 +28,9 @@ O projeto não possui uma etapa separada de lint: `npm run build` executa a chec
 
 - Arraste o restaurante para mover a câmera; use a roda ou os botões móveis para zoom.
 - Use **Equipe** para contratar, localizar, pausar, treinar ou demitir funcionários.
-- Use **Estoque** para preparar compras, configurar mínimos/alvos e acompanhar o estoquista.
-- Use **Produção** para programar até 999 unidades, escolher lotes e manter estoque-alvo.
+- Use **Produção** para programar lotes de até 300 unidades, pagos diretamente em moedas.
 - Use **Onde ajudar?** para colocar o personagem do jogador na mesma fila de tarefas da equipe.
-- Em desenvolvimento, pressione **D** para inspecionar rotas, WorkSlots, prioridades e reservas.
+- Clientes entram, sentam, pedem, pagam e saem individualmente.
 
 ## Documentação
 
@@ -44,5 +43,5 @@ O projeto não possui uma etapa separada de lint: `npm run build` executa a chec
 
 - O catálogo inicial oferece dois candidatos por renovação; os dados já suportam novos candidatos.
 - Turnos usam uma agenda diária padrão, sem férias, doenças ou escalas complexas.
-- Compras representam o fluxo local do bistrô; não há mapa externo de fornecedores.
-- A fila mostra até 60 lotes simultaneamente na interface, embora o save preserve o plano completo.
+- A suíte ainda contém testes históricos de versões anteriores, mantidos como dívida técnica e fora do contrato atual de produção.
+- Não há despensa, estoque individual de ingredientes ou clientes em grupo no runtime atual.

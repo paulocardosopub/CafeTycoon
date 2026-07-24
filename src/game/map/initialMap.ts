@@ -74,11 +74,11 @@ export function createTablesFromConstruction(construction: ConstructionSaveState
   const chairs = construction.placedFurniture.filter((item) => FURNITURE_BY_ID[item.definitionId]?.functionId === 'chair');
   return tables.map((placed, index) => {
     const position = { x: placed.gridX, y: placed.gridY };
-    const linked = chairs.filter((chair) => chair.state.linkedTableId === placed.id).slice(0, 2);
+    const linked = chairs.filter((chair) => chair.state.linkedTableId === placed.id).slice(0, FURNITURE_BY_ID[placed.definitionId]?.footprintWidth === 2 ? 4 : 2);
     const runtimeChairs = linked.map((chair, chairIndex) => createPlacedChair(placed, chair, chairIndex));
     const waiterApproach = nearestTableServicePoint(position, linked);
     return {
-      id: placed.id, label: `Mesa ${index + 1}`, position, size: { x: 1, y: 1 }, waiterApproach,
+      id: placed.id, label: `Mesa ${index + 1}`, position, size: { x: FURNITURE_BY_ID[placed.definitionId]?.footprintWidth ?? 1, y: FURNITURE_BY_ID[placed.definitionId]?.footprintDepth ?? 1 }, waiterApproach,
       maxCustomers: runtimeChairs.length, state: 'free', accessible: true, chairs: runtimeChairs,
       orientation: placed.orientation, asset: 'table', occupiedCells: [position, ...runtimeChairs.map((chair) => ({ ...chair.position }))],
     };

@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 // Sufixo estável e próprio evita colisão de cache entre prévias locais que usam
 // o mesmo caminho virtual `/src/styles.css` no navegador integrado.
-import './styles.css?v=cafe-mania-008-alpha';
+import './styles.css?v=cafe-mania-010-beta';
 import { showCharacterCreator } from './ui/characterCreator';
 import { GameUI } from './ui/GameUI';
 import { IndexedDbSaveRepository, SAVE_RESET_SESSION_KEY } from './game/save/SaveRepository';
@@ -26,7 +26,7 @@ async function boot(): Promise<void> {
   if (sessionStorage.getItem(SAVE_RESET_SESSION_KEY) === '1') sessionStorage.removeItem(SAVE_RESET_SESSION_KEY);
   if (sessionStorage.getItem(CONSTRUCTION_RELOAD_SESSION_KEY) === '1') sessionStorage.removeItem(CONSTRUCTION_RELOAD_SESSION_KEY);
   const root = document.querySelector<HTMLElement>('#app')!;
-  root.innerHTML = '<div class="boot-screen"><span>✿</span><strong>Abrindo o Bistrô Bloom…</strong></div>';
+  root.innerHTML = '<div class="boot-screen"><span>✿</span><strong>Abrindo o Cafe Mania…</strong></div>';
   const repository = new IndexedDbSaveRepository();
   const rawState = await repository.load();
   if (rawState && (rawState.gameVersion !== GAME_VERSION || rawState.schemaVersion < SAVE_SCHEMA_VERSION)) await repository.backupLegacy(rawState);
@@ -65,7 +65,7 @@ async function boot(): Promise<void> {
   if (['localhost', '127.0.0.1'].includes(window.location.hostname)) {
     (window as unknown as { __BISTRO_DEBUG__: { simulation: RestaurantSimulation; state: GameState } }).__BISTRO_DEBUG__ = { simulation, state };
   }
-  if (localQa === 'four-seat-v005' || localQa === 'spatial-fix') simulation.debugSeatGroupAtFirstTable(2);
+  if (localQa === 'four-seat-v005' || localQa === 'spatial-fix') simulation.debugSeatCustomersAtFirstTable(2);
   if (localQa === 'spatial-fix') arrangeDirectionalQaActors(simulation);
   const validation = validateRestaurantMap(simulation.grid, simulation.tables, simulation.stations);
   if (!validation.valid) console.warn('Validação do mapa:', validation.errors);
@@ -93,7 +93,7 @@ async function boot(): Promise<void> {
         orders: simulation.orders.map((order) => ({ id: order.id, recipeId: order.recipeId, state: order.state })),
         tasks: simulation.tasks.list().map((task) => ({ id: task.id, kind: task.kind, status: task.status, target: task.target, actorId: task.assignedActorId, waitSeconds: task.waitSeconds, customerId: task.payload.customerId })),
         actors: simulation.actors.map((actor) => ({ id: actor.id, kind: actor.kind, position: actor.position, taskId: actor.taskId, activity: actor.activity, pathLength: actor.path.length, pathStatus: actor.pathStatus })),
-        customers: simulation.customers.map((customer) => ({ id: customer.id, partyId: customer.partyId, state: customer.state, position: customer.position, pathLength: customer.path.length, pathStatus: customer.pathStatus, seatId: customer.seatId, retryCount: customer.retryCount })),
+        customers: simulation.customers.map((customer) => ({ id: customer.id, state: customer.state, position: customer.position, pathLength: customer.path.length, pathStatus: customer.pathStatus, seatId: customer.seatId, retryCount: customer.retryCount })),
         tables: simulation.tables.map((table) => ({ id: table.id, state: table.state, accessible: table.accessible, chairs: table.chairs.map((chair) => ({ id: chair.id, state: chair.state, approach: chair.approach, accessible: chair.accessible, enabled: chair.enabled, customerId: chair.customerId })) })),
       });
     }, 250);
@@ -267,7 +267,7 @@ function applyV006QaState(state: GameState): void {
   const tomatoPolicy = state.procurement.policies.find((policy) => policy.ingredientId === 'tomato');
   if (tomatoPolicy) Object.assign(tomatoPolicy, { enabled: true, minimumStock: 5, targetStock: 10, pauseWhenRestaurantClosed: false });
   createPurchaseRequest(state, [{ ingredientId: 'beef', quantity: 4 }], 'manual', 'Lista de compras para validação visual.', 82);
-  createProductionPlan(state, { recipeId: 'omelette', targetQuantity: 500, batchSize: 20, priority: 75 });
+  createProductionPlan(state, { recipeId: 'omelette', targetQuantity: 300, batchSize: 20, priority: 75 });
   state.lastActiveAt = Date.now() - 9 * 60 * 60 * 1_000;
 }
 

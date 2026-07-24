@@ -73,28 +73,30 @@ const serviceSlots = (): FurnitureWorkSlot[] => [
 ];
 
 export const FURNITURE_DEFINITIONS: readonly FurnitureDefinition[] = [
-  definition({ id: 'cooking.a1.stove', code: 'A1', category: 'cooking', name: 'Fogão industrial com fornos', assetId: 'a1_stove_industrial', price: 260, functionId: 'stove', workSlots: [work('work', { x: 0, y: 1 }, 'any', 'work')], unlockLevel: 15 }),
-  definition({ id: 'cooking.a2.convection', code: 'A2', category: 'cooking', name: 'Forno de convecção', assetId: 'a2_convection_oven', price: 120, functionId: 'oven', unlockLevel: 5 }),
+  definition({ id: 'cooking.a1.stove', code: 'A1', category: 'cooking', name: 'Fogão industrial com fornos', assetId: 'a1_stove_industrial', price: 3800, functionId: 'stove', workSlots: [work('work', { x: 0, y: 1 }, 'any', 'work')], unlockLevel: 15 }),
+  definition({ id: 'cooking.a2.convection', code: 'A2', category: 'cooking', name: 'Forno de convecção', assetId: 'a2_convection_oven', price: 1800, functionId: 'oven', unlockLevel: 5 }),
   definition({ id: 'cooking.a3.griddle', code: 'A3', category: 'cooking', name: 'Chapa industrial', assetId: 'a3_griddle', price: 160, functionId: 'grill', unlockLevel: 25 }),
   definition({ id: 'cooking.a4.fryer', code: 'A4', category: 'cooking', name: 'Fritadeira industrial', assetId: 'a4_fryer', price: 140, functionId: 'grill', unlockLevel: 20 }),
   definition({ id: 'cooking.a5.kettle', code: 'A5', category: 'cooking', name: 'Caldeira industrial', assetId: 'a5_kettle', price: 130, functionId: 'cauldron', unlockLevel: 10 }),
   definition({ id: 'cooking.a6.grill', code: 'A6', category: 'cooking', name: 'Parrilla e defumador', assetId: 'a6_grill', price: 195, functionId: 'grill', unlockLevel: 47 }),
   definition({ id: 'cooking.a7.bakery', code: 'A7', category: 'cooking', name: 'Forno de padaria', assetId: 'a7_bakery_oven', price: 240, functionId: 'oven', unlockLevel: 55 }),
-  definition({ id: 'cooking.a8.coffee', code: 'A8', category: 'cooking', name: 'Máquina de café', assetId: 'a8_coffee_machine', price: 175, functionId: 'coffee_machine', essential: true }),
+  definition({ id: 'cooking.a8.coffee', code: 'A8', category: 'cooking', name: 'Máquina de café', assetId: 'a8_coffee_machine', price: 600, functionId: 'coffee_machine', essential: true }),
 
   definition({ id: 'refrigeration.b1.fridge', code: 'B1', category: 'refrigeration', name: 'Geladeira industrial', assetId: 'b1_industrial_fridge', price: 210, functionId: 'fridge' }),
   definition({ id: 'refrigeration.b2.freezer', code: 'B2', category: 'refrigeration', name: 'Freezer industrial', assetId: 'b2_industrial_freezer', price: 230, functionId: 'fridge' }),
   definition({ id: 'preparation.b3.counter', code: 'B3', category: 'preparation', name: 'Bancada de preparação', assetId: 'b3_preparation_counter', price: 120, functionId: 'prep' }),
   definition({ id: 'preparation.b4.ingredients', code: 'B4', category: 'preparation', name: 'Estação de ingredientes e corte', assetId: 'b4_ingredient_station', price: 170, functionId: 'assembly' }),
-  definition({ id: 'washing.b5.sink', code: 'B5', category: 'washing', name: 'Pia industrial', assetId: 'b5_industrial_sink', price: 130, functionId: 'sink', workSlots: [work('work', { x: 0, y: 1 }, 'any', 'work')], essential: true }),
+  definition({ id: 'washing.b5.sink', code: 'B5', category: 'washing', name: 'Pia industrial', assetId: 'b5_industrial_sink', price: 650, functionId: 'sink', workSlots: [work('work', { x: 0, y: 1 }, 'any', 'work')], essential: true }),
   definition({ id: 'washing.b6.dishwasher', code: 'B6', category: 'washing', name: 'Lava-louças industrial', assetId: 'b6_dishwasher', price: 185, functionId: 'sink' }),
   definition({ id: 'washing.b7.double-sink', code: 'B7', category: 'washing', name: 'Estação de lavagem com duas cubas', width: 2, assetId: 'b7_double_sink', price: 250, functionId: 'sink', workSlots: doubleWork(), visualScale: .66 }),
   definition({ id: 'preparation.b8.pastry', code: 'B8', category: 'preparation', name: 'Mesa de massas e confeitaria', width: 2, assetId: 'b8_pastry_table', price: 245, functionId: 'prep', workSlots: doubleWork(), unlockLevel: 55 }),
+  definition({ id: 'washing.sink.t2', code: 'B9', category: 'washing', name: 'Pia T2 - 15% mais rapida nas lavagens desta pia', assetId: 'b5_industrial_sink', price: 650, functionId: 'sink', workSlots: [work('work', { x: 0, y: 1 }, 'any', 'work')], unlockLevel: 8 }),
 
-  definition({ id: 'service.c1.isolated', code: 'C1', category: 'service', name: 'Balcão de serviço', assetId: 'c1_service_isolated', price: 95, functionId: 'pickup', workSlots: serviceSlots(), skinIds: ['counter-forest', 'counter-oak'], essential: true, source: FURNITURE_SOURCE }),
+  definition({ id: 'service.c1.isolated', code: 'C1', category: 'service', name: 'Balcão de serviço', assetId: 'c1_service_isolated', price: 700, functionId: 'pickup', workSlots: serviceSlots(), skinIds: ['counter-forest', 'counter-oak'], essential: true, source: FURNITURE_SOURCE }),
   definition({ id: 'service.c2.left', code: 'C2', category: 'service', name: 'Balcão de serviço', assetId: 'c2_service_left', price: 95, functionId: 'pickup', workSlots: serviceSlots(), skinIds: ['counter-forest', 'counter-oak'], source: FURNITURE_SOURCE }),
   definition({ id: 'service.c3.middle', code: 'C3', category: 'service', name: 'Balcão de serviço', assetId: 'c3_service_middle', price: 95, functionId: 'pickup', workSlots: serviceSlots(), skinIds: ['counter-forest', 'counter-oak'], source: FURNITURE_SOURCE }),
   definition({ id: 'service.c4.right', code: 'C4', category: 'service', name: 'Balcão de serviço', assetId: 'c4_service_right', price: 95, functionId: 'pickup', workSlots: serviceSlots(), skinIds: ['counter-forest', 'counter-oak'], source: FURNITURE_SOURCE }),
+  definition({ id: 'service.counter.t2', code: 'C11', category: 'service', name: 'Balcao T2 - 12% mais rapido nas tarefas deste balcao', assetId: 'c1_service_isolated', price: 700, functionId: 'pickup', workSlots: serviceSlots(), skinIds: ['counter-forest', 'counter-oak'], source: FURNITURE_SOURCE, unlockLevel: 8 }),
   definition({ id: 'storage.c5.pantry', code: 'C5', category: 'storage', name: 'Despensa seca', assetId: 'c5_dry_pantry', price: 145, functionId: 'storage', source: FURNITURE_SOURCE }),
   definition({ id: 'storage.c6.ingredients', code: 'C6', category: 'storage', name: 'Estante de ingredientes', assetId: 'c6_ingredient_shelf', price: 125, functionId: 'storage', source: FURNITURE_SOURCE }),
   definition({ id: 'service.c7.plates', code: 'C7', category: 'service', name: 'Estação de pratos e talheres', assetId: 'c7_plate_station', price: 110, functionId: 'storage', source: FURNITURE_SOURCE }),
@@ -102,8 +104,9 @@ export const FURNITURE_DEFINITIONS: readonly FurnitureDefinition[] = [
   definition({ id: 'service.c9.drinks', code: 'C9', category: 'service', name: 'Dispensador de bebidas frias', assetId: 'c9_cold_drinks', price: 150, functionId: 'coffee_machine', source: FURNITURE_SOURCE, unlockLevel: 41 }),
   definition({ id: 'preparation.c10.block', code: 'C10', category: 'preparation', name: 'Bancada pequena de corte', assetId: 'c10_cutting_block', price: 115, functionId: 'prep', source: FURNITURE_SOURCE }),
 
-  definition({ id: 'dining.table.basic', code: 'T1', category: 'tables', name: 'Mesa robusta', assetId: 'table_two', price: 70, functionId: 'table', skinIds: ['cream-green', 'cream-wood'], source: ROBUST_DINING_SOURCE, workSlots: [] }),
-  definition({ id: 'dining.chair.basic', code: 'CH1', category: 'chairs', name: 'Banco robusto', assetId: 'chair_wood', price: 35, functionId: 'chair', skinIds: ['cream-green', 'cream-wood'], source: ROBUST_DINING_SOURCE, workSlots: [], visualScale: .93 }),
+  definition({ id: 'dining.table.basic', code: 'T1', category: 'tables', name: 'Mesa robusta', assetId: 'table_two', price: 600, functionId: 'table', skinIds: ['cream-green', 'cream-wood'], source: ROBUST_DINING_SOURCE, workSlots: [] }),
+  definition({ id: 'dining.table.t2', code: 'T2', category: 'tables', name: 'Mesa robusta T2', width: 2, assetId: 'table_two', price: 3500, functionId: 'table', skinIds: ['cream-green', 'cream-wood'], source: ROBUST_DINING_SOURCE, workSlots: [], unlockLevel: 8 }),
+  definition({ id: 'dining.chair.basic', code: 'CH1', category: 'chairs', name: 'Banco robusto', assetId: 'chair_wood', price: 250, functionId: 'chair', skinIds: ['cream-green', 'cream-wood'], source: ROBUST_DINING_SOURCE, workSlots: [], visualScale: .93 }),
   definition({ id: 'decor.plant.basic', code: 'D1', category: 'decoration', name: 'Planta em vaso', assetId: 'plant', price: 28, functionId: 'decoration', source: FURNITURE_SOURCE, workSlots: [] }),
 ] as const;
 

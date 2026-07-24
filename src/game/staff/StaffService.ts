@@ -25,6 +25,7 @@ export function createStaffInstance(definition: StaffDefinition, now: number, st
     level: definition.level,
     experience: definition.experience,
     hiredAt: now,
+    payrollEligibleAt: now + BALANCE.staff.payrollIntervalSeconds * 1000,
     currentState: 'idle',
     currentPosition: { ...startPosition },
     currentFacing: definition.facing,
@@ -55,6 +56,7 @@ export function createInitialStaffState(state: Pick<GameState, 'construction' | 
     nextPayrollAt: now + BALANCE.staff.payrollIntervalSeconds * 1000,
     salaryArrears: 0,
     payrollWarnings: [],
+    payrollLedger: [],
     training: [],
     eventLog: [{ at: now, message: 'Equipe da v0.0.5 preservada na migração.' }],
   };
@@ -67,7 +69,7 @@ export function sanitizeStaffState(input: StaffSystemState | undefined, state: P
   const instances = input.instances.filter((instance) => {
     if (!instance?.id || seen.has(instance.id) || !STAFF_BY_ID[instance.definitionId]) return false;
     seen.add(instance.id); return true;
-  }).map((instance) => sanitizeStaffInstance(instance, now));
+  }).map((instance) => sanitizeStaffInstance(instance, now, Number(input.nextPayrollAt)));
   for (const preserved of fallback.instances) if (!instances.some((instance) => instance.definitionId === preserved.definitionId)) instances.push(preserved);
   const schedules = Array.isArray(input.schedules) && input.schedules.length ? input.schedules.map(sanitizeSchedule) : fallback.schedules;
   return {
@@ -80,6 +82,7 @@ export function sanitizeStaffState(input: StaffSystemState | undefined, state: P
     nextPayrollAt: Math.max(now, Number(input.nextPayrollAt) || fallback.nextPayrollAt),
     salaryArrears: Math.max(0, Number(input.salaryArrears) || 0),
     payrollWarnings: Array.isArray(input.payrollWarnings) ? input.payrollWarnings.slice(-10) : [],
+    payrollLedger: Array.isArray(input.payrollLedger) ? input.payrollLedger.slice(-1000) : [],
     training: Array.isArray(input.training) ? input.training.map(sanitizeTraining).slice(-20) : [],
     eventLog: Array.isArray(input.eventLog) ? input.eventLog.slice(-100) : fallback.eventLog,
   };
@@ -191,13 +194,14 @@ export interface PayrollResult { charged: number; arrearsAdded: number; periods:
 
 export function chargePayroll(state: GameState, periods = 1, now = Date.now()): PayrollResult {
   const count = Math.max(0, Math.floor(periods));
-  const duePerPeriod = state.staff.instances.filter((instance) => instance.enabled).reduce((sum, instance) => sum + instance.salary, 0);
+  const eligible = state.staff.instances.filter((instance) => instance.enabled && instance.payrollEligibleAt <= now);
+  const duePerPeriod = eligible.reduce((sum, instance) => sum + instance.salary, 0);
   const due = duePerPeriod * count;
   const warnings: string[] = [];
   let charged = 0;
   if (due > 0 && state.coins >= due) {
     state.coins -= due; charged = due;
-    for (const instance of state.staff.instances.filter((item) => item.enabled)) instance.stats.salaryPaid += instance.salary * count;
+    for (const instance of eligible) instance.stats.salaryPaid += instance.salary * count;
   } else if (due > 0) {
     state.staff.salaryArrears += due;
     warnings.push(`Salários em atraso: ${due} moedas. Nenhum saldo negativo foi criado.`);
@@ -219,8 +223,25 @@ export function processPayrollClock(state: GameState, now = Date.now()): Payroll
     }
     return { charged: 0, arrearsAdded: 0, periods: 0, warnings: [] };
   }
-  const periods = 1 + Math.floor((now - state.staff.nextPayrollAt) / (BALANCE.staff.payrollIntervalSeconds * 1000));
-  return chargePayroll(state, periods, now);
+  const interval = BALANCE.staff.payrollIntervalSeconds * 1000;
+  const periods = 1 + Math.floor((now - state.staff.nextPayrollAt) / interval);
+  let charged = 0; let arrearsAdded = 0; const warnings: string[] = [];
+  state.staff.payrollLedger ??= [];
+  for (let index = 0; index < periods; index += 1) {
+    const cycleAt = state.staff.nextPayrollAt + index * interval;
+    const eligible = state.staff.instances.filter((instance) => instance.enabled && instance.payrollEligibleAt <= cycleAt
+      && !state.staff.payrollLedger!.includes(`payroll:${cycleAt}:${instance.id}`));
+    const due = eligible.reduce((sum, instance) => sum + instance.salary, 0);
+    if (due && state.coins >= due) {
+      state.coins -= due; charged += due;
+      for (const instance of eligible) { instance.stats.salaryPaid += instance.salary; state.staff.payrollLedger!.push(`payroll:${cycleAt}:${instance.id}`); }
+    } else if (due) { state.staff.salaryArrears += due; arrearsAdded += due; warnings.push(`Salários em atraso: ${due} moedas. Nenhum saldo negativo foi criado.`); }
+  }
+  state.staff.nextPayrollAt += periods * interval;
+  state.staff.payrollLedger = state.staff.payrollLedger.slice(-1000);
+  state.staff.payrollWarnings = [...state.staff.payrollWarnings, ...warnings].slice(-10);
+  if (charged) logStaff(state, now, `Folha paga: ${charged} moedas.`);
+  return { charged, arrearsAdded, periods, warnings };
 }
 
 export function estimatedPayrollCost(state: Pick<GameState, 'staff'>): number {
@@ -258,12 +279,17 @@ export function staffStateFromTask(status: string | undefined, carrying: boolean
   return 'idle';
 }
 
-function sanitizeStaffInstance(instance: StaffInstance, now: number): StaffInstance {
+function sanitizeStaffInstance(instance: StaffInstance, now: number, savedNextPayrollAt?: number): StaffInstance {
   const definition = STAFF_BY_ID[instance.definitionId];
+  const legacyCycle = Number.isFinite(savedNextPayrollAt) && (savedNextPayrollAt ?? 0) > 0 ? savedNextPayrollAt! : now + BALANCE.staff.payrollIntervalSeconds * 1000;
+  const stableHiredAt = Math.max(0, Number(instance.hiredAt) || (legacyCycle - BALANCE.staff.payrollIntervalSeconds * 1000));
+  const stableEligibleAt = Math.max(0, Number(instance.payrollEligibleAt) || legacyCycle);
   const validState: StaffState = ['idle', 'movingToTask', 'working', 'carrying', 'waitingForWorkSlot', 'waitingForResource', 'waitingForCounterSpace', 'resting', 'offShift', 'blocked', 'recovering', 'training'].includes(instance.currentState) ? instance.currentState : 'idle';
   return {
     ...createStaffInstance(definition, now, instance.startPosition ?? definition.startPosition),
     ...instance,
+    hiredAt: stableHiredAt,
+    payrollEligibleAt: stableEligibleAt,
     level: Math.max(1, Math.min(BALANCE.staff.maxLevel, Math.floor(Number(instance.level) || 1))),
     experience: Math.max(0, Math.floor(Number(instance.experience) || 0)),
     salary: Math.max(0, Math.floor(Number(instance.salary) || definition.salary)),

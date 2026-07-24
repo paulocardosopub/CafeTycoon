@@ -139,17 +139,22 @@ export class ConstructionEditor {
         .filter((item) => FURNITURE_BY_ID[item.definitionId]?.functionId === 'pickup').length;
       if (ownedCounters >= 10) return { ok: false, reason: 'Limite temporário de 10 balcões de serviço atingido.' };
     }
-    if (this.current.coins < definition.price) return { ok: false, reason: 'Moedas insuficientes.' };
+    const owned = [...this.current.construction.placedFurniture, ...this.current.construction.storedFurniture]
+      .filter((item) => FURNITURE_BY_ID[item.definitionId]?.functionId === definition.functionId).length;
+    const scalable = ['pickup', 'sink', 'stove', 'oven', 'coffee_machine', 'cauldron', 'grill', 'fryer', 'cold_prep', 'beverage', 'wok', 'pastry', 'assembly'].includes(definition.functionId ?? '');
+    const multiplier = scalable ? ([1, 1.5, 2, 2.75, 3.5] as const)[Math.min(4, owned)] : 1;
+    const price = Math.round(definition.price * multiplier / 50) * 50;
+    if (this.current.coins < price) return { ok: false, reason: 'Moedas insuficientes.' };
     const orientation: Direction = 'sw';
     const item: PlacedFurniture = {
       id: createPersistentId('furniture'), definitionId, gridX: 0, gridY: 0, orientation,
       skinId: skinId ?? definition.skinIds[0], level: 1, state: {},
       footprint: orientedFootprint(definition, orientation), anchor: getSpriteAnchor(definition),
       visualScale: getVisualScale(definition), heightCategory: definition.heightCategory,
-      workSlotIds: definition.workSlots.map((slot) => slot.id),
+      workSlotIds: definition.workSlots.map((slot) => slot.id), purchasePricePaid: price,
     };
     this.record();
-    this.current.coins -= definition.price;
+    this.current.coins -= price;
     this.current.construction.storedFurniture.push(item);
     return { ok: true };
   }
@@ -195,7 +200,7 @@ export class ConstructionEditor {
     const module = this.current.construction.serviceCounters.find((entry) => entry.id === id);
     if (module && (module.currentQuantity || module.reservedQuantity) && !confirmFood) return { ok: false, reason: 'Confirme a venda do balcão e a devolução do estoque.' };
     this.record(); this.current.construction.placedFurniture = this.current.construction.placedFurniture.filter((entry) => entry.id !== id);
-    this.current.coins += definition.resaleValue; this.refreshFurnitureRelationships(); return { ok: true };
+    this.current.coins += Math.floor((item.purchasePricePaid ?? definition.price) * .5); this.refreshFurnitureRelationships(); return { ok: true };
   }
 
   changeSkin(id: string, skinId: string): EditorResult {

@@ -5,7 +5,8 @@ export type ScreenFacing = 'front' | 'back' | 'left' | 'right';
 export type FurnitureHeightCategory = 'LOW' | 'STANDARD_COUNTER' | 'TALL';
 export type FurnitureCode = `A${1 | 2 | 3 | 4 | 5 | 6 | 7 | 8}` |
   `B${1 | 2 | 3 | 4 | 5 | 6 | 7 | 8}` |
-  `C${1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10}` | 'T1' | 'CH1' | 'D1';
+  `C${1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11}` |
+  `B${1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9}` | 'T1' | 'T2' | 'CH1' | 'D1';
 export type FurnitureCategory = 'tables' | 'chairs' | 'cooking' | 'refrigeration' | 'preparation' |
   'washing' | 'service' | 'storage' | 'decoration';
 export type WorkSlotRole = 'cook' | 'waiter' | 'cleaner' | 'stocker' | 'player' | 'any';
@@ -61,6 +62,7 @@ export interface PlacedFurniture {
   skinId: string;
   level: number;
   state: Record<string, unknown>;
+  purchasePricePaid?: number;
   footprint?: { width: number; depth: number };
   anchor?: GridPoint;
   visualScale?: number;
@@ -257,6 +259,7 @@ export interface StaffInstance {
   level: number;
   experience: number;
   hiredAt: number;
+  payrollEligibleAt: number;
   currentState: StaffState;
   currentTaskId?: string;
   currentPosition: GridPoint;
@@ -290,6 +293,7 @@ export interface StaffSystemState {
   nextPayrollAt: number;
   salaryArrears: number;
   payrollWarnings: string[];
+  payrollLedger?: string[];
   training: StaffTrainingSession[];
   eventLog: { at: number; staffId?: string; message: string }[];
 }
@@ -484,7 +488,7 @@ export interface RecipeDefinition {
   aliases: string[];
   assetId: string;
   menuOrder: number;
-  durationProfile: 'express' | 'quick' | 'medium' | 'long' | 'overnight' | 'premium' | 'legendary';
+  durationProfile: 'express' | 'quick' | 'medium' | 'stock' | 'long' | 'overnight' | 'premium' | 'legendary';
   baseDurationSeconds: number;
   batchYield: number;
   batchCost: number;
@@ -691,7 +695,7 @@ export interface GameState {
   progression: ProgressionState;
   lastActiveAt: number;
   offlineClaimId: string;
-  stats: { customersServed: number; customersLost: number; dishesProduced: number; coinsEarned: number };
+  stats: { customersServed: number; customersLost: number; dishesProduced: number; coinsEarned: number; tipLedger?: string[] };
   graphics: GraphicsSaveState;
   construction: ConstructionSaveState;
   staff: StaffSystemState;

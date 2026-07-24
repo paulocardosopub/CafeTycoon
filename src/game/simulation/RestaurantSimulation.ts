@@ -21,6 +21,7 @@ import { TaskManager, type RestaurantTask } from '../tasks/TaskManager';
 import { tickProduction, readyDishCapacity, readyDishUsed } from '../cooking/ProductionService';
 import { ServiceCounterStore } from '../systems/service-counter/ServiceCounterSystem';
 import { STAFF_BY_ID } from '../data/staff';
+import { FURNITURE_BY_ID } from '../data/furniture/catalog';
 import {
   awardStaffTaskExperience, effectiveMovementSpeed, effectiveStaffSpeed, processPayrollClock, staffStateFromTask, tickTraining,
 } from '../staff/StaffService';
@@ -63,9 +64,6 @@ export interface WorkerActor extends Mover {
 export interface CustomerRuntime extends Mover {
   state: CustomerState;
   stateEnteredAt: number;
-  partyId: string;
-  partySize: number;
-  partyIndex: number;
   patience: number;
   maxPatience: number;
   tableId?: string;
@@ -78,6 +76,9 @@ export interface CustomerRuntime extends Mover {
   cleanupCompleted: boolean;
   paymentCompleted: boolean;
   outcomeApplied: boolean;
+  economicProfile: EconomicProfile;
+  noOrderRetryAt?: number;
+  noOrderRetried?: boolean;
 }
 
 export type OrderState = 'requested' | 'awaiting_ingredients' | 'awaiting_station' | 'preparing' | 'awaiting_pickup' | 'transporting' | 'delivered' | 'consumed' | 'cancelled';
@@ -100,6 +101,11 @@ export interface OrderRuntime {
   ingredientsState: 'none' | 'reserved' | 'consumed' | 'released';
   counterSlotId?: string;
   paymentCompleted: boolean;
+  serviceStartedAt?: number;
+  deliveredAt?: number;
+  tipEvaluated?: boolean;
+  tipGranted?: boolean;
+  tipAmount?: number;
 }
 
 export interface CounterSlotRuntime {
@@ -156,7 +162,7 @@ export class RestaurantSimulation {
   private automationCountdown = 0;
   private productionSchedulerCountdown = 0;
 
-  constructor(public readonly state: GameState) {
+  constructor(public readonly state: GameState, private readonly random: () => number = Math.random) {
     this.autoSpawn = state.restaurantOpen;
     this.tables = createTablesFromConstruction(state.construction);
     this.stations = createStations(state.construction);
@@ -243,18 +249,14 @@ export class RestaurantSimulation {
     const queueLimit = this.admissionQueueLimit();
     const normalCustomerLimit = this.customerDemandCapacity() + queueLimit;
     if (this.autoSpawn && this.spawnCountdown <= 0 && waitingCustomers < queueLimit && this.activeCustomerCount() < normalCustomerLimit) {
-      const nextPartySize = this.customerSequence > 0 && this.customerSequence % 9 === 0 ? 4 : this.customerSequence > 0 && this.customerSequence % 5 === 0 ? 2 : 1;
-      const openTableSize = this.largestOpenTableSize();
-      const supportedPartySize = Math.min(nextPartySize, this.largestTableCapacity());
       const queueAllowance = queueLimit - waitingCustomers;
-      const admissionSize = Math.min(supportedPartySize, normalCustomerLimit - this.activeCustomerCount(), openTableSize || queueAllowance);
-      if (admissionSize > 0) this.spawnParty(admissionSize);
+      if (queueAllowance > 0 && normalCustomerLimit > this.activeCustomerCount()) this.spawnCustomer();
       const demandScale = Math.max(.45, Math.sqrt(this.customerDemandCapacity() / 2) * this.reputationDemandFactor());
       this.spawnCountdown = Math.max(2, BALANCE.customerSpawnSeconds / demandScale) + (this.customerSequence % 3);
     }
     this.seatAssignmentRetry -= delta;
     if (this.seatAssignmentRetry <= 0) {
-      this.assignWaitingParties();
+      this.assignWaitingCustomers();
       this.seatAssignmentRetry = .25;
     }
     this.retryBlockedOrders();
@@ -267,18 +269,15 @@ export class RestaurantSimulation {
     updateRestaurantLevel(this.state);
   }
 
-  private spawnParty(size: number): CustomerRuntime[] {
-    const partySize = Math.max(1, Math.min(4, Math.floor(size)));
-    const spawnCells = this.availableStreetCells(partySize);
-    if (spawnCells.length < partySize) return [];
-    const partyId = stableRuntimeId('party');
-    const partyPatience = BALANCE.customerBasePatienceSeconds + (partySize - 1) * 45;
-    const members: CustomerRuntime[] = [];
-    for (let index = 0; index < partySize; index += 1) {
+  private spawnCustomer(): CustomerRuntime | undefined {
+    const spawnCells = this.availableStreetCells(1);
+    if (!spawnCells.length) return undefined;
+    const partyPatience = BALANCE.customerBasePatienceSeconds;
+    {
       this.customerSequence += 1;
-      const streetSpawn = spawnCells[index];
+      const streetSpawn = spawnCells[0];
       const customer: CustomerRuntime = {
-        id: stableRuntimeId('customer'), state: 'entering', stateEnteredAt: this.simulationTime, partyId, partySize, partyIndex: index,
+        id: stableRuntimeId('customer'), state: 'entering', stateEnteredAt: this.simulationTime, economicProfile: economicProfileFromRandom(this.random()),
         patience: partyPatience, maxPatience: partyPatience,
         position: { ...streetSpawn }, visual: { ...streetSpawn }, path: [], moveProgress: 0, chairIds: [], eatRemaining: 0,
         variant: (this.customerSequence - 1) % CUSTOMER_CHARACTER_ASSET_IDS.length, direction: 'nw', lastMovementAt: this.simulationTime, blockedSeconds: 0,
@@ -287,9 +286,8 @@ export class RestaurantSimulation {
       this.customers.push(customer);
       this.grid.occupy(customer.position, customer.id);
       this.routeCustomerToEntrance(customer);
-      members.push(customer);
+      return customer;
     }
-    return members;
   }
 
   private availableStreetCells(count: number): GridPoint[] {
@@ -302,20 +300,11 @@ export class RestaurantSimulation {
     return unique.filter((point) => this.grid.isWalkable(point)).slice(0, count);
   }
 
-  private assignWaitingParties(): void {
-    const parties = [...new Set(this.customers.filter((customer) => ['seeking_table', 'queueing'].includes(customer.state)).map((customer) => customer.partyId))]
-      .map((partyId) => this.partyMembers(partyId).filter((customer) => customer.state !== 'gone'))
-      .filter((members) => members.length > 0)
-      .sort((left, right) => Math.min(...left.map((customer) => customer.stateEnteredAt)) - Math.min(...right.map((customer) => customer.stateEnteredAt)));
-    let mayAssignSeat = true;
-    for (const members of parties) {
-      if (members.some((customer) => !['seeking_table', 'queueing'].includes(customer.state))) continue;
-      if (members.some((customer) => customer.path.length > 0)) { mayAssignSeat = false; continue; }
-      if (mayAssignSeat && this.assignSeats(members)) continue;
-      this.sendPartyToQueue(members);
-      // FIFO estrito: se o primeiro grupo não couber, nenhum recém-chegado
-      // pode ultrapassá-lo enquanto aguarda a próxima mesa livre.
-      mayAssignSeat = false;
+  private assignWaitingCustomers(): void {
+    for (const customer of this.customers.filter((item) => ['seeking_table', 'queueing'].includes(item.state)).sort((a,b)=>a.stateEnteredAt-b.stateEnteredAt)) {
+      if (customer.path.length) continue;
+      if (this.assignSeat(customer)) continue;
+      this.sendCustomerToQueue(customer);
     }
   }
 
@@ -339,53 +328,40 @@ export class RestaurantSimulation {
     }, 0);
   }
 
-  private assignSeats(members: CustomerRuntime[]): boolean {
-    let table: TableRuntime | undefined; let seats: ChairRuntime[] = []; let plannedPaths: GridPoint[][] = [];
+  private assignSeat(customer: CustomerRuntime): boolean {
+    let table: TableRuntime | undefined; let seat: ChairRuntime | undefined; let path: GridPoint[] = [];
     for (const candidate of this.tables) {
       if (!candidate.accessible) continue;
       const available = candidate.chairs.filter((chair) => this.seatUsable(chair) && chair.state === 'free');
-      if (available.length < members.length) continue;
-      const remaining = [...available]; const candidateSeats: ChairRuntime[] = []; const candidatePaths: GridPoint[][] = [];
-      for (const member of members) {
-        const seatIndex = remaining.findIndex((seat) => {
-          const path = findPath(this.grid, member.position, seat.approach, member.id);
-          if (!path.length && !this.samePoint(member.position, seat.approach)) return false;
-          candidatePaths.push(path); return true;
-        });
-        if (seatIndex < 0) break;
-        candidateSeats.push(remaining.splice(seatIndex, 1)[0]);
-      }
-      if (candidateSeats.length !== members.length) continue;
-      table = candidate; seats = candidateSeats; plannedPaths = candidatePaths; break;
+      for (const candidateSeat of available) {
+          const candidatePath = findPath(this.grid, customer.position, candidateSeat.approach, customer.id);
+          if (!candidatePath.length && !this.samePoint(customer.position, candidateSeat.approach)) continue;
+          table = candidate; seat = candidateSeat; path = candidatePath; break;
+      } if (seat) break;
     }
     if (!table) return false;
-    seats.forEach((seat, index) => {
-      const customer = members[index];
-      seat.state = 'reserved'; seat.customerId = customer.id; seat.reservationId = customer.partyId;
-      customer.tableId = table.id; customer.seatId = seat.seatId; customer.chairIds = [seat.id];
+      seat!.state = 'reserved'; seat!.customerId = customer.id; seat!.reservationId = customer.id;
+      customer.tableId = table.id; customer.seatId = seat!.seatId; customer.chairIds = [seat!.id];
       this.setCustomerState(customer, 'walking_to_seat');
-      customer.path = plannedPaths[index]; customer.pathStatus = customer.path.length ? 'moving' : 'arrived';
-      seat.state = customer.path.length ? 'approaching' : 'reserved';
+      customer.path = path; customer.pathStatus = customer.path.length ? 'moving' : 'arrived';
+      seat!.state = customer.path.length ? 'approaching' : 'reserved';
       if (!customer.path.length) this.onCustomerArrived(customer);
-    });
     this.refreshTableState(table);
     return true;
   }
 
-  private sendPartyToQueue(members: CustomerRuntime[]): void {
+  private sendCustomerToQueue(customer: CustomerRuntime): void {
     const claimed = new Set(this.customers
-      .filter((entry) => entry.state === 'queueing' && !members.includes(entry))
+      .filter((entry) => entry.state === 'queueing' && entry.id !== customer.id)
       .flatMap((entry) => [entry.position, entry.path.at(-1)])
       .filter((point): point is GridPoint => Boolean(point))
       .map((point) => `${point.x},${point.y}`));
-    members.forEach((customer) => {
       if (customer.state !== 'queueing') this.setCustomerState(customer, 'queueing');
       if (customer.path.length) return;
       const queuePoint = CUSTOMER_QUEUE.find((point) => !claimed.has(`${point.x},${point.y}`) && this.grid.isWalkable(point, customer.id));
       if (!queuePoint) { customer.pathStatus = 'idle'; return; }
       claimed.add(`${queuePoint.x},${queuePoint.y}`);
       if (!this.samePoint(customer.position, queuePoint)) this.routeCustomer(customer, queuePoint);
-    });
   }
 
   private updateCustomers(delta: number): void {
@@ -424,6 +400,7 @@ export class RestaurantSimulation {
         customer.eatRemaining -= delta;
         if (customer.eatRemaining <= 0) this.requestPayment(customer);
       }
+      if (customer.state === 'waiting_order' && customer.noOrderRetryAt !== undefined && this.simulationTime >= customer.noOrderRetryAt) { customer.noOrderRetryAt = undefined; const seat = this.seatFor(customer.seatId); const table = seat ? this.tableFor(seat.tableId) : undefined; if (seat && table) this.placeOrder(customer, table, seat); }
     }
   }
 
@@ -447,7 +424,7 @@ export class RestaurantSimulation {
       if (!customer.path.length && customer.retryCount >= BALANCE.movementRecovery.maxTaskRetries) this.safeRemoveCustomer(customer, 'entrada permaneceu sem rota');
     } else if (customer.state === 'queueing' || customer.state === 'seeking_table') {
       customer.path = []; customer.pathStatus = 'idle';
-      this.sendPartyToQueue([customer]);
+      this.sendCustomerToQueue(customer);
     }
   }
 
@@ -455,7 +432,7 @@ export class RestaurantSimulation {
     if (customer.state === 'entering') {
       this.setCustomerState(customer, 'seeking_table');
       customer.pathStatus = 'arrived';
-      this.sendPartyToQueue([customer]);
+      this.sendCustomerToQueue(customer);
     } else if (customer.state === 'walking_to_seat') {
       const seat = this.seatFor(customer.seatId); const table = this.tableFor(customer.tableId);
       if (!seat || !table || seat.customerId !== customer.id) { this.releaseCustomerSeat(customer, false); return; }
@@ -567,9 +544,10 @@ export class RestaurantSimulation {
     if (seat && seat.customerId === customer.id) {
       seat.customerId = undefined; seat.reservationId = undefined; seat.state = 'dirty';
       const tableId = seat.tableId;
+      const sink = this.sinkForCleaning();
       this.tasks.add({
-        key: `clean:${seat.seatId}`, kind: 'clean', role: 'cleaning', target: seat.approach,
-        duration: BALANCE.actionSeconds.clean, priority: 82, payload: { tableId, seatId: seat.seatId, customerId: customer.id },
+        key: `clean:${seat.seatId}`, kind: 'clean', role: 'cleaning', target: sink?.interaction ?? seat.approach,
+        duration: BALANCE.actionSeconds.clean, priority: 82, payload: this.cleanTaskPayload(tableId, seat.seatId, customer.id),
         reservations: [{ type: 'seat', id: seat.seatId }],
       }, this.simulationTime);
     }
@@ -845,11 +823,13 @@ export class RestaurantSimulation {
     // Uma lista antiga de receitas habilitadas não pode esconder comida pronta.
     const available = RECIPES.filter((recipe) => recipe.requiredLevel <= this.state.restaurantLevel
       && this.counterModules.some((module) => module.assignedRecipeId === recipe.id && module.currentQuantity - module.reservedQuantity > 0));
-    if (!available.length) {
-      gameEvents.emit('toast', { message: 'Nenhum prato pronto disponível. Produza um lote antes de receber novos pedidos.', tone: 'warning' });
-      return;
-    }
-    const recipe = available[Math.floor(Math.random() * available.length)];
+    const profile = customer.economicProfile ?? 'economic';
+    const weight = (price: number) => { const band = price <= 10 ? 0 : price <= 25 ? 1 : price <= 60 ? 2 : price <= 150 ? 3 : 4; return ({economic:[100,80,35,10,2],regular:[90,100,85,35,10],high_income:[55,80,100,95,90]} as const)[profile][band]; };
+    const options = available.map((recipe) => ({ recipe, weight: weight(recipe.salePrice) })); const noOrder = ({economic:10,regular:5,high_income:2} as const)[profile];
+    let roll = Math.random() * (options.reduce((sum, item) => sum + item.weight, 0) + noOrder);
+    const choice = options.find((item) => (roll -= item.weight) < 0)?.recipe;
+    if (!choice) { if (customer.noOrderRetried) { this.beginDeparture(customer, false); return; } customer.noOrderRetried = true; customer.noOrderRetryAt = this.simulationTime + 10; return; }
+    const recipe = choice;
     const order: OrderRuntime = {
       id: stableRuntimeId('order'), customerId: customer.id, tableId: table.id, seatId: seat.seatId, chairId: seat.chairId,
       recipeId: recipe.id, quantity: 1, state: 'requested', createdAt: this.simulationTime, priority: 80,
@@ -866,7 +846,7 @@ export class RestaurantSimulation {
     if (this.state.readyDishes[order.recipeId] <= 0) { this.clearCounterSlot(slot); return false; }
     const module = this.counterModules.find((item) => item.id === slot.moduleId)!;
     module.currentQuantity += 1; module.reservedQuantity += 1; slot.stockReservation = [{ moduleId: module.id, quantity: 1 }]; slot.quantity = 1;
-    this.state.readyDishes[order.recipeId] -= 1; slot.state = 'occupied'; order.counterSlotId = slot.id; order.state = 'awaiting_pickup'; this.createDelivery(order); return true;
+    this.state.readyDishes[order.recipeId] -= 1; slot.state = 'occupied'; order.counterSlotId = slot.id; order.serviceStartedAt ??= this.simulationTime; order.state = 'awaiting_pickup'; this.createDelivery(order); return true;
   }
 
   private placePreparedCounterDish(order: OrderRuntime): boolean {
@@ -874,7 +854,7 @@ export class RestaurantSimulation {
     if (!slot) return false;
     const reservation = this.counterStore.reserve(order.recipeId, 1);
     if (!reservation) { this.clearCounterSlot(slot); return false; }
-    slot.stockReservation = reservation; slot.quantity = 1; slot.state = 'occupied';
+    slot.stockReservation = reservation; slot.quantity = 1; slot.state = 'occupied'; order.serviceStartedAt ??= this.simulationTime;
     order.counterSlotId = slot.id; order.state = 'awaiting_pickup'; this.createDelivery(order); return true;
   }
 
@@ -894,8 +874,8 @@ export class RestaurantSimulation {
     this.tasks.add({
       key: `cook:${order.id}:${order.stepIndex}`, kind: 'cook_step', role: 'kitchen',
       target: station.interaction,
-      duration: step.duration / BALANCE.cookingSpeedMultiplier, priority: 60 + order.priority / 10,
-      payload: { orderId: order.id, stationId: station.id, customerId: order.customerId, tableId: order.tableId, seatId: order.seatId },
+      duration: step.duration, priority: 60 + order.priority / 10,
+      payload: { orderId: order.id, stationId: station.id, furnitureInstanceId: this.furnitureInstanceForStation(station), customerId: order.customerId, tableId: order.tableId, seatId: order.seatId },
       reservations: [{ type: 'station', id: station.id }, ...(order.counterSlotId ? [{ type: 'counter' as const, id: order.counterSlotId }] : [])],
     }, this.simulationTime);
   }
@@ -948,7 +928,7 @@ export class RestaurantSimulation {
     actor.carrying = undefined; actor.carryingOrderId = undefined;
     if (!order || order.state !== 'transporting') return;
     if (!customer || !seat || !table || customer.state !== 'waiting_food' || seat.customerId !== customer.id) { this.storeFinishedDish(order); order.state = 'cancelled'; return; }
-    order.state = 'delivered'; customer.eatRemaining = BALANCE.customerEatSeconds; this.setCustomerState(customer, 'eating'); seat.state = 'eating'; this.refreshTableState(table);
+    order.state = 'delivered'; order.deliveredAt = this.simulationTime; customer.eatRemaining = BALANCE.customerEatSeconds; this.setCustomerState(customer, 'eating'); seat.state = 'eating'; this.refreshTableState(table);
   }
 
   private completePayment(customer: CustomerRuntime, table: TableRuntime, seat: ChairRuntime): void {
@@ -957,9 +937,35 @@ export class RestaurantSimulation {
     const recipe = RECIPE_BY_ID[order.recipeId]; const earned = recipe.salePrice;
     customer.paymentCompleted = true; order.paymentCompleted = true; order.state = 'consumed';
     this.state.coins += earned; this.state.restaurantXp += recipe.experience + 2; this.state.reputation = Math.min(100, this.state.reputation + 1);
+    this.evaluateTip(order, customer, table, seat, recipe.salePrice);
     this.state.stats.customersServed += 1; this.state.stats.coinsEarned += earned;
     this.beginDeparture(customer, false); this.refreshTableState(table);
     gameEvents.emit('toast', { message: `${recipe.name} servido · +${earned} moedas`, tone: 'success' });
+  }
+
+  private evaluateTip(order: OrderRuntime, customer: CustomerRuntime, table: TableRuntime, seat: ChairRuntime, unitPrice: number): void {
+    if (order.tipEvaluated) return;
+    order.tipEvaluated = true;
+    const key = `tip:${order.id}`;
+    this.state.stats.tipLedger ??= [];
+    // The saved evaluation flag prevents rerolls after a miss; the ledger
+    // independently prevents a granted credit from being applied twice.
+    if (this.state.stats.tipLedger.includes(key)) { order.tipGranted = true; return; }
+    const elapsed = Math.max(0, (order.deliveredAt ?? this.simulationTime) - (order.serviceStartedAt ?? order.createdAt));
+    if (this.random() >= tipChance(this.seatComfort(table, seat), customer.economicProfile, elapsed)) return;
+    const tip = tipValue(unitPrice, customer.economicProfile);
+    this.state.stats.tipLedger.push(key); order.tipGranted = true; order.tipAmount = tip;
+    this.state.coins += tip; this.state.stats.coinsEarned += tip;
+    gameEvents.emit('toast', { message: `Gorjeta +${tip}`, tone: 'success' });
+  }
+
+  private seatComfort(table: TableRuntime, seat: ChairRuntime): number {
+    const tableItem = this.state.construction.placedFurniture.find((item) => item.id === table.id);
+    const plants = this.state.construction.placedFurniture.filter((item) => item.definitionId === 'decor.plant.basic'
+      && this.state.construction.builtAreas.some((area) => item.gridX >= area.x && item.gridY >= area.y && item.gridX < area.x + area.width && item.gridY < area.y + area.depth));
+    // Chebyshev distance: max(|dx|, |dy|) <= 2, from the chair seat anchor.
+    const nearby = plants.filter((plant) => Math.max(Math.abs(plant.gridX - seat.seatAnchor.x), Math.abs(plant.gridY - seat.seatAnchor.y)) <= 2).length;
+    return seatComfortBase(tableItem?.definitionId) + plantComfortBonus(nearby);
   }
 
   retryBlockedOrders(): void {
@@ -1095,13 +1101,21 @@ export class RestaurantSimulation {
 
   isConstructionMode(): boolean { return this.constructionPaused; }
 
-  debugAddCustomer(): CustomerRuntime | undefined { return this.spawnParty(1)[0]; }
-  debugAddGroup(size = 4): CustomerRuntime[] { return this.spawnParty(size); }
-  debugSeatGroupAtFirstTable(size = 4): CustomerRuntime[] {
+  debugAddCustomer(): CustomerRuntime | undefined { return this.spawnCustomer(); }
+  debugSeatComfort(seatId: string): number | undefined {
+    const seat = this.seatFor(seatId); const table = seat ? this.tableFor(seat.tableId) : undefined;
+    return seat && table ? this.seatComfort(table, seat) : undefined;
+  }
+  debugEvaluateTip(orderId: string): void {
+    const order = this.orderFor(orderId); const customer = order ? this.customerFor(order.customerId) : undefined;
+    const table = order ? this.tableFor(order.tableId) : undefined; const seat = order ? this.seatFor(order.seatId) : undefined;
+    if (order && customer && table && seat) this.evaluateTip(order, customer, table, seat, RECIPE_BY_ID[order.recipeId].salePrice);
+  }
+  debugSeatCustomersAtFirstTable(size = 4): CustomerRuntime[] {
     const table = this.tables.find((item) => item.chairs.length >= size);
     if (!table) return [];
     this.autoSpawn = false;
-    const members = this.spawnParty(Math.min(size, table.chairs.length));
+    const members = Array.from({ length: Math.min(size, table.chairs.length) }, () => this.spawnCustomer()).filter((customer): customer is CustomerRuntime => Boolean(customer));
     members.forEach((customer, index) => {
       const seat = table.chairs[index];
       this.grid.vacate(customer.id);
@@ -1109,7 +1123,7 @@ export class RestaurantSimulation {
       customer.path = []; customer.pathStatus = 'arrived'; customer.motionState = 'idle';
       customer.tableId = table.id; customer.seatId = seat.seatId; customer.chairIds = [seat.id]; customer.direction = seat.orientation;
       customer.state = 'waiting_order'; customer.stateEnteredAt = this.simulationTime;
-      seat.customerId = customer.id; seat.reservationId = customer.partyId; seat.state = 'waiting_order';
+      seat.customerId = customer.id; seat.reservationId = customer.id; seat.state = 'waiting_order';
       this.tasks.add({
         key: `order:${customer.id}`, kind: 'take_order', role: 'service', target: seat.servicePoint,
         duration: BALANCE.actionSeconds.takeOrder, priority: 70,
@@ -1133,7 +1147,8 @@ export class RestaurantSimulation {
   debugDirtySeat(): void {
     const seat = this.tables.flatMap((table) => table.chairs).find((item) => item.state === 'free');
     if (!seat) return; seat.state = 'dirty'; const table = this.tableFor(seat.tableId)!; this.refreshTableState(table);
-    this.tasks.add({ key: `clean:${seat.seatId}`, kind: 'clean', role: 'cleaning', target: seat.approach, duration: BALANCE.actionSeconds.clean, priority: 82, payload: { tableId: table.id, seatId: seat.seatId } }, this.simulationTime);
+    const sink = this.sinkForCleaning();
+    this.tasks.add({ key: `clean:${seat.seatId}`, kind: 'clean', role: 'cleaning', target: sink?.interaction ?? seat.approach, duration: BALANCE.actionSeconds.clean, priority: 82, payload: this.cleanTaskPayload(table.id, seat.seatId) }, this.simulationTime);
   }
   debugRunFor(seconds: number, speed: 1 | 2 | 4 = 4): void {
     const before = this.speed; this.speed = speed;
@@ -1283,7 +1298,7 @@ export class RestaurantSimulation {
       const currentAssetId = actor.assetId;
       Object.assign(actor, saved, { assetId: currentAssetId, taskId: undefined, path: [], moveProgress: 0, carrying: saved.carrying, carryingOrderId: saved.carryingOrderId });
     }
-    for (const raw of operation.customers as unknown as CustomerRuntime[]) if (raw?.id && raw.position && raw.state !== 'gone') this.customers.push({ ...raw, path: [], moveProgress: 0, blockedSeconds: 0, pathStatus: 'idle', motionState: 'idle' });
+    for (const raw of operation.customers as unknown as Partial<CustomerRuntime>[]) if (raw?.id && raw.position && raw.state !== 'gone') this.customers.push({ ...raw, economicProfile: raw.economicProfile ?? stableEconomicProfile(raw.id), path: [], moveProgress: 0, blockedSeconds: 0, pathStatus: 'idle', motionState: 'idle' } as CustomerRuntime);
     for (const raw of operation.orders as unknown as OrderRuntime[]) if (raw?.id && RECIPE_BY_ID[raw.recipeId]) this.orders.push({ ...raw, ingredientReservation: raw.ingredientReservation ?? {}, paymentCompleted: Boolean(raw.paymentCompleted) });
     const slots = operation.counterSlots as unknown as CounterSlotRuntime[];
     for (const slot of this.counterSlots) { const saved = slots.find((item) => item.id === slot.id); if (saved) Object.assign(slot, saved); }
@@ -1343,7 +1358,6 @@ export class RestaurantSimulation {
         if (!['leaving', 'gave_up'].includes(customer.state)) this.setCustomerState(customer, 'queueing');
       }
     }
-    this.normalizeRestoredPartySizes();
     this.trimRestoredAdmissionQueue();
     for (const table of this.tables) this.refreshTableState(table);
     for (const id of Object.keys(this.state.inventoryReserved) as IngredientId[]) this.state.inventoryReserved[id] = 0;
@@ -1392,42 +1406,16 @@ export class RestaurantSimulation {
         const seat = this.seatFor(customer.seatId); if (seat) this.tasks.add({ key: `order:${customer.id}`, kind: 'take_order', role: 'service', target: seat.servicePoint, duration: BALANCE.actionSeconds.takeOrder, priority: 70, payload: { customerId: customer.id, tableId: seat.tableId, seatId: seat.seatId } }, this.simulationTime);
       } else if (customer.state === 'paying') this.requestPayment(customer);
     }
-    for (const table of this.tables) for (const seat of table.chairs) if (seat.state === 'dirty') this.tasks.add({ key: `clean:${seat.seatId}`, kind: 'clean', role: 'cleaning', target: seat.approach, duration: BALANCE.actionSeconds.clean, priority: 82, payload: { tableId: table.id, seatId: seat.seatId } }, this.simulationTime);
+    for (const table of this.tables) for (const seat of table.chairs) if (seat.state === 'dirty') {
+      const sink = this.sinkForCleaning();
+      this.tasks.add({ key: `clean:${seat.seatId}`, kind: 'clean', role: 'cleaning', target: sink?.interaction ?? seat.approach, duration: BALANCE.actionSeconds.clean, priority: 82, payload: this.cleanTaskPayload(table.id, seat.seatId) }, this.simulationTime);
+    }
   }
 
   private trimRestoredAdmissionQueue(): void {
-    const parties = [...new Set(this.customers
-      .filter((customer) => ADMISSION_STATES.has(customer.state) && !customer.seatId)
-      .sort((a, b) => a.stateEnteredAt - b.stateEnteredAt || a.partyIndex - b.partyIndex)
-      .map((customer) => customer.partyId))];
-    let retained = 0;
-    for (const partyId of parties) {
-      const members = this.partyMembers(partyId).filter((customer) => ADMISSION_STATES.has(customer.state) && !customer.seatId);
-      if (retained + members.length <= this.admissionQueueLimit()) { retained += members.length; continue; }
-      for (const customer of members) this.completeCustomerDeparture(customer);
-    }
+    const waiting = this.customers.filter((customer) => ADMISSION_STATES.has(customer.state) && !customer.seatId).sort((a,b)=>a.stateEnteredAt-b.stateEnteredAt);
+    for (const customer of waiting.slice(this.admissionQueueLimit())) this.completeCustomerDeparture(customer);
     this.pruneGoneCustomers();
-  }
-
-  private normalizeRestoredPartySizes(): void {
-    const capacity = this.largestTableCapacity();
-    if (capacity < 1) return;
-    const partyIds = [...new Set(this.customers.filter((customer) => ADMISSION_STATES.has(customer.state) && !customer.seatId).map((customer) => customer.partyId))];
-    for (const partyId of partyIds) {
-      const members = this.partyMembers(partyId)
-        .filter((customer) => ADMISSION_STATES.has(customer.state) && !customer.seatId)
-        .sort((a, b) => a.partyIndex - b.partyIndex);
-      if (members.length <= capacity) continue;
-      for (let offset = 0; offset < members.length; offset += capacity) {
-        const chunk = members.slice(offset, offset + capacity);
-        const recoveredPartyId = offset === 0 ? partyId : stableRuntimeId('party-recovered');
-        chunk.forEach((customer, index) => {
-          customer.partyId = recoveredPartyId;
-          customer.partySize = chunk.length;
-          customer.partyIndex = index;
-        });
-      }
-    }
   }
 
   private refreshTableState(table: TableRuntime): void {
@@ -1530,16 +1518,27 @@ export class RestaurantSimulation {
     // timer authoritative; generic employee task-speed only affects service
     // actions and ad-hoc cooking, never shortens a displayed batch silently.
     if (task.kind === 'production_batch') return task.duration;
+    const localMultiplier = furnitureTaskDurationMultiplier(String(task.payload.furnitureInstanceId ?? ''), task.kind, this.state.construction.placedFurniture);
     if (actor.kind !== 'player') {
       const staff = this.state.staff.instances.find((instance) => instance.id === actor.id);
-      return task.duration / Math.max(.5, staff ? effectiveStaffSpeed(staff) : 1);
+      return task.duration / Math.max(.5, staff ? effectiveStaffSpeed(staff) : 1) * localMultiplier;
     }
-    if (!this.state.profile) return task.duration;
+    if (!this.state.profile) return task.duration * localMultiplier;
     const profession = this.professionForRole(task.role); const bonus = (this.state.profile.professions[profession].level - 1) * BALANCE.professionSpeedPerLevel;
-    return task.duration * Math.max(.65, 1 - bonus);
+    return task.duration * Math.max(.65, 1 - bonus) * localMultiplier;
   }
   private professionForRole(role: HelpRole): 'cook' | 'waiter' | 'cleaner' | 'stocker' { return role === 'kitchen' ? 'cook' : role === 'service' ? 'waiter' : role === 'cleaning' ? 'cleaner' : 'stocker'; }
   private stationFromTask(task: RestaurantTask): StationRuntime | undefined { return this.stations.find((station) => station.id === task.payload.stationId); }
+  private sinkForCleaning(): StationRuntime | undefined {
+    return this.stations.find((station) => FURNITURE_BY_ID[this.furnitureInstanceForStation(station) ?? '']?.functionId === 'sink');
+  }
+  private cleanTaskPayload(tableId: string, seatId: string, customerId?: string): Record<string, unknown> {
+    const sink = this.sinkForCleaning();
+    return { tableId, seatId, ...(customerId ? { customerId } : {}), ...(sink ? { stationId: sink.id, furnitureInstanceId: this.furnitureInstanceForStation(sink) } : {}) };
+  }
+  private furnitureInstanceForStation(station: StationRuntime): string | undefined {
+    return this.state.construction.placedFurniture.find((item) => item.gridX === station.position.x && item.gridY === station.position.y)?.id;
+  }
   private stationForStep(stationId: string, recipeId: RecipeId, moduleId?: string): StationRuntime | undefined {
     if (stationId === 'pickup') {
       const module = moduleId ? this.counterModules.find((item) => item.id === moduleId) : this.counterModules.find((item) => item.assignedRecipeId === recipeId);
@@ -1557,7 +1556,6 @@ export class RestaurantSimulation {
   private orderFor(value: unknown): OrderRuntime | undefined { return this.orders.find((order) => order.id === value); }
   private tableFor(value: unknown): TableRuntime | undefined { return this.tables.find((table) => table.id === value); }
   private seatFor(value: unknown): ChairRuntime | undefined { return this.tables.flatMap((table) => table.chairs).find((seat) => seat.seatId === value || seat.id === value); }
-  private partyMembers(partyId: string): CustomerRuntime[] { return this.customers.filter((customer) => customer.partyId === partyId); }
   private largestTableCapacity(): number {
     return this.tables.reduce((largest, table) => Math.max(largest, table.accessible ? table.chairs.filter((seat) => this.seatUsable(seat)).length : 0), 0);
   }
@@ -1568,4 +1566,42 @@ export class RestaurantSimulation {
   private roleLabel(role: HelpRole): string { return { manager: 'Gerência', kitchen: 'Cozinha', service: 'Atendimento', cleaning: 'Limpeza', stock: 'Estoque e apoio' }[role]; }
   private developmentMode(): boolean { return typeof window === 'undefined' || ['localhost', '127.0.0.1'].includes(window.location.hostname); }
   private toRecords(value: unknown): Record<string, unknown>[] { return JSON.parse(JSON.stringify(value)) as Record<string, unknown>[]; }
+}
+export type EconomicProfile = 'economic' | 'regular' | 'high_income';
+export function economicProfileFromRandom(value: number): EconomicProfile {
+  const roll = Math.max(0, Math.min(.999999999999, value));
+  return roll < .5 ? 'economic' : roll < .9 ? 'regular' : 'high_income';
+}
+export function stableEconomicProfile(key: string): EconomicProfile {
+  let hash = 2166136261; for (const char of key) { hash ^= char.charCodeAt(0); hash = Math.imul(hash, 16777619); }
+  return economicProfileFromRandom((hash >>> 0) / 0x1_0000_0000);
+}
+
+export function seatComfortBase(tableDefinitionId: string | undefined): number {
+  return tableDefinitionId === 'dining.table.t2' ? 10 : 2;
+}
+
+export function plantComfortBonus(validPlantCount: number): number {
+  return Math.min(3, Math.max(0, Math.floor(validPlantCount)));
+}
+
+export function serviceTimeBonus(elapsedSeconds: number): number {
+  return elapsedSeconds <= 12 ? .04 : elapsedSeconds <= 25 ? .02 : 0;
+}
+
+export function tipChance(comfort: number, profile: EconomicProfile, elapsedSeconds: number): number {
+  const multiplier = { economic: .6, regular: 1, high_income: 1.5 } as const;
+  return Math.min(.25, (.01 + comfort * .008 + serviceTimeBonus(elapsedSeconds)) * multiplier[profile]);
+}
+
+export function tipValue(unitPrice: number, profile: EconomicProfile): number {
+  const rate = { economic: .05, regular: .1, high_income: .2 } as const;
+  return Math.max(1, Math.round(unitPrice * rate[profile]));
+}
+
+export function furnitureTaskDurationMultiplier(furnitureInstanceId: string, taskKind: TaskKind, furniture: readonly { id: string; definitionId: string }[]): number {
+  const definitionId = furniture.find((item) => item.id === furnitureInstanceId)?.definitionId;
+  if (definitionId === 'service.counter.t2' && taskKind === 'cook_step') return .88;
+  if (definitionId === 'washing.sink.t2' && taskKind === 'clean') return .85;
+  return 1;
 }

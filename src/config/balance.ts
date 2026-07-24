@@ -1,9 +1,9 @@
-export const GAME_VERSION = '0.0.9';
+export const GAME_VERSION = '0.0.10';
 export const SAVE_SCHEMA_VERSION = 6;
 
 export const BALANCE = {
   // Covers the complete level-one setup, the first Barista and two extra coffee batches.
-  startingCoins: 1200,
+  startingCoins: 5000,
   startingReputation: 60,
   readyDishCapacity: 10,
   inventoryCapacity: 110,
@@ -11,7 +11,6 @@ export const BALANCE = {
   customerEatSeconds: 9,
   customerBasePatienceSeconds: 150,
   movementSpeedMultiplier: 2,
-  cookingSpeedMultiplier: 2,
   actionSeconds: {
     takeOrder: 3.2,
     deliver: 2.4,
@@ -55,9 +54,9 @@ export const BALANCE = {
     historyLimit: 100,
   },
   production: {
-    maximumQuantity: 180,
+    maximumQuantity: 300,
     defaultBatchSize: 1,
-    maximumBatchSize: 180,
+    maximumBatchSize: 300,
     queueHistoryLimit: 240,
     schedulerIntervalSeconds: 0.5,
   },

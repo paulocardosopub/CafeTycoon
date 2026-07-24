@@ -1,9 +1,9 @@
 import type { ExpansionDefinition } from '../../core/types';
 
 export const EXPANSIONS: readonly ExpansionDefinition[] = [
-  { id: 'restaurant-expansion-1', width: 18, depth: 18, unlockLevel: 20, coinCost: 600, allowedSides: ['east'], prerequisites: [] },
-  { id: 'restaurant-expansion-2', width: 18, depth: 18, unlockLevel: 40, coinCost: 1_200, allowedSides: ['south'], prerequisites: ['restaurant-expansion-1'] },
-  { id: 'restaurant-expansion-3', width: 18, depth: 18, unlockLevel: 60, coinCost: 2_200, allowedSides: ['east'], prerequisites: ['restaurant-expansion-2'] },
+  { id: 'restaurant-expansion-1', width: 18, depth: 18, unlockLevel: 20, coinCost: 12_000, allowedSides: ['east'], prerequisites: [] },
+  { id: 'restaurant-expansion-2', width: 18, depth: 18, unlockLevel: 40, coinCost: 45_000, allowedSides: ['south'], prerequisites: ['restaurant-expansion-1'] },
+  { id: 'restaurant-expansion-3', width: 18, depth: 18, unlockLevel: 60, coinCost: 120_000, allowedSides: ['east'], prerequisites: ['restaurant-expansion-2'] },
 ] as const;
 
 export const RESTAURANT_EXPANSION_ORIGINS: Readonly<Record<string, { x: number; y: number }>> = {

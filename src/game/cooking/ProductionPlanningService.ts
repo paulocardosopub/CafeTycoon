@@ -61,6 +61,9 @@ export function sanitizeProductionState(input: ProductionSystemState | undefined
 export function createProductionPlan(state: GameState, input: CreateProductionPlanInput, now = Date.now()): ProductionPlanResult {
   const recipe = RECIPE_BY_ID[input.recipeId];
   if (!recipe) return { ok: false, reason: 'Receita desconhecida.' };
+  if (!Number.isFinite(input.targetQuantity) || input.targetQuantity < 1 || input.targetQuantity > BALANCE.production.maximumQuantity) {
+    return { ok: false, reason: `Quantidade deve estar entre 1 e ${BALANCE.production.maximumQuantity}.` };
+  }
   if (recipe.requiredLevel > state.restaurantLevel) return { ok: false, reason: `Receita requer nível ${recipe.requiredLevel}.` };
   const availableSpecialties = new Set(state.staff.instances
     .filter((instance) => instance.enabled && instance.role === 'cook')
@@ -168,7 +171,8 @@ export function completeProductionTask(state: GameState, taskId: string, counter
   const plan = state.production.plans.find((item) => item.id === task.productionPlanId);
   if (plan) plan.currentProgress += task.batchQuantity;
   state.stats.dishesProduced += task.batchQuantity;
-  state.restaurantXp += RECIPE_BY_ID[task.recipeId].experience * task.batchQuantity;
+  // Recipe XP is authored as the total reward for a complete batch.
+  state.restaurantXp += RECIPE_BY_ID[task.recipeId].experience;
   task.state = 'completed'; task.completedAt = now; task.completionClaimed = true; task.blockedReason = undefined; task.reservedIngredients = {}; task.outputReservations = [];
   if (plan?.repeat && plan.enabled) {
     const nextCost = productionCostFor(state, task.recipeId);

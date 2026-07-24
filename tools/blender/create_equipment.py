@@ -223,40 +223,40 @@ def create_equipment(definition, collection, materials):
         # A cafeteira ocupa o mesmo gabinete modular 1x1 das outras bancadas.
         # A máquina de espresso fica sobre o tampão, sem alterar o footprint.
         parts = [
-            cube(f"{asset_id}:cabinet", (0, 0, .58), (width, .48, .52), materials["wood_mid"], collection, .048),
-            cube(f"{asset_id}:cabinet-front", (0, -.495, .58), (width-.035, .025, .47), materials["wood_light"], collection, .014),
-            cube(f"{asset_id}:countertop", (0, 0, 1.13), (width+.045, .51, .055), materials["cream_light"], collection, .020),
-            cube(f"{asset_id}:countertop-edge", (0, -.50, 1.15), (width+.035, .025, .045), materials["cream_shadow"], collection, .010),
+            cube(f"{asset_id}:cabinet", (0, 0, .74), (width, .48, .70), materials["wood_mid"], collection, .048),
+            cube(f"{asset_id}:cabinet-front", (0, -.495, .74), (width-.035, .025, .64), materials["wood_light"], collection, .014),
+            cube(f"{asset_id}:countertop", (0, 0, 1.49), (width+.045, .51, .055), materials["cream_light"], collection, .020),
+            cube(f"{asset_id}:countertop-edge", (0, -.50, 1.51), (width+.035, .025, .045), materials["cream_shadow"], collection, .010),
             cube(f"{asset_id}:bottom-plinth", (0, 0, .13), (width+.015, .47, .09), materials["steel_dark"], collection, .014),
-            cube(f"{asset_id}:espresso-body", (0, .08, 1.43), (.49, .29, .18), materials["steel_mid"], collection, .040),
-            cube(f"{asset_id}:espresso-top", (0, .08, 1.63), (.50, .31, .035), materials["chrome"], collection, .015),
-            cube(f"{asset_id}:espresso-front", (0, -.225, 1.45), (.46, .026, .13), materials["steel_dark"], collection, .014),
-            cube(f"{asset_id}:control-strip", (0, -.257, 1.55), (.43, .018, .040), materials["chrome"], collection, .008),
-            cube(f"{asset_id}:drip-tray", (0, -.12, 1.215), (.38, .27, .025), materials["steel_dark"], collection, .010),
-            cube(f"{asset_id}:drip-grid-a", (0, -.12, 1.245), (.34, .018, .012), materials["chrome"], collection, .003),
-            cube(f"{asset_id}:drip-grid-b", (0, -.04, 1.245), (.34, .018, .012), materials["chrome"], collection, .003),
-            cylinder(f"{asset_id}:steam-wand", (.48, -.22, 1.38), .025, .32, materials["chrome"], collection, 10),
-            cylinder(f"{asset_id}:steam-knob", (.48, -.22, 1.57), .050, .050, materials["outline"], collection, 10),
+            cube(f"{asset_id}:espresso-body", (0, .08, 1.79), (.49, .29, .18), materials["steel_mid"], collection, .040),
+            cube(f"{asset_id}:espresso-top", (0, .08, 1.99), (.50, .31, .035), materials["chrome"], collection, .015),
+            cube(f"{asset_id}:espresso-front", (0, -.225, 1.81), (.46, .026, .13), materials["steel_dark"], collection, .014),
+            cube(f"{asset_id}:control-strip", (0, -.257, 1.91), (.43, .018, .040), materials["chrome"], collection, .008),
+            cube(f"{asset_id}:drip-tray", (0, -.12, 1.575), (.38, .27, .025), materials["steel_dark"], collection, .010),
+            cube(f"{asset_id}:drip-grid-a", (0, -.12, 1.605), (.34, .018, .012), materials["chrome"], collection, .003),
+            cube(f"{asset_id}:drip-grid-b", (0, -.04, 1.605), (.34, .018, .012), materials["chrome"], collection, .003),
+            cylinder(f"{asset_id}:steam-wand", (.48, -.22, 1.74), .025, .32, materials["chrome"], collection, 10),
+            cylinder(f"{asset_id}:steam-knob", (.48, -.22, 1.93), .050, .050, materials["outline"], collection, 10),
         ]
         for index, x in enumerate((-.255, .255)):
             parts += [
-                cube(f"{asset_id}:door:{index}", (x, -.535, .58), (.225, .020, .36), materials["wood_light"], collection, .014),
-                cylinder(f"{asset_id}:door-handle:{index}", (x, -.585, .76), .023, .18, materials["steel_dark"], collection, 10),
+                cube(f"{asset_id}:door:{index}", (x, -.535, .74), (.225, .020, .52), materials["wood_light"], collection, .014),
+                cylinder(f"{asset_id}:door-handle:{index}", (x, -.585, .92), .023, .22, materials["steel_dark"], collection, 10),
             ]
         for index, x in enumerate((-.18, .18)):
             parts += [
-                cylinder(f"{asset_id}:group-head:{index}", (x, -.282, 1.45), .085, .09, materials["chrome"], collection, 14, (radians(90), 0, 0)),
-                cylinder(f"{asset_id}:group-dark:{index}", (x, -.335, 1.45), .060, .035, materials["outline"], collection, 12, (radians(90), 0, 0)),
-                cube(f"{asset_id}:portafilter:{index}", (x + (.14 if x > 0 else -.14), -.36, 1.43), (.16, .025, .025), materials["steel_dark"], collection, .010),
-                cylinder(f"{asset_id}:spout:{index}", (x, -.35, 1.35), .016, .11, materials["chrome"], collection, 8),
-                cylinder(f"{asset_id}:control:{index}", (x, -.282, 1.55), .024, .025, materials["green" if index == 0 else "terracotta"], collection, 10, (radians(90), 0, 0)),
+                cylinder(f"{asset_id}:group-head:{index}", (x, -.282, 1.81), .085, .09, materials["chrome"], collection, 14, (radians(90), 0, 0)),
+                cylinder(f"{asset_id}:group-dark:{index}", (x, -.335, 1.81), .060, .035, materials["outline"], collection, 12, (radians(90), 0, 0)),
+                cube(f"{asset_id}:portafilter:{index}", (x + (.14 if x > 0 else -.14), -.36, 1.79), (.16, .025, .025), materials["steel_dark"], collection, .010),
+                cylinder(f"{asset_id}:spout:{index}", (x, -.35, 1.71), .016, .11, materials["chrome"], collection, 8),
+                cylinder(f"{asset_id}:control:{index}", (x, -.282, 1.91), .024, .025, materials["green" if index == 0 else "terracotta"], collection, 10, (radians(90), 0, 0)),
             ]
         parts += [
-            _active(cylinder(f"{asset_id}:state-active:coffee.L", (-.18, -.35, 1.30), .014, .19, materials["wood_dark"], collection, 8)),
-            _active(cylinder(f"{asset_id}:state-active:coffee.R", (.18, -.35, 1.30), .014, .19, materials["wood_dark"], collection, 8)),
-            _active(sphere(f"{asset_id}:state-active:steam", (.43, -.24, 1.88), (.06, .045, .12), materials["white_shadow"], collection)),
+            _active(cylinder(f"{asset_id}:state-active:coffee.L", (-.18, -.35, 1.66), .014, .19, materials["wood_dark"], collection, 8)),
+            _active(cylinder(f"{asset_id}:state-active:coffee.R", (.18, -.35, 1.66), .014, .19, materials["wood_dark"], collection, 8)),
+            _active(sphere(f"{asset_id}:state-active:steam", (.43, -.24, 2.24), (.06, .045, .12), materials["white_shadow"], collection)),
         ]
-        shadow_size = (.60, .53); visual_height = 1.95
+        shadow_size = (.60, .53); visual_height = 2.31
     elif family == "cauldron":
         parts = [
             cylinder(f"{asset_id}:pot", (0, 0, .61), .52, .76, materials["steel"], collection, 16),

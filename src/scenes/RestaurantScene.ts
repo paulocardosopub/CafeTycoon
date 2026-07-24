@@ -694,12 +694,12 @@ export class RestaurantScene extends Phaser.Scene {
     const uiOffset = characterUiOffset(assetId);
     visual.bubble.setPosition(Math.round(point.x), Math.round(point.y - uiOffset)).setDepth(isoDepth(position, 99));
     const expectedFacing = customer.path[0] ? directionBetween(customer.visual, customer.path[0], customer.direction) : customer.direction;
-    const baseLabel = customer.partySize > 1 ? `${this.simulation.customerLabel(customer)} · grupo ${customer.partySize}` : this.simulation.customerLabel(customer);
+    const baseLabel = this.simulation.customerLabel(customer);
     const label = `${baseLabel}\ngrid ${customer.position.x},${customer.position.y} · visual ${position.x.toFixed(2)},${position.y.toFixed(2)}\nface ${customer.direction} · esperado ${expectedFacing}\nmesa ${customer.tableId ?? '—'} · cadeira ${customer.seatId ?? '—'} · ${customer.state}`;
     visual.bubble.setText(this.technicalMode ? label : '').setVisible(this.technicalMode);
     visual.patience.clear().setDepth(isoDepth(position, 100));
     if (this.technicalMode && ['queueing', 'waiting_order', 'waiting_food', 'waiting_payment'].includes(customer.state)
-      && (customer.state !== 'queueing' || customer.partyIndex === 0)) {
+      && customer.state !== 'queueing') {
       const ratio = Phaser.Math.Clamp(customer.patience / customer.maxPatience, 0, 1);
       visual.patience.fillStyle(0x241a18, .65).fillRect(Math.round(point.x - 20), Math.round(point.y - uiOffset + 12), 40, 5);
       visual.patience.fillStyle(ratio > .45 ? 0x7d9b68 : ratio > .2 ? 0xf1c45b : 0xc94b3c, 1).fillRect(Math.round(point.x - 19), Math.round(point.y - uiOffset + 13), Math.round(38 * ratio), 3);

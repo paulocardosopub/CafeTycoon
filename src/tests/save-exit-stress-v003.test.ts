@@ -7,9 +7,21 @@ import { createDefaultState } from '../game/save/defaultState';
 import { migrateAndSanitizeSave } from '../game/save/migrations';
 import { RestaurantSimulation } from '../game/simulation/RestaurantSimulation';
 import { footprintContains } from '../assets/pixel/VisualMetrics';
+import { modulesFromFurniture } from '../game/systems/service-counter/ServiceCounterSystem';
 
 function fullState() {
   const state = createDefaultState(0);
+  state.restaurantOpen = true;
+  state.construction.placedFurniture = [
+    ...state.construction.placedFurniture.filter((item) => !item.definitionId.startsWith('dining.')),
+    { id: 'table:stress', definitionId: 'dining.table.basic', gridX: 8, gridY: 10, orientation: 'sw', skinId: 'table-oak', level: 1, state: {} },
+    { id: 'chair:stress:left', definitionId: 'dining.chair.basic', gridX: 7, gridY: 10, orientation: 'se', skinId: 'chair-wood', level: 1, state: { linkedTableId: 'table:stress' } },
+    { id: 'chair:stress:right', definitionId: 'dining.chair.basic', gridX: 9, gridY: 10, orientation: 'nw', skinId: 'chair-wood', level: 1, state: { linkedTableId: 'table:stress' } },
+    { id: 'counter:stress', definitionId: 'service.c1.isolated', gridX: 8, gridY: 6, orientation: 'sw', skinId: 'counter-forest', level: 1, state: {} },
+  ];
+  state.construction.serviceCounters = modulesFromFurniture(state.construction.placedFurniture);
+  state.construction.serviceCounters[0].assignedRecipeId = 'coffee';
+  state.construction.serviceCounters[0].currentQuantity = 100;
   for (const item of INGREDIENTS) state.inventory[item.id] = item.maxStock;
   state.readyDishes.coffee = 10;
   state.readyDishes.omelette = 10;
@@ -19,7 +31,8 @@ function fullState() {
 describe('save operacional e recuperação da saída', () => {
   it('salva e carrega durante um pedido sem duplicar pedido, prato ou pagamento', () => {
     const state = fullState(); const first = new RestaurantSimulation(state); first.debugSetAutoSpawn(false);
-    first.debugAddCustomer(); first.debugRunFor(12); first.prepareSave(100);
+    const random = vi.spyOn(Math, 'random').mockReturnValue(0);
+    first.debugSeatCustomersAtFirstTable(1); expect(first.debugSimulateOrder()).toBe(true); first.prepareSave(100); random.mockRestore();
     const savedOrders = first.orders.length; const coins = state.coins;
     const restoredState = migrateAndSanitizeSave(JSON.parse(JSON.stringify(state)), 100);
     const restored = new RestaurantSimulation(restoredState); restored.debugSetAutoSpawn(false); restored.debugRunFor(180);
@@ -59,7 +72,7 @@ describe('stress inicial controlado', () => {
     simulation.debugRunFor(120);
     const keys = simulation.tasks.list().map((task) => task.key);
     const occupiedIds = simulation.tables.flatMap((table) => table.chairs).map((seat) => seat.customerId).filter(Boolean);
-    expect(simulation.actors.filter((actor) => actor.kind !== 'player')).toHaveLength(4);
+    expect(simulation.actors.filter((actor) => actor.kind !== 'player')).toHaveLength(state.staff.instances.length);
     expect(new Set(keys).size).toBe(keys.length);
     expect(new Set(occupiedIds).size).toBe(occupiedIds.length);
     expect(simulation.customers.some((customer) => customer.state === 'entering')).toBe(false);
@@ -137,7 +150,7 @@ describe('reset completo do progresso', () => {
     const state = createDefaultState(10);
     state.coins = 777;
     state.stats.customersServed = 42;
-    const originalDining = state.construction.placedFurniture.filter((item) => item.definitionId.startsWith('dining.'));
+    const originalDining = fullState().construction.placedFurniture.filter((item) => item.definitionId.startsWith('dining.'));
     state.construction.placedFurniture = [
       ...state.construction.placedFurniture.filter((item) => !item.definitionId.startsWith('dining.')),
       { ...originalDining[0], id: 'table:qa-four' },
@@ -148,8 +161,8 @@ describe('reset completo do progresso', () => {
 
     const migrated = migrateAndSanitizeSave(JSON.parse(JSON.stringify(state)), 30);
     expect(migrated.construction.placedFurniture.some((item) => item.id.includes(':qa-'))).toBe(false);
-    expect(migrated.construction.placedFurniture.filter((item) => item.definitionId === 'dining.table.basic')).toHaveLength(1);
-    expect(migrated.construction.placedFurniture.filter((item) => item.definitionId === 'dining.chair.basic')).toHaveLength(2);
+    expect(migrated.construction.placedFurniture.filter((item) => item.definitionId === 'dining.table.basic')).toHaveLength(0);
+    expect(migrated.construction.placedFurniture.filter((item) => item.definitionId === 'dining.chair.basic')).toHaveLength(0);
     expect(migrated.operation).toBeUndefined();
     expect(migrated.coins).toBe(777);
     expect(migrated.stats.customersServed).toBe(42);
