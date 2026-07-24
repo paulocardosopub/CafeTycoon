@@ -4,7 +4,7 @@ import { RECIPES } from '../content/recipes/recipes';
 import { EXPANSIONS } from '../game/data/expansions';
 import { FURNITURE_BY_ID, FURNITURE_DEFINITIONS } from '../game/data/furniture/catalog';
 import { STAFF_BY_ID, STAFF_CATALOG } from '../game/data/staff';
-import { ConstructionEditor, type EditorResult } from '../game/systems/construction/ConstructionEditor';
+import { ConstructionEditor, furniturePurchasePrice, furniturePurchaseTotal, type EditorResult } from '../game/systems/construction/ConstructionEditor';
 import type { SaveRepository } from '../game/save/SaveRepository';
 import type { RestaurantSimulation } from '../game/simulation/RestaurantSimulation';
 import { availableStaffFurniture, staffFurnitureRequirement } from '../game/systems/construction/StaffStartSystem';
@@ -227,7 +227,8 @@ export class ConstructionShop {
     }
     if (action === 'confirm-tutorial-kit') {
       const missing = this.missingTutorialSetupItems();
-      const total = missing.reduce((sum, item) => sum + FURNITURE_BY_ID[item.definitionId].price, 0);
+      const owned = [...this.editor.draft.construction.placedFurniture, ...this.editor.draft.construction.storedFurniture];
+      const total = furniturePurchaseTotal(missing.map((item) => item.definitionId), owned);
       if (this.editor.draft.coins < total) { this.setStatus(`Faltam ${total - this.editor.draft.coins} moedas para o kit inicial.`, 'warning'); return; }
       for (const item of missing) {
         const result = this.editor.purchase(item.definitionId);
@@ -542,20 +543,21 @@ export class ConstructionShop {
     }).join('');
     const selectedShopDefinition = this.selectedShopDefinitionId ? FURNITURE_BY_ID[this.selectedShopDefinitionId] : undefined;
     const pendingPurchase = this.pendingPurchaseDefinitionId ? FURNITURE_BY_ID[this.pendingPurchaseDefinitionId] : undefined;
+    const ownedFurniture = [...draft.construction.placedFurniture, ...draft.construction.storedFurniture];
     const missingTutorialItems = this.tutorialGuidanceActive() ? this.missingTutorialSetupItems() : [];
-    const tutorialKitTotal = missingTutorialItems.reduce((sum, item) => sum + FURNITURE_BY_ID[item.definitionId].price, 0);
+    const tutorialKitTotal = furniturePurchaseTotal(missingTutorialItems.map((item) => item.definitionId), ownedFurniture);
     const tutorialKit = missingTutorialItems.length ? `<section class="tutorial-shop-kit"><div><small>TUTORIAL · COMPRA RÁPIDA</small><strong>Kit inicial completo</strong><p>Balcão, Pia, Cafeteira, Mesa e 2 Bancos em uma única confirmação.</p></div><button data-editor-action="purchase-tutorial-kit" ${draft.coins < tutorialKitTotal ? 'disabled' : ''}>Comprar tudo · ${tutorialKitTotal}</button></section>` : '';
     const tutorialPlacements = this.tutorialPlacementQueue();
     const tutorialPlacementGuide = this.mode === 'organize' && tutorialPlacements.length ? `<section class="tutorial-placement-guide tutorial-placement-floating"><small>TUTORIAL · POSICIONAMENTO RÁPIDO</small><strong>Monte o restaurante em um clique</strong><span>Clique abaixo para colocar Balcão, Pia, Cafeteira, Mesa e 2 Bancos nos locais recomendados.</span><button data-editor-action="tutorial-place-all">Colocar kit completo nos locais recomendados</button></section>` : '';
     const shopCatalog = `
       ${tutorialKit}
       <div class="catalog-tabs">${GROUPS.map((group) => `<button data-editor-action="category" data-id="${group.id}" class="${this.group === group.id ? 'active' : ''}">${group.label}</button>`).join('')}</div>
-      <div class="catalog-items">${visibleCatalog.length ? visibleCatalog.map((definition) => `<article class="catalog-card shop-card ${this.selectedShopDefinitionId === definition.id ? 'selected' : ''}">
+      <div class="catalog-items">${visibleCatalog.length ? visibleCatalog.map((definition) => { const price = furniturePurchasePrice(definition, ownedFurniture); return `<article class="catalog-card shop-card ${this.selectedShopDefinitionId === definition.id ? 'selected' : ''}">
         <button class="shop-card-info" data-editor-action="shop-info" data-id="${definition.id}" ${definition.level > this.state.restaurantLevel ? 'disabled' : ''}><img src="${thumbnail(definition.spriteSet.sw)}" alt=""/><span><small>${definition.code} · ${definition.footprintWidth}×${definition.footprintDepth}</small><b>${escapeHtml(definition.name)}</b><em>${escapeHtml(furniturePurpose(definition.functionId))}</em></span></button>
-        <p>${escapeHtml(furnitureDescription(definition.id, definition.functionId))}</p><button class="shop-buy" data-editor-action="purchase" data-id="${definition.id}" ${definition.level > this.state.restaurantLevel || draft.coins < definition.price ? 'disabled' : ''}>Comprar · ${definition.price} moedas</button>
-      </article>`).join('') : '<p class="catalog-empty">Nenhum móvel funcional nesta categoria por enquanto.</p>'}</div>
+        <p>${escapeHtml(furnitureDescription(definition.id, definition.functionId))}</p><button class="shop-buy" data-editor-action="purchase" data-id="${definition.id}" ${definition.level > this.state.restaurantLevel || draft.coins < price ? 'disabled' : ''}>Comprar · ${price} moedas</button>
+      </article>`; }).join('') : '<p class="catalog-empty">Nenhum móvel funcional nesta categoria por enquanto.</p>'}</div>
       ${selectedShopDefinition ? `<section class="shop-detail"><strong>${escapeHtml(selectedShopDefinition.name)}</strong><span>${escapeHtml(furniturePurpose(selectedShopDefinition.functionId))}</span><p>${escapeHtml(furnitureDescription(selectedShopDefinition.id, selectedShopDefinition.functionId))}</p></section>` : ''}
-      ${pendingPurchase ? `<div class="shop-purchase-confirm" role="dialog" aria-modal="true"><section><small>CONFIRMAR COMPRA</small><img src="${thumbnail(pendingPurchase.spriteSet.sw)}" alt=""/><strong>${escapeHtml(pendingPurchase.name)}</strong><p>${pendingPurchase.price} moedas serão descontadas uma única vez. O item ficará guardado.</p><div><button data-editor-action="cancel-purchase">Cancelar</button><button class="primary" data-editor-action="confirm-purchase">Confirmar compra</button></div></section></div>` : ''}
+      ${pendingPurchase ? `<div class="shop-purchase-confirm" role="dialog" aria-modal="true"><section><small>CONFIRMAR COMPRA</small><img src="${thumbnail(pendingPurchase.spriteSet.sw)}" alt=""/><strong>${escapeHtml(pendingPurchase.name)}</strong><p>${furniturePurchasePrice(pendingPurchase, ownedFurniture)} moedas serão descontadas uma única vez. O item ficará guardado.</p><div><button data-editor-action="cancel-purchase">Cancelar</button><button class="primary" data-editor-action="confirm-purchase">Confirmar compra</button></div></section></div>` : ''}
       ${this.pendingTutorialKitPurchase ? `<div class="shop-purchase-confirm" role="dialog" aria-modal="true"><section><small>CONFIRMAR KIT INICIAL</small><strong>6 itens essenciais</strong><p>${tutorialKitTotal} moedas serão descontadas uma única vez. Depois, um único clique colocará todos nos locais recomendados.</p><div><button data-editor-action="cancel-tutorial-kit">Cancelar</button><button class="primary" data-editor-action="confirm-tutorial-kit">Confirmar kit</button></div></section></div>` : ''}
       ${unavailableCatalog.length ? `<details class="unavailable-catalog"><summary>Indisponíveis por enquanto (${unavailableCatalog.length})</summary><p>Alternativas sem função exclusiva nas receitas atuais.</p><div class="catalog-items unavailable-items">${unavailableCatalog.map((definition) => `<button class="catalog-card" disabled><img src="${thumbnail(definition.spriteSet.sw)}" alt=""/><span><small>${definition.code} · futuro</small><b>${escapeHtml(definition.name)}</b><em>Indisponível</em></span></button>`).join('')}</div></details>` : ''}`;
     const organizeCatalog = `<section class="organize-owned"><h2>Seus itens</h2><p>Somente móveis que você já comprou ou guardou aparecem aqui.</p><div class="stored-list">${stored || '<p>Nenhum item guardado. Compre um item na Loja para vê-lo aqui.</p>'}</div></section>`;

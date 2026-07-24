@@ -1,5 +1,5 @@
 import type {
-  ConstructionSaveState, Direction, ExpansionDefinition, FurnitureEditSession, GameState, PlacedFurniture, RecipeId, StaffStartPosition,
+  ConstructionSaveState, Direction, ExpansionDefinition, FurnitureDefinition, FurnitureEditSession, GameState, PlacedFurniture, RecipeId, StaffStartPosition,
 } from '../../../core/types';
 import { createPersistentId } from '../../../core/id';
 import { EXPANSION_BY_ID, RESTAURANT_EXPANSION_ORIGINS } from '../../data/expansions';
@@ -18,6 +18,26 @@ export interface ConstructionDraft {
 }
 
 export interface EditorResult { ok: boolean; reason?: string; warnings?: string[] }
+
+const SCALABLE_FURNITURE_FUNCTIONS = new Set(['pickup', 'sink', 'stove', 'oven', 'coffee_machine', 'cauldron', 'grill', 'fryer', 'cold_prep', 'beverage', 'wok', 'pastry', 'assembly']);
+
+/** The shop and the transaction both use this quote: the shown price is the charged price. */
+export function furniturePurchasePrice(definition: FurnitureDefinition, ownedFurniture: readonly Pick<PlacedFurniture, 'definitionId'>[]): number {
+  const owned = ownedFurniture.filter((item) => FURNITURE_BY_ID[item.definitionId]?.functionId === definition.functionId).length;
+  const multiplier = SCALABLE_FURNITURE_FUNCTIONS.has(definition.functionId ?? '') ? ([1, 1.5, 2, 2.75, 3.5] as const)[Math.min(4, owned)] : 1;
+  return Math.round(definition.price * multiplier / 50) * 50;
+}
+
+export function furniturePurchaseTotal(definitionIds: readonly string[], ownedFurniture: readonly Pick<PlacedFurniture, 'definitionId'>[]): number {
+  const simulatedOwned = [...ownedFurniture];
+  return definitionIds.reduce((total, definitionId) => {
+    const definition = FURNITURE_BY_ID[definitionId];
+    if (!definition) return total;
+    const price = furniturePurchasePrice(definition, simulatedOwned);
+    simulatedOwned.push({ definitionId });
+    return total + price;
+  }, 0);
+}
 
 export class ConstructionEditor {
   private readonly original: ConstructionDraft;
@@ -139,11 +159,7 @@ export class ConstructionEditor {
         .filter((item) => FURNITURE_BY_ID[item.definitionId]?.functionId === 'pickup').length;
       if (ownedCounters >= 10) return { ok: false, reason: 'Limite temporário de 10 balcões de serviço atingido.' };
     }
-    const owned = [...this.current.construction.placedFurniture, ...this.current.construction.storedFurniture]
-      .filter((item) => FURNITURE_BY_ID[item.definitionId]?.functionId === definition.functionId).length;
-    const scalable = ['pickup', 'sink', 'stove', 'oven', 'coffee_machine', 'cauldron', 'grill', 'fryer', 'cold_prep', 'beverage', 'wok', 'pastry', 'assembly'].includes(definition.functionId ?? '');
-    const multiplier = scalable ? ([1, 1.5, 2, 2.75, 3.5] as const)[Math.min(4, owned)] : 1;
-    const price = Math.round(definition.price * multiplier / 50) * 50;
+    const price = furniturePurchasePrice(definition, [...this.current.construction.placedFurniture, ...this.current.construction.storedFurniture]);
     if (this.current.coins < price) return { ok: false, reason: 'Moedas insuficientes.' };
     const orientation: Direction = 'sw';
     const item: PlacedFurniture = {

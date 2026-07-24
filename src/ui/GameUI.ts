@@ -15,7 +15,7 @@ import { STAFF_BY_ID, STAFF_CANDIDATES } from '../game/data/staff';
 import { cancelTraining, dismissStaff, estimatedPayrollCost, hireStaff, setStaffEnabled, startTraining } from '../game/staff/StaffService';
 import { planStorageAllocation, storageCapacityByType, storageUsed } from '../game/inventory/StorageService';
 import { approvePurchaseRequest, cancelPurchaseRequest, createPurchaseRequest, evaluateAutoPurchases } from '../game/inventory/ProcurementService';
-import { cancelProductionPlan, createProductionPlan, pauseProductionPlan, preparedQuantity, setRecipeRepeat } from '../game/cooking/ProductionPlanningService';
+import { cancelProductionPlan, createProductionPlan, pauseProductionPlan, preparedQuantity, productionBatchCost, setRecipeRepeat } from '../game/cooking/ProductionPlanningService';
 import { FURNITURE_BY_ID } from '../game/data/furniture/catalog';
 import { availableStaffFurniture, staffFurnitureRequirement } from '../game/systems/construction/StaffStartSystem';
 import { recipeRequirements } from '../game/recipes/RecipeAvailability';
@@ -522,7 +522,8 @@ export class GameUI {
         ? `<article class="production-locked"><header><span>${recipeVisual(recipe.id)}</span><div><strong>${recipe.name}</strong><small>Bloqueada · ${escapeHtml(missing.join(' + '))}</small></div></header></article>`
         : (() => {
           const repeating = this.state.production.plans.some((plan) => plan.recipeId === recipe.id && plan.repeat && plan.enabled);
-          return `<article><header><span>${recipeVisual(recipe.id)}</span><div><strong>${recipe.name}</strong></div></header><div class="production-meta"><span><b>×${recipe.batchYield}</b><small>Porções</small></span><span><b>◷ ${formatDuration(productionBatchDuration(this.state, recipe.id))}</b><small>Tempo</small></span></div><div class="production-requirement" aria-label="Profissional e estação necessários"><strong>${escapeHtml(recipe.requiredSpecialties.join(' + '))}</strong><span>${escapeHtml(stationNames.join(' + '))}</span></div><div class="plan-options"><label>Custo<strong>${recipe.batchCost} ●</strong></label><label>Faturamento<strong>${recipe.grossRevenue} ●</strong></label><label>Lucro<strong>${recipe.estimatedProfit} ●</strong></label></div><input id="qty-${recipe.id}" type="hidden" value="${recipe.batchYield}"/><input id="batch-${recipe.id}" type="hidden" value="${recipe.batchYield}"/><input id="priority-${recipe.id}" type="hidden" value="50"/><select id="mode-${recipe.id}" hidden><option value="singleBatch">Lote único</option></select><div class="production-actions"><button class="primary-button" data-action="create-production-plan" data-id="${recipe.id}">Produzir lote</button><button class="repeat-recipe ${repeating ? 'active' : ''}" data-action="toggle-recipe-repeat" data-id="${recipe.id}" data-enabled="${!repeating}" title="${repeating ? 'Parar repetição' : 'Repetir continuamente'}" aria-label="${repeating ? 'Parar repetição de ' : 'Repetir continuamente '}${escapeHtml(recipe.name)}">↻</button></div>${repeating ? '<small class="repeat-status">↻ Repetição contínua ativa</small>' : ''}</article>`;
+          const cost = productionBatchCost(this.state, recipe.id);
+          return `<article><header><span>${recipeVisual(recipe.id)}</span><div><strong>${recipe.name}</strong></div></header><div class="production-meta"><span><b>×${recipe.batchYield}</b><small>Porções</small></span><span><b>◷ ${formatDuration(productionBatchDuration(this.state, recipe.id))}</b><small>Tempo</small></span></div><div class="production-requirement" aria-label="Profissional e estação necessários"><strong>${escapeHtml(recipe.requiredSpecialties.join(' + '))}</strong><span>${escapeHtml(stationNames.join(' + '))}</span></div><div class="plan-options"><label>Custo<strong>${cost} ●</strong></label><label>Faturamento<strong>${recipe.grossRevenue} ●</strong></label><label>Lucro<strong>${recipe.grossRevenue - cost} ●</strong></label></div><input id="qty-${recipe.id}" type="hidden" value="${recipe.batchYield}"/><input id="batch-${recipe.id}" type="hidden" value="${recipe.batchYield}"/><input id="priority-${recipe.id}" type="hidden" value="50"/><select id="mode-${recipe.id}" hidden><option value="singleBatch">Lote único</option></select><div class="production-actions"><button class="primary-button" data-action="create-production-plan" data-id="${recipe.id}">Produzir lote</button><button class="repeat-recipe ${repeating ? 'active' : ''}" data-action="toggle-recipe-repeat" data-id="${recipe.id}" data-enabled="${!repeating}" title="${repeating ? 'Parar repetição' : 'Repetir continuamente'}" aria-label="${repeating ? 'Parar repetição de ' : 'Repetir continuamente '}${escapeHtml(recipe.name)}">↻</button></div>${repeating ? '<small class="repeat-status">↻ Repetição contínua ativa</small>' : ''}</article>`;
         })();
       return { html, locked:Boolean(missing.length), level:recipe.requiredLevel };
     }).sort((a,b)=>Number(a.locked)-Number(b.locked)||a.level-b.level).map((entry)=>entry.html).join('');
@@ -760,7 +761,7 @@ export class GameUI {
     if (result.ok) {
       this.state.tutorial006.currentStep = Math.max(this.state.tutorial006.currentStep, 8);
       const recipe = RECIPE_BY_ID[id];
-      this.toast(`Lote de ${recipe.batchYield} porções iniciado por ${recipe.batchCost} moedas.`, 'success');
+      this.toast(`Lote de ${recipe.batchYield} porções iniciado por ${productionBatchCost(this.state, recipe.id)} moedas.`, 'success');
     } else this.toast(result.reason ?? 'Plano inválido.', 'warning');
     this.renderPanel();
   }

@@ -75,6 +75,27 @@ describe('capacidade e assentos individuais', () => {
     random.mockRestore();
     expect(simulation.orders.at(-1)?.recipeId).toBe('omelette');
   });
+  it('não entrega nem suja a cadeira quando a porção reservada some do balcão', () => {
+    const state = createDefaultState(0); state.restaurantLevel = 15; installSixSeatLayout(state);
+    state.construction.placedFurniture.push({ id: 'counter:missing-food', definitionId: 'service.c1.isolated', gridX: 8, gridY: 6, orientation: 'sw', skinId: 'counter-forest', level: 1, state: {} });
+    state.construction.serviceCounters = modulesFromFurniture(state.construction.placedFurniture);
+    const simulation = new RestaurantSimulation(state); simulation.debugSetAutoSpawn(false);
+    const counter = simulation.counterModules[0]; counter.assignedRecipeId = 'omelette'; counter.currentQuantity = 1; counter.reservedQuantity = 0;
+    const customer = simulation.debugSeatCustomersAtFirstTable(1)[0];
+    const random = vi.spyOn(Math, 'random').mockReturnValue(0);
+    expect(simulation.debugSimulateOrder()).toBe(true);
+    const order = simulation.orders.at(-1)!;
+    expect(order.state).toBe('awaiting_pickup');
+    counter.currentQuantity = 0; counter.reservedQuantity = 0;
+    simulation.debugRunFor(8);
+    random.mockRestore();
+    const seat = simulation.tables.flatMap((table) => table.chairs).find((item) => item.seatId === customer.seatId)!;
+    expect(order.state).toBe('cancelled');
+    expect(customer.state).not.toBe('eating');
+    expect(customer.paymentCompleted).toBeFalsy();
+    expect(seat.state).not.toBe('dirty');
+    expect(simulation.state.stats.customersServed).toBe(0);
+  });
   it('calcula seis vagas pelas duas cadeiras opostas de cada mesa', () => {
     const simulation = stockedSimulation();
     expect(simulation.tables).toHaveLength(3);

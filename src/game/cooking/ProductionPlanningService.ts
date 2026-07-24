@@ -70,7 +70,7 @@ export function createProductionPlan(state: GameState, input: CreateProductionPl
     .flatMap((instance) => STAFF_BY_ID[instance.definitionId]?.specialties ?? []));
   const missingSpecialties = recipe.requiredSpecialties.filter((specialty) => !availableSpecialties.has(specialty));
   if (missingSpecialties.length) return { ok: false, reason: `Lote não iniciado: contrate ${missingSpecialties.join(' + ')}.` };
-  const productionCost = productionCostFor(state, input.recipeId);
+  const productionCost = productionBatchCost(state, input.recipeId);
   if (state.coins < productionCost) return { ok: false, reason: `Saldo insuficiente: faltam ${productionCost - state.coins} moedas. O lote custa ${productionCost}.` };
   const targetQuantity = recipe.batchYield;
   const batchSize = recipe.batchYield;
@@ -175,7 +175,7 @@ export function completeProductionTask(state: GameState, taskId: string, counter
   state.restaurantXp += RECIPE_BY_ID[task.recipeId].experience;
   task.state = 'completed'; task.completedAt = now; task.completionClaimed = true; task.blockedReason = undefined; task.reservedIngredients = {}; task.outputReservations = [];
   if (plan?.repeat && plan.enabled) {
-    const nextCost = productionCostFor(state, task.recipeId);
+    const nextCost = productionBatchCost(state, task.recipeId);
     if (state.coins >= nextCost) {
       state.coins -= nextCost;
       plan.chargedCost = (plan.chargedCost ?? 0) + nextCost;
@@ -297,6 +297,6 @@ function trimProductionTasks(tasks: ProductionTask[]): ProductionTask[] {
 }
 
 function planPriority(state: Pick<GameState, 'production'>, planId: string): number { return state.production.plans.find((plan) => plan.id === planId)?.priority ?? 0; }
-function productionCostFor(state: GameState, recipeId: RecipeId): number { return Math.max(1, Math.round(RECIPE_BY_ID[recipeId].batchCost * (1 - Math.min(.3, state.upgrades.inventory * .05)))); }
+export function productionBatchCost(state: GameState, recipeId: RecipeId): number { return Math.max(1, Math.round(RECIPE_BY_ID[recipeId].batchCost * (1 - Math.min(.3, state.upgrades.inventory * .05)))); }
 function clampQuantity(value: number): number { return Math.max(1, Math.min(BALANCE.production.maximumQuantity, Math.floor(Number(value) || 1))); }
 function clampBatch(value: number): number { return Math.max(1, Math.min(BALANCE.production.maximumBatchSize, Math.floor(Number(value) || 1))); }

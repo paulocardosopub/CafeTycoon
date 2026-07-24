@@ -911,7 +911,14 @@ export class RestaurantSimulation {
   private collectDish(actor: WorkerActor, orderId: string): void {
     const order = this.orderFor(orderId); const slot = order ? this.slotForOrder(order.id) : undefined;
     if (!order || order.state !== 'awaiting_pickup' || !slot || slot.state !== 'occupied') return;
-    this.consumeCounterSlot(slot); order.state = 'transporting'; order.assignedActorId = actor.id; actor.carrying = 'dish'; actor.carryingOrderId = order.id;
+    // A reservation can become stale after a counter is edited, a save is
+    // restored, or another recovery path clears stock. Never let the waiter
+    // carry a visual plate unless the reserved portion was actually consumed.
+    if (!this.consumeCounterSlot(slot)) {
+      this.returnOrderToWaiting(order);
+      return;
+    }
+    order.state = 'transporting'; order.assignedActorId = actor.id; actor.carrying = 'dish'; actor.carryingOrderId = order.id;
     const seat = this.seatFor(order.seatId);
     if (!seat) { this.storeFinishedDish(order); order.state = 'cancelled'; return; }
     const nextTask = this.tasks.add({
@@ -1456,9 +1463,22 @@ export class RestaurantSimulation {
     if (slot.stockReservation?.length) this.counterStore.release(slot.stockReservation);
     slot.state = 'free'; slot.orderId = undefined; slot.reservedBy = undefined; slot.recipeId = undefined; slot.quantity = 0; slot.stockReservation = undefined;
   }
-  private consumeCounterSlot(slot: CounterSlotRuntime): void {
-    if (slot.stockReservation?.length) this.counterStore.consume(slot.stockReservation);
+  private consumeCounterSlot(slot: CounterSlotRuntime): boolean {
+    if (!slot.stockReservation?.length) { this.clearCounterSlot(slot); return false; }
+    const consumed = this.counterStore.consume(slot.stockReservation);
+    if (!consumed) { this.clearCounterSlot(slot); return false; }
     slot.state = 'free'; slot.orderId = undefined; slot.reservedBy = undefined; slot.recipeId = undefined; slot.quantity = 0; slot.stockReservation = undefined;
+    return true;
+  }
+  private returnOrderToWaiting(order: OrderRuntime): void {
+    const customer = this.customerFor(order.customerId); const seat = this.seatFor(order.seatId); const table = this.tableFor(order.tableId);
+    order.counterSlotId = undefined; order.state = 'cancelled';
+    if (customer?.orderId === order.id) customer.orderId = undefined;
+    if (seat?.orderId === order.id) seat.orderId = undefined;
+    if (customer && seat?.customerId === customer.id && customer.state === 'waiting_food') {
+      seat.state = 'waiting_order'; this.setCustomerState(customer, 'waiting_order');
+    }
+    if (table) this.refreshTableState(table);
   }
   private slotForOrder(orderId: string): CounterSlotRuntime | undefined { return this.counterSlots.find((slot) => slot.orderId === orderId); }
   private storeFinishedDish(order: OrderRuntime): void {

@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import type { PlacedFurniture } from '../core/types';
 import { createDefaultState } from '../game/save/defaultState';
-import { ConstructionEditor } from '../game/systems/construction/ConstructionEditor';
+import { ConstructionEditor, furniturePurchasePrice, furniturePurchaseTotal } from '../game/systems/construction/ConstructionEditor';
 import { occupiedCells, orientedFootprint, resolvedWorkSlots, validateFurniturePlacement } from '../game/systems/furniture/FurniturePlacement';
 import { FURNITURE_BY_ID } from '../game/data/furniture/catalog';
 import { calculateCounterConnections, modulesFromFurniture, ServiceCounterStore } from '../game/systems/service-counter/ServiceCounterSystem';
@@ -138,6 +138,18 @@ describe('editor físico e loja da 0.0.5', () => {
     expect(stored.definitionId).toBe('dining.chair.basic');
     expect(editor.place(stored.definitionId, 13, 12, 'sw', undefined, stored.id).ok).toBe(true);
     expect(editor.draft.construction.storedFurniture.some((entry) => entry.id === stored.id)).toBe(false);
+  });
+
+  it('cobra exatamente o preço exibido pela Loja, incluindo multiplicadores de unidades repetidas', () => {
+    const state = createDefaultState(0); state.coins = 900;
+    const editor = new ConstructionEditor(state);
+    const counter = FURNITURE_BY_ID['service.c1.isolated'];
+    expect(furniturePurchasePrice(counter, [])).toBe(700);
+    expect(editor.purchase(counter.id).ok).toBe(true);
+    expect(editor.draft.coins).toBe(200);
+    const owned = editor.draft.construction.storedFurniture;
+    expect(furniturePurchasePrice(counter, owned)).toBe(1050);
+    expect(furniturePurchaseTotal([counter.id], owned)).toBe(1050);
   });
 
   it('cancela transacionalmente e confirma apenas um restaurante operável', () => {
