@@ -43,6 +43,36 @@ describe('save operacional e recuperação da saída', () => {
     expect(restored.activeCustomerCount()).toBe(0);
   });
 
+  it('descarta um prato fantasma salvo, libera o garÃ§om e deixa o cliente perder a paciÃªncia sem sujar a cadeira', () => {
+    const state = fullState(); const simulation = new RestaurantSimulation(state); simulation.debugSetAutoSpawn(false);
+    const random = vi.spyOn(Math, 'random').mockReturnValue(0);
+    const customer = simulation.debugSeatCustomersAtFirstTable(1)[0];
+    expect(simulation.debugSimulateOrder()).toBe(true);
+    random.mockRestore();
+    const order = simulation.orders.at(-1)!;
+    // Reproduz saves antigos/interrompidos: havia uma entrega em curso, mas a
+    // porÃ§Ã£o jÃ¡ nÃ£o existe no balcÃ£o nem foi retirada de verdade.
+    order.state = 'transporting';
+    const waiter = simulation.actors.find((actor) => actor.kind === 'player')!;
+    waiter.carrying = 'dish'; waiter.carryingOrderId = order.id;
+    const counter = simulation.counterModules[0]; counter.currentQuantity = 0; counter.reservedQuantity = 0;
+    state.readyDishes.coffee = 0;
+    for (const ingredient of INGREDIENTS) state.inventory[ingredient.id] = 0;
+    simulation.prepareSave(100);
+
+    const restoredState = migrateAndSanitizeSave(JSON.parse(JSON.stringify(state)), 100);
+    const restored = new RestaurantSimulation(restoredState); restored.debugSetAutoSpawn(false);
+    expect(restored.actors.every((actor) => actor.carrying !== 'dish')).toBe(true);
+    expect(restored.counterModules[0].currentQuantity).toBe(0);
+    expect(restored.orders.find((item) => item.id === order.id)?.state).toBe('awaiting_station');
+    const restoredCustomer = restored.customers.find((item) => item.id === customer.id)!;
+    expect(restoredCustomer.state).toBe('waiting_food');
+    restored.debugReducePatience(); restored.debugRunFor(12);
+    expect(restored.state.stats.customersServed).toBe(0);
+    expect(restored.state.stats.customersLost).toBe(1);
+    expect(restored.tables.flatMap((table) => table.chairs).every((seat) => seat.state !== 'dirty')).toBe(true);
+  });
+
   it('remove com segurança um cliente sem rota e libera todas as referências', () => {
     const state = fullState(); const simulation = new RestaurantSimulation(state); simulation.debugSetAutoSpawn(false);
     const customer = simulation.debugAddCustomer()!; simulation.debugRunFor(15);

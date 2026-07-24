@@ -123,10 +123,10 @@ describe('capacidade e assentos individuais', () => {
     expect(table.chairs.filter((seat) => seat.state === 'free').length).toBe(table.chairs.length - 1);
     simulation.debugBeginDeparture(first);
     const dirty = table.chairs.filter((seat) => seat.state === 'dirty');
-    expect(dirty).toHaveLength(1);
-    expect(table.chairs.filter((seat) => seat.state === 'free').length).toBe(table.chairs.length - 1);
+    expect(dirty).toHaveLength(0);
+    expect(table.chairs.filter((seat) => seat.state === 'free').length).toBe(table.chairs.length);
     simulation.debugRunFor(20);
-    expect(dirty[0].state).toBe('free');
+    expect(table.chairs.every((seat) => seat.state === 'free')).toBe(true);
   });
 });
 

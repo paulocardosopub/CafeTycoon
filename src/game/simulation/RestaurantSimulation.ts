@@ -102,6 +102,8 @@ export interface OrderRuntime {
   counterSlotId?: string;
   paymentCompleted: boolean;
   serviceStartedAt?: number;
+  /** Set only after a real counter reservation was consumed. */
+  portionConsumedAt?: number;
   deliveredAt?: number;
   tipEvaluated?: boolean;
   tipGranted?: boolean;
@@ -540,16 +542,22 @@ export class RestaurantSimulation {
   private cleanupCustomerReferences(customer: CustomerRuntime): void {
     if (customer.cleanupCompleted) return;
     const table = this.tableFor(customer.tableId); const seat = this.seatFor(customer.seatId);
+    // A guest who loses patience before eating leaves an untouched chair.
+    const order = this.orderFor(customer.orderId);
+    const needsCleaning = order?.state === 'consumed' || customer.state === 'eating' || customer.state === 'paying';
     this.cancelTasksForCustomer(customer.id);
     if (seat && seat.customerId === customer.id) {
-      seat.customerId = undefined; seat.reservationId = undefined; seat.state = 'dirty';
-      const tableId = seat.tableId;
-      const sink = this.sinkForCleaning();
-      this.tasks.add({
-        key: `clean:${seat.seatId}`, kind: 'clean', role: 'cleaning', target: sink?.interaction ?? seat.approach,
-        duration: BALANCE.actionSeconds.clean, priority: 82, payload: this.cleanTaskPayload(tableId, seat.seatId, customer.id),
-        reservations: [{ type: 'seat', id: seat.seatId }],
-      }, this.simulationTime);
+      seat.customerId = undefined; seat.reservationId = undefined;
+      if (needsCleaning) {
+        seat.state = 'dirty';
+        const tableId = seat.tableId;
+        const sink = this.sinkForCleaning();
+        this.tasks.add({
+          key: `clean:${seat.seatId}`, kind: 'clean', role: 'cleaning', target: sink?.interaction ?? seat.approach,
+          duration: BALANCE.actionSeconds.clean, priority: 82, payload: this.cleanTaskPayload(tableId, seat.seatId, customer.id),
+          reservations: [{ type: 'seat', id: seat.seatId }],
+        }, this.simulationTime);
+      } else seat.state = 'free';
     }
     if (table) this.refreshTableState(table);
     customer.tableId = undefined; customer.seatId = undefined; customer.chairIds = []; customer.cleanupCompleted = true;
@@ -573,6 +581,7 @@ export class RestaurantSimulation {
     const slot = this.slotForOrder(order.id);
     if (!slot && order.state === 'transporting') this.storeFinishedDish(order);
     if (slot) this.clearCounterSlot(slot);
+    this.clearDishCarrier(order.id);
     order.state = 'cancelled';
   }
 
@@ -703,7 +712,6 @@ export class RestaurantSimulation {
     }
     actor.taskId = task.id; actor.path = path; actor.pathStatus = path.length ? 'moving' : 'arrived';
     if (path.length) this.tasks.markMoving(task.id, actor.id);
-    if (task.kind === 'deliver' && task.payload.deliveryStage === 'serve') { actor.carrying = 'dish'; actor.carryingOrderId = String(task.payload.orderId); }
     if (task.kind === 'stock_support' || (task.kind === 'restock_purchase' && task.payload.restockStage === 'inbound')) actor.carrying = 'ingredients';
     if (task.kind === 'restock_purchase') setPurchaseRequestStage(this.state, String(task.payload.purchaseRequestId), task.payload.restockStage === 'inbound' ? 'delivering' : 'purchasing', actor.id, Date.now());
     if (task.kind === 'production_batch') {
@@ -918,22 +926,31 @@ export class RestaurantSimulation {
       this.returnOrderToWaiting(order);
       return;
     }
+    order.portionConsumedAt = this.simulationTime;
     order.state = 'transporting'; order.assignedActorId = actor.id; actor.carrying = 'dish'; actor.carryingOrderId = order.id;
     const seat = this.seatFor(order.seatId);
     if (!seat) { this.storeFinishedDish(order); order.state = 'cancelled'; return; }
-    const nextTask = this.tasks.add({
+    const nextTask = this.createServeDelivery(order);
+    if (nextTask) actor.preferredTaskId = nextTask.id;
+  }
+
+  private createServeDelivery(order: OrderRuntime): RestaurantTask | undefined {
+    const seat = this.seatFor(order.seatId);
+    if (!seat) return undefined;
+    return this.tasks.add({
       key: `deliver:${order.id}:serve`, kind: 'deliver', role: 'service', target: seat.servicePoint,
       duration: Math.max(1.2, BALANCE.actionSeconds.deliver / 2), priority: 110,
       payload: { orderId: order.id, customerId: order.customerId, tableId: order.tableId, seatId: order.seatId, deliveryStage: 'serve' },
       reservations: [{ type: 'seat', id: order.seatId }],
     }, this.simulationTime);
-    actor.preferredTaskId = nextTask.id;
   }
 
   private serveDish(actor: WorkerActor, orderId: string): void {
     const order = this.orderFor(orderId); const customer = order ? this.customerFor(order.customerId) : undefined; const seat = order ? this.seatFor(order.seatId) : undefined; const table = order ? this.tableFor(order.tableId) : undefined;
+    const carriesThisOrder = actor.carrying === 'dish' && actor.carryingOrderId === orderId;
     actor.carrying = undefined; actor.carryingOrderId = undefined;
     if (!order || order.state !== 'transporting') return;
+    if (!carriesThisOrder || order.portionConsumedAt === undefined) { this.returnOrderToWaiting(order); return; }
     if (!customer || !seat || !table || customer.state !== 'waiting_food' || seat.customerId !== customer.id) { this.storeFinishedDish(order); order.state = 'cancelled'; return; }
     order.state = 'delivered'; order.deliveredAt = this.simulationTime; customer.eatRemaining = BALANCE.customerEatSeconds; this.setCustomerState(customer, 'eating'); seat.state = 'eating'; this.refreshTableState(table);
   }
@@ -1375,27 +1392,23 @@ export class RestaurantSimulation {
         else { order.ingredientsState = 'released'; order.state = 'awaiting_ingredients'; }
       }
       if (order.state === 'preparing') order.state = 'awaiting_station';
+      // A save cannot prove that an old pickup slot still contains food. Do
+      // not recreate stock during restore: customers wait again and can leave
+      // through the normal patience flow if the player does not replenish it.
+      if (order.state === 'awaiting_pickup') this.returnOrderToWaiting(order, true);
       if (order.state === 'transporting') {
-        const slot = this.reserveCounterSlot(order.id, order.recipeId, 'incoming');
-        if (slot) {
-          const module = this.counterModules.find((item) => item.id === slot.moduleId)!;
-          module.currentQuantity += 1; module.reservedQuantity += 1; slot.stockReservation = [{ moduleId: module.id, quantity: 1 }]; slot.quantity = 1;
-          slot.state = 'occupied'; order.counterSlotId = slot.id; order.state = 'awaiting_pickup';
+        const carrier = this.actors.find((actor) => actor.carrying === 'dish' && actor.carryingOrderId === order.id);
+        if (!carrier || order.portionConsumedAt === undefined) {
+          if (order.portionConsumedAt !== undefined) this.storeFinishedDish(order);
+          this.returnOrderToWaiting(order, true);
         }
-        else { this.storeFinishedDish(order); order.state = 'cancelled'; }
       }
-      if (order.state === 'awaiting_pickup') {
-        let slot = this.slotForOrder(order.id);
-        if (!slot) {
-          slot = this.reserveCounterSlot(order.id, order.recipeId, 'incoming');
-          if (slot) {
-            const module = this.counterModules.find((item) => item.id === slot!.moduleId)!;
-            module.currentQuantity += 1; module.reservedQuantity += 1; slot.stockReservation = [{ moduleId: module.id, quantity: 1 }]; slot.quantity = 1;
-          }
-        }
-        if (slot) { slot.state = 'occupied'; order.counterSlotId = slot.id; this.createDelivery(order); }
-      }
+      if (order.state === 'delivered' && order.portionConsumedAt === undefined) this.returnOrderToWaiting(order, true);
       if (order.state === 'awaiting_station') this.createCookStep(order);
+    }
+    const validCarriedOrders = new Set(this.orders.filter((order) => order.state === 'transporting' && order.portionConsumedAt !== undefined).map((order) => order.id));
+    for (const actor of this.actors) if (actor.carrying === 'dish' && (!actor.carryingOrderId || !validCarriedOrders.has(actor.carryingOrderId))) {
+      actor.carrying = undefined; actor.carryingOrderId = undefined; actor.preferredTaskId = undefined;
     }
     for (const task of this.state.production.tasks.filter((item) => item.state === 'waitingForCounterSpace' && item.workstationId)) {
       const station = this.stations.find((item) => item.id === task.workstationId);
@@ -1470,15 +1483,32 @@ export class RestaurantSimulation {
     slot.state = 'free'; slot.orderId = undefined; slot.reservedBy = undefined; slot.recipeId = undefined; slot.quantity = 0; slot.stockReservation = undefined;
     return true;
   }
-  private returnOrderToWaiting(order: OrderRuntime): void {
+  private returnOrderToWaiting(order: OrderRuntime, retrySameOrder = false): void {
     const customer = this.customerFor(order.customerId); const seat = this.seatFor(order.seatId); const table = this.tableFor(order.tableId);
-    order.counterSlotId = undefined; order.state = 'cancelled';
+    const cancelledTasks = this.tasks.cancelWhere((task) => task.kind === 'deliver' && task.payload.orderId === order.id, 'Porção não está mais disponível.');
+    for (const task of cancelledTasks) for (const actor of this.actors.filter((entry) => entry.taskId === task.id)) this.clearActorTask(actor);
+    const slot = this.slotForOrder(order.id);
+    if (slot) this.clearCounterSlot(slot);
+    this.clearDishCarrier(order.id);
+    order.counterSlotId = undefined;
+    if (retrySameOrder) {
+      order.state = 'awaiting_station';
+      if (customer && seat?.customerId === customer.id && customer.state === 'waiting_food') seat.state = 'waiting_food';
+      if (table) this.refreshTableState(table);
+      return;
+    }
+    order.state = 'cancelled';
     if (customer?.orderId === order.id) customer.orderId = undefined;
     if (seat?.orderId === order.id) seat.orderId = undefined;
     if (customer && seat?.customerId === customer.id && customer.state === 'waiting_food') {
       seat.state = 'waiting_order'; this.setCustomerState(customer, 'waiting_order');
     }
     if (table) this.refreshTableState(table);
+  }
+  private clearDishCarrier(orderId: string): void {
+    for (const actor of this.actors) if (actor.carrying === 'dish' && actor.carryingOrderId === orderId) {
+      actor.carrying = undefined; actor.carryingOrderId = undefined; actor.preferredTaskId = undefined;
+    }
   }
   private slotForOrder(orderId: string): CounterSlotRuntime | undefined { return this.counterSlots.find((slot) => slot.orderId === orderId); }
   private storeFinishedDish(order: OrderRuntime): void {
