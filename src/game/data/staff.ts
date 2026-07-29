@@ -1,7 +1,7 @@
 import type { Direction, GridPoint, StaffDefinition, StaffRole, TaskKind } from '../../core/types';
-import { STAFF_ROLE_CHARACTER_ASSETS } from '../../assets/pixel/characterVariantManifest';
+import { PRODUCTION_V003_STAFF_ASSET_BY_DEFINITION_ID } from '../../assets/pixel/productionV003Manifest';
 
-export const STAFF_CHEF_ASSET_ID = STAFF_ROLE_CHARACTER_ASSETS.cook;
+export const STAFF_CHEF_ASSET_ID = PRODUCTION_V003_STAFF_ASSET_BY_DEFINITION_ID['cook-6'];
 
 const TASKS: Record<StaffRole, TaskKind[]> = {
   cook: ['cook_step', 'production_batch'],
@@ -35,11 +35,13 @@ interface StaffInput {
 
 function staff(input: StaffInput): StaffDefinition {
   const [hiringCost, salary] = PAYROLL_010[input.name] ?? [input.hiringCost, input.salary];
+  const productionAssetId = PRODUCTION_V003_STAFF_ASSET_BY_DEFINITION_ID[input.id as keyof typeof PRODUCTION_V003_STAFF_ASSET_BY_DEFINITION_ID];
+  if (!productionAssetId) throw new Error(`Profissão sem asset canônico v003: ${input.id}`);
   return {
     ...input, hiringCost, salary,
-    assetId: STAFF_ROLE_CHARACTER_ASSETS[input.role],
+    assetId: productionAssetId,
     label: `${input.name} · ${roleLabel(input.role)}`,
-    visualModelId: STAFF_ROLE_CHARACTER_ASSETS[input.role],
+    visualModelId: productionAssetId,
     level: 1,
     experience: 0,
     movementSpeed: input.movementSpeed ?? 1,

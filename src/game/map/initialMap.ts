@@ -6,6 +6,7 @@ import { createInitialConstructionState } from './initialConstruction';
 import { FURNITURE_BY_ID } from '../data/furniture/catalog';
 import { orientedFootprint, resolvedWorkSlots, rotateDirection, orientationTurns } from '../systems/furniture/FurniturePlacement';
 import { facingBetweenTargets } from '../systems/animation/CharacterFacing';
+import { furnitureLevelAssetId, MAX_FURNITURE_LEVEL } from '../data/furniture/levels';
 
 export const RESTAURANT_SIZE = { width: 18, height: 18 } as const;
 export const MAP_SIZE = { width: 60, height: 38 } as const;
@@ -108,7 +109,7 @@ export function createStations(construction: ConstructionSaveState = createIniti
     const renderDefinition = baseId === 'pickup' && counterVariant
       ? FURNITURE_BY_ID[{ isolated: 'service.c1.isolated', left: 'service.c2.left', middle: 'service.c3.middle', right: 'service.c4.right', corner: 'service.c1.isolated' }[counterVariant]]
       : definition;
-    const renderedAssetId = renderDefinition.spriteSet[item.orientation];
+    const renderedAssetId = furnitureLevelAssetId(definition.id, item.level, counterVariant) ?? renderDefinition.spriteSet[item.orientation];
     const interactionPoints = [...new Map(slots.map((slot) => [`${slot.point.x},${slot.point.y}`, slot.point])).values()];
     return {
       id, name: definition.name, icon: definition.code, position: { x: item.gridX, y: item.gridY }, size: { x: size.width, y: size.depth }, interaction: primary,
@@ -118,9 +119,9 @@ export function createStations(construction: ConstructionSaveState = createIniti
       asset, anchor: definition.baseAnchor, visualHeight: Math.round(definition.visualBounds.heightBlocks * 48), blocksMovement: true, rotatable: definition.rotatable,
       visualSkinId: definition.category === 'service' ? 'counter-green' : 'equipment-steel-level-1', visualBounds: definition.visualBounds, depthOffset: 0,
       visualScale: definition.visualScale, heightCategory: definition.heightCategory,
-      renderedAssetId, equipmentFamilyId: baseId, visualLevel: item.level, gameplayLevel: item.level, thumbnailId: renderedAssetId,
-      interactionSlots: slots.map((slot) => slot.id), animationSet: 'equipment-basic-v1', nextLevelAssetId: `${renderedAssetId}_level_2`,
-      unlockRequirement: { restaurantLevel: 1 }, statsConfigId: `${definition.id}:level:${item.level}`,
+      renderedAssetId, equipmentFamilyId: baseId, visualLevel: item.level, gameplayLevel: 1, thumbnailId: renderedAssetId,
+      interactionSlots: slots.map((slot) => slot.id), animationSet: 'equipment-basic-v1', nextLevelAssetId: item.level < MAX_FURNITURE_LEVEL ? furnitureLevelAssetId(definition.id, item.level + 1, counterVariant) : undefined,
+      unlockRequirement: { restaurantLevel: 1 }, statsConfigId: `${definition.id}:visual-only`,
       state: 'free', queue: [], remaining: 0, level: item.level,
     };
   });
@@ -171,11 +172,13 @@ function createPlacedChair(tableItem: PlacedFurniture, chairItem: PlacedFurnitur
   // from the current chair/table geometry so rotations and moves stay correct.
   const orientation = seatFacingTowardTable(position, tablePosition);
   const visualSkinId = 'chair-wood' as ChairRuntime['visualSkinId'];
-  const assetStem = visualSkinId.replace('chair-', 'chair_');
+  const levelAssetId = furnitureLevelAssetId(chairItem.definitionId, chairItem.level);
   return {
     id: chairItem.id, seatId: `${chairItem.id}:seat`, chairId: chairItem.id, tableId: tableItem.id, position, visualPosition, approach,
     sitPoint: position, seatAnchor: visualPosition, footprint: { width: 1, depth: 1 }, depthOffset: index * .001, visualSkinId,
-    layerAssetIds: { back: `${assetStem}_back`, front: `${assetStem}_front` }, servicePoint: chairServicePoint(position, tablePosition), platePosition: tablePosition,
+    layerAssetIds: levelAssetId
+      ? { back: furnitureLevelAssetId(chairItem.definitionId, chairItem.level, undefined, 'back')!, front: furnitureLevelAssetId(chairItem.definitionId, chairItem.level, undefined, 'front')! }
+      : { back: 'chair_wood_back', front: 'chair_wood_front' }, servicePoint: chairServicePoint(position, tablePosition), platePosition: tablePosition,
     dirtPosition: tablePosition, state: 'free', orientation, enabled: true, accessible: true,
   };
 }

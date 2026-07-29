@@ -12,13 +12,15 @@ import { calculateOfflineProgress } from './game/offline/OfflineService';
 import { AudioService } from './game/audio/AudioService';
 import { validateRestaurantMap } from './game/map/validateMap';
 import { createInitialConstructionState } from './game/map/initialConstruction';
-import type { GameState, PlacedFurniture } from './core/types';
+import type { Direction, GameState, PlacedFurniture } from './core/types';
 import { GAME_VERSION, SAVE_SCHEMA_VERSION } from './config/balance';
 import { modulesFromFurniture } from './game/systems/service-counter/ServiceCounterSystem';
 import { reconcileStorage } from './game/inventory/StorageService';
 import { createPurchaseRequest } from './game/inventory/ProcurementService';
 import { createProductionPlan } from './game/cooking/ProductionPlanningService';
 import { createInitialStaffState } from './game/staff/StaffService';
+import { createStaffInstance } from './game/staff/StaffService';
+import { STAFF_CATALOG } from './game/data/staff';
 
 export const CONSTRUCTION_RELOAD_SESSION_KEY = 'bistro-bloom-construction-reload';
 
@@ -33,7 +35,7 @@ async function boot(): Promise<void> {
   const state = migrateAndSanitizeSave(rawState);
   const query = new URLSearchParams(window.location.search);
   let localQa = ['localhost', '127.0.0.1'].includes(window.location.hostname) ? query.get('qa') : null;
-  if (localQa && !['creator', 'four-seat-v005', 'v006', 'spatial-fix', 'tutorial', 'shop', 'counter-compare', 'counter-family'].includes(localQa)) {
+  if (localQa && !['creator', 'four-seat-v005', 'v006', 'spatial-fix', 'tutorial', 'shop', 'counter-compare', 'counter-family', 'production-v003-characters', 'production-v003-furniture'].includes(localQa)) {
     query.delete('qa');
     query.delete('assets');
     const suffix = query.toString();
@@ -49,6 +51,8 @@ async function boot(): Promise<void> {
   if (localQa === 'tutorial' || localQa === 'shop') applyTutorialQaState(state);
   if (localQa === 'counter-compare') applyCounterCompareQaState(state);
   if (localQa === 'counter-family') applyCounterFamilyQaState(state);
+  if (localQa === 'production-v003-characters') applyProductionV003CharacterQaState(state);
+  if (localQa === 'production-v003-furniture') applyProductionV003FurnitureQaState(state);
 
   if (!state.profile) {
     state.profile = await showCharacterCreator(root);
@@ -67,6 +71,7 @@ async function boot(): Promise<void> {
   }
   if (localQa === 'four-seat-v005' || localQa === 'spatial-fix') simulation.debugSeatCustomersAtFirstTable(2);
   if (localQa === 'spatial-fix') arrangeDirectionalQaActors(simulation);
+  if (localQa === 'production-v003-characters') arrangeProductionV003Characters(simulation);
   const validation = validateRestaurantMap(simulation.grid, simulation.tables, simulation.stations);
   if (!validation.valid) console.warn('Validação do mapa:', validation.errors);
 
@@ -182,6 +187,121 @@ function applyCounterFamilyQaState(state: GameState): void {
   }));
   state.construction.serviceCounters = modulesFromFurniture(state.construction.placedFurniture);
   state.restaurantOpen = false;
+}
+
+function qaFurniture(id: string, definitionId: string, gridX: number, gridY: number, level: number): PlacedFurniture {
+  return {
+    id, definitionId, gridX, gridY, orientation: 'sw',
+    skinId: definitionId.startsWith('service.') ? 'counter-forest' : definitionId.startsWith('dining.table') ? 'table-oak' : definitionId.startsWith('dining.chair') ? 'chair-wood' : 'steel-standard',
+    level, state: {},
+  };
+}
+
+function applyProductionV003CharacterQaState(state: GameState): void {
+  applyTutorialQaState(state);
+  state.tutorial008 = { ...state.tutorial008, started: false, mandatory: false };
+  state.progression.pendingLevels = [];
+  state.progression.retroactiveSummaryPending = false;
+  state.restaurantLevel = 100;
+  state.restaurantOpen = false;
+  state.construction.placedFurniture = productionV003FurnitureQaItems();
+  state.construction.serviceCounters = modulesFromFurniture(state.construction.placedFurniture);
+  const seenAssets = new Set<string>();
+  const professions = STAFF_CATALOG.filter((definition) => !seenAssets.has(definition.assetId) && Boolean(seenAssets.add(definition.assetId)));
+  state.staff.instances = professions.map((definition, index) => createStaffInstance(definition, Date.now(), { x: 3 + (index % 6) * 2, y: 12 + Math.floor(index / 6) * 2 }));
+  state.staff.maxStaff = professions.length;
+  state.staff.candidateDefinitionIds = [];
+  state.construction.staffStartPositions = [
+    { staffId: 'player', gridX: 14, gridY: 17, facing: 'nw', returnWhenIdle: true },
+    ...professions.map((definition, index) => ({ staffId: definition.id, gridX: 2 + (index % 7) * 2, gridY: 16 + Math.floor(index / 7), facing: (index % 2 ? 'ne' : 'sw') as Direction, returnWhenIdle: true })),
+  ];
+}
+
+function arrangeProductionV003Characters(simulation: RestaurantSimulation): void {
+  simulation.debugSetAutoSpawn(false);
+  for (let index = 0; index < 12; index += 1) {
+    const customer = simulation.debugAddCustomer();
+    if (!customer) break;
+    simulation.grid.vacate(customer.id);
+    const point = { x: 2 + (index % 6) * 2, y: 14 + Math.floor(index / 6) };
+    customer.variant = 23 + index;
+    customer.position = { ...point };
+    customer.visual = { ...point };
+    customer.path = [];
+    customer.pathStatus = 'idle';
+    customer.motionState = 'idle';
+    customer.direction = (['sw', 'nw', 'ne', 'se'] as const)[index % 4];
+  }
+  simulation.actors.forEach((actor, index) => {
+    const point = { x: 2 + (index % 7) * 2, y: 16 + Math.floor(index / 7) };
+    actor.position = { ...point };
+    actor.visual = { ...point };
+    actor.path = [];
+    actor.pathStatus = 'idle';
+    actor.motionState = 'idle';
+    actor.direction = (['sw', 'nw', 'ne', 'se'] as const)[index % 4];
+  });
+}
+
+function applyProductionV003FurnitureQaState(state: GameState): void {
+  applyTutorialQaState(state);
+  state.tutorial008 = { ...state.tutorial008, started: false, mandatory: false };
+  state.progression.pendingLevels = [];
+  state.progression.retroactiveSummaryPending = false;
+  state.restaurantLevel = 100;
+  state.restaurantOpen = false;
+  state.construction.placedFurniture = productionV003FurnitureAllTiersQaItems();
+  state.construction.serviceCounters = modulesFromFurniture(state.construction.placedFurniture);
+}
+
+function productionV003FurnitureAllTiersQaItems(): PlacedFurniture[] {
+  const definitions = [
+    'service.c1.isolated', 'cooking.a1.stove', 'cooking.a2.convection', 'cooking.a3.griddle', 'cooking.a4.fryer',
+    'cooking.a5.kettle', 'cooking.a6.grill', 'cooking.a7.bakery', 'cooking.a8.coffee', 'preparation.b3.counter',
+    'washing.b5.sink', 'preparation.b8.pastry', 'service.c9.drinks', 'dining.table.basic', 'dining.chair.basic',
+  ];
+  return Array.from({ length: 5 }, (_, levelIndex) => {
+    const level = levelIndex + 1;
+    const items = definitions.map((definitionId, index) => qaFurniture(
+      `production-v003:all:l${level}:${index}`,
+      definitionId,
+      1 + (index % 5) * 3,
+      1 + levelIndex * 3 + Math.floor(index / 5),
+      level,
+    ));
+    const table = items.find((item) => item.definitionId === 'dining.table.basic');
+    const chair = items.find((item) => item.definitionId === 'dining.chair.basic');
+    if (table && chair) {
+      chair.gridX = table.gridX + 1;
+      chair.gridY = table.gridY;
+      chair.orientation = 'nw';
+      chair.state = { linkedTableId: table.id, seatFacing: 'nw' };
+    }
+    return items;
+  }).flat();
+}
+
+function productionV003FurnitureQaItems(): PlacedFurniture[] {
+  const counterRows = Array.from({ length: 5 }, (_, levelIndex) => Array.from({ length: 5 }, (_, moduleIndex) => qaFurniture(
+    `production-v003:counter:l${levelIndex + 1}:${moduleIndex}`, 'service.c1.isolated', 2 + moduleIndex, 3 + levelIndex * 2, levelIndex + 1,
+  ))).flat();
+  const categories = [
+    'cooking.a1.stove', 'cooking.a2.convection', 'cooking.a3.griddle', 'cooking.a4.fryer', 'cooking.a5.kettle',
+    'cooking.a6.grill', 'cooking.a7.bakery', 'cooking.a8.coffee', 'preparation.b3.counter', 'washing.b5.sink',
+    'preparation.b8.pastry', 'service.c9.drinks', 'dining.table.basic', 'dining.chair.basic',
+  ];
+  const categoryFurniture = categories.map((definitionId, index) => qaFurniture(
+    `production-v003:category:${index}`, definitionId, 9 + (index % 4) * 2, 3 + Math.floor(index / 4) * 3, (index % 5) + 1,
+  ));
+  const table = categoryFurniture.find((item) => item.definitionId === 'dining.table.basic');
+  const chair = categoryFurniture.find((item) => item.definitionId === 'dining.chair.basic');
+  if (table && chair) {
+    chair.gridX = table.gridX + 1;
+    chair.gridY = table.gridY;
+    chair.orientation = 'nw';
+    chair.state = { linkedTableId: table.id, seatFacing: 'nw' };
+  }
+  return [...counterRows, ...categoryFurniture];
 }
 
 function applyFourSeatQaState(state: GameState): void {

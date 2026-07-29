@@ -1,0 +1,4 @@
+?? art/
+?? artifacts/bistro-bloom-0.0.9.tgz
+?? artifacts/recipe-balance-0.0.10.csv
+?? tools/blender/sprite_refresh/

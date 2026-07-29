@@ -1,0 +1,1404 @@
+{
+  "generatedFrom": {
+    "furniture": "src/game/data/furniture/catalog.ts",
+    "staff": "src/game/data/staff.ts",
+    "characters": [
+      "src/assets/pixel/c3brManifest.ts",
+      "src/assets/pixel/stage2cCharacterManifest.ts",
+      "src/assets/pixel/characterVariantManifest.ts",
+      "src/content/characters/playerSkins.ts"
+    ],
+    "runtime": [
+      "src/scenes/RestaurantScene.ts",
+      "src/assets/pixel/runtimeRenderedAssets.ts"
+    ]
+  },
+  "grid": {
+    "logicalCell": [
+      1,
+      1
+    ],
+    "isoTilePixels": [
+      64,
+      32
+    ],
+    "gridToWorld": {
+      "x": "(gridX-gridY)*32",
+      "y": "(gridX+gridY)*16+16"
+    },
+    "blenderUnitPerLogicalCell": 1
+  },
+  "gameCamera": {
+    "kind": "Phaser 2D camera over a fixed 2:1 isometric projection",
+    "perspective": false,
+    "worldRotationDegrees": 0,
+    "zoomLevels": [
+      0.5,
+      1,
+      2
+    ],
+    "defaultZoom": 1,
+    "blenderEquivalent": {
+      "projection": "orthographic",
+      "azimuthDegrees": 45,
+      "elevationDegrees": 35.264389682754654,
+      "rotationRule": "camera fixed; asset rotates in exact 90 degree steps"
+    }
+  },
+  "spriteContracts": {
+    "activeCharacter": {
+      "frame": [
+        112,
+        168
+      ],
+      "feetAnchor": [
+        56,
+        158
+      ],
+      "nativeScale": 0.72,
+      "directions": [
+        "sw",
+        "nw",
+        "ne",
+        "se"
+      ],
+      "filter": "nearest"
+    },
+    "legacyCharacter": {
+      "frame": [
+        96,
+        144
+      ],
+      "feetAnchor": [
+        48,
+        136
+      ],
+      "directions": [
+        "ne",
+        "nw",
+        "se",
+        "sw"
+      ],
+      "filter": "nearest"
+    },
+    "world": {
+      "frame": [
+        192,
+        192
+      ],
+      "serviceCounterFrame": [
+        256,
+        192
+      ],
+      "catalogAnchor": [
+        0.5,
+        0.90625
+      ],
+      "manifestFloorAnchor": [
+        0.5,
+        0.9270833333333334
+      ],
+      "filter": "nearest"
+    }
+  },
+  "depth": {
+    "formula": "round((x+y)*100+x+layer)",
+    "layers": {
+      "chairBack": 20,
+      "furnitureBase": 30,
+      "seatedCharacter": 34,
+      "chairFront": 38,
+      "counterItem": 44,
+      "standingCharacter": 50,
+      "status": 98
+    },
+    "furniturePoint": "center of rotated footprint",
+    "characterPoint": "logical feet/navigation point"
+  },
+  "runtimeAnimationContract": {
+    "activeShared": {
+      "idle": 4,
+      "walk": 8,
+      "turn": 6,
+      "pickup": 6,
+      "place": 6
+    },
+    "player": {
+      "carry_plate_idle": 4,
+      "carry_plate_walk": 8,
+      "carry_tray_idle": 4,
+      "carry_tray_walk": 8,
+      "carry_ingredient_idle": 4,
+      "carry_ingredient_walk": 8,
+      "prep_counter": 8,
+      "cook_stove": 8,
+      "wash_sink": 8,
+      "serve_table": 6,
+      "clear_table": 6,
+      "clean_table": 8,
+      "talk": 6
+    },
+    "cook": {
+      "carry_plate_idle": 4,
+      "carry_plate_walk": 8,
+      "carry_ingredient_idle": 4,
+      "carry_ingredient_walk": 8,
+      "prep_counter": 8,
+      "cook_stove": 8,
+      "wash_sink": 8,
+      "place_dish": 6,
+      "wait_workstation": 4
+    },
+    "waiter": {
+      "carry_plate_idle": 4,
+      "carry_plate_walk": 8,
+      "carry_tray_idle": 4,
+      "carry_tray_walk": 8,
+      "pickup_dish": 6,
+      "serve_table": 6,
+      "clear_table": 6,
+      "clean_table": 8,
+      "wait_service": 4
+    },
+    "customer": {
+      "sit_down": 6,
+      "seated_idle": 4,
+      "wait_food": 4,
+      "eat": 8,
+      "drink": 8,
+      "react_happy": 6,
+      "react_impatient": 6,
+      "stand_up": 6
+    },
+    "stationStates": [
+      "free",
+      "reserved",
+      "in_use",
+      "waiting_worker",
+      "complete",
+      "blocked",
+      "no_ingredients"
+    ],
+    "renderedStationFrameMapping": {
+      "free_or_other": 0,
+      "in_use": [
+        1,
+        2
+      ],
+      "complete": 3
+    }
+  },
+  "furniture": [
+    {
+      "id": "cooking.a1.stove",
+      "code": "A1",
+      "name": "Fogão industrial com fornos",
+      "category": "cooking",
+      "assetId": "a1_stove_industrial",
+      "footprint": [
+        1,
+        1
+      ],
+      "heightCategory": "STANDARD_COUNTER",
+      "visualScale": 1,
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        0.5,
+        0.90625
+      ],
+      "directions": [
+        "sw",
+        "se",
+        "ne",
+        "nw"
+      ],
+      "frontDirection": "sw",
+      "functionId": "stove",
+      "blenderSource": "assets/blender/equipment/kitchen_equipment.blend"
+    },
+    {
+      "id": "cooking.a2.convection",
+      "code": "A2",
+      "name": "Forno de convecção",
+      "category": "cooking",
+      "assetId": "a2_convection_oven",
+      "footprint": [
+        1,
+        1
+      ],
+      "heightCategory": "STANDARD_COUNTER",
+      "visualScale": 1,
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        0.5,
+        0.90625
+      ],
+      "directions": [
+        "sw",
+        "se",
+        "ne",
+        "nw"
+      ],
+      "frontDirection": "sw",
+      "functionId": "oven",
+      "blenderSource": "assets/blender/equipment/kitchen_equipment.blend"
+    },
+    {
+      "id": "cooking.a3.griddle",
+      "code": "A3",
+      "name": "Chapa industrial",
+      "category": "cooking",
+      "assetId": "a3_griddle",
+      "footprint": [
+        1,
+        1
+      ],
+      "heightCategory": "STANDARD_COUNTER",
+      "visualScale": 1,
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        0.5,
+        0.90625
+      ],
+      "directions": [
+        "sw",
+        "se",
+        "ne",
+        "nw"
+      ],
+      "frontDirection": "sw",
+      "functionId": "grill",
+      "blenderSource": "assets/blender/equipment/kitchen_equipment.blend"
+    },
+    {
+      "id": "cooking.a4.fryer",
+      "code": "A4",
+      "name": "Fritadeira industrial",
+      "category": "cooking",
+      "assetId": "a4_fryer",
+      "footprint": [
+        1,
+        1
+      ],
+      "heightCategory": "STANDARD_COUNTER",
+      "visualScale": 1,
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        0.5,
+        0.90625
+      ],
+      "directions": [
+        "sw",
+        "se",
+        "ne",
+        "nw"
+      ],
+      "frontDirection": "sw",
+      "functionId": "grill",
+      "blenderSource": "assets/blender/equipment/kitchen_equipment.blend"
+    },
+    {
+      "id": "cooking.a5.kettle",
+      "code": "A5",
+      "name": "Caldeira industrial",
+      "category": "cooking",
+      "assetId": "a5_kettle",
+      "footprint": [
+        1,
+        1
+      ],
+      "heightCategory": "STANDARD_COUNTER",
+      "visualScale": 1,
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        0.5,
+        0.90625
+      ],
+      "directions": [
+        "sw",
+        "se",
+        "ne",
+        "nw"
+      ],
+      "frontDirection": "sw",
+      "functionId": "cauldron",
+      "blenderSource": "assets/blender/equipment/kitchen_equipment.blend"
+    },
+    {
+      "id": "cooking.a6.grill",
+      "code": "A6",
+      "name": "Parrilla e defumador",
+      "category": "cooking",
+      "assetId": "a6_grill",
+      "footprint": [
+        1,
+        1
+      ],
+      "heightCategory": "STANDARD_COUNTER",
+      "visualScale": 1,
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        0.5,
+        0.90625
+      ],
+      "directions": [
+        "sw",
+        "se",
+        "ne",
+        "nw"
+      ],
+      "frontDirection": "sw",
+      "functionId": "grill",
+      "blenderSource": "assets/blender/equipment/kitchen_equipment.blend"
+    },
+    {
+      "id": "cooking.a7.bakery",
+      "code": "A7",
+      "name": "Forno de padaria",
+      "category": "cooking",
+      "assetId": "a7_bakery_oven",
+      "footprint": [
+        1,
+        1
+      ],
+      "heightCategory": "STANDARD_COUNTER",
+      "visualScale": 1,
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        0.5,
+        0.90625
+      ],
+      "directions": [
+        "sw",
+        "se",
+        "ne",
+        "nw"
+      ],
+      "frontDirection": "sw",
+      "functionId": "oven",
+      "blenderSource": "assets/blender/equipment/kitchen_equipment.blend"
+    },
+    {
+      "id": "cooking.a8.coffee",
+      "code": "A8",
+      "name": "Máquina de café",
+      "category": "cooking",
+      "assetId": "a8_coffee_machine",
+      "footprint": [
+        1,
+        1
+      ],
+      "heightCategory": "STANDARD_COUNTER",
+      "visualScale": 1,
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        0.5,
+        0.90625
+      ],
+      "directions": [
+        "sw",
+        "se",
+        "ne",
+        "nw"
+      ],
+      "frontDirection": "sw",
+      "functionId": "coffee_machine",
+      "blenderSource": "assets/blender/equipment/kitchen_equipment.blend"
+    },
+    {
+      "id": "refrigeration.b1.fridge",
+      "code": "B1",
+      "name": "Geladeira industrial",
+      "category": "refrigeration",
+      "assetId": "b1_industrial_fridge",
+      "footprint": [
+        1,
+        1
+      ],
+      "heightCategory": "TALL",
+      "visualScale": 1,
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        0.5,
+        0.90625
+      ],
+      "directions": [
+        "sw",
+        "se",
+        "ne",
+        "nw"
+      ],
+      "frontDirection": "sw",
+      "functionId": "fridge",
+      "blenderSource": "assets/blender/equipment/kitchen_equipment.blend"
+    },
+    {
+      "id": "refrigeration.b2.freezer",
+      "code": "B2",
+      "name": "Freezer industrial",
+      "category": "refrigeration",
+      "assetId": "b2_industrial_freezer",
+      "footprint": [
+        1,
+        1
+      ],
+      "heightCategory": "TALL",
+      "visualScale": 1,
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        0.5,
+        0.90625
+      ],
+      "directions": [
+        "sw",
+        "se",
+        "ne",
+        "nw"
+      ],
+      "frontDirection": "sw",
+      "functionId": "fridge",
+      "blenderSource": "assets/blender/equipment/kitchen_equipment.blend"
+    },
+    {
+      "id": "preparation.b3.counter",
+      "code": "B3",
+      "name": "Bancada de preparação",
+      "category": "preparation",
+      "assetId": "b3_preparation_counter",
+      "footprint": [
+        1,
+        1
+      ],
+      "heightCategory": "STANDARD_COUNTER",
+      "visualScale": 1,
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        0.5,
+        0.90625
+      ],
+      "directions": [
+        "sw",
+        "se",
+        "ne",
+        "nw"
+      ],
+      "frontDirection": "sw",
+      "functionId": "prep",
+      "blenderSource": "assets/blender/equipment/kitchen_equipment.blend"
+    },
+    {
+      "id": "preparation.b4.ingredients",
+      "code": "B4",
+      "name": "Estação de ingredientes e corte",
+      "category": "preparation",
+      "assetId": "b4_ingredient_station",
+      "footprint": [
+        1,
+        1
+      ],
+      "heightCategory": "STANDARD_COUNTER",
+      "visualScale": 1,
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        0.5,
+        0.90625
+      ],
+      "directions": [
+        "sw",
+        "se",
+        "ne",
+        "nw"
+      ],
+      "frontDirection": "sw",
+      "functionId": "assembly",
+      "blenderSource": "assets/blender/equipment/kitchen_equipment.blend"
+    },
+    {
+      "id": "washing.b5.sink",
+      "code": "B5",
+      "name": "Pia industrial",
+      "category": "washing",
+      "assetId": "b5_industrial_sink",
+      "footprint": [
+        1,
+        1
+      ],
+      "heightCategory": "STANDARD_COUNTER",
+      "visualScale": 1,
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        0.5,
+        0.90625
+      ],
+      "directions": [
+        "sw",
+        "se",
+        "ne",
+        "nw"
+      ],
+      "frontDirection": "sw",
+      "functionId": "sink",
+      "blenderSource": "assets/blender/equipment/kitchen_equipment.blend"
+    },
+    {
+      "id": "washing.b6.dishwasher",
+      "code": "B6",
+      "name": "Lava-louças industrial",
+      "category": "washing",
+      "assetId": "b6_dishwasher",
+      "footprint": [
+        1,
+        1
+      ],
+      "heightCategory": "STANDARD_COUNTER",
+      "visualScale": 1,
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        0.5,
+        0.90625
+      ],
+      "directions": [
+        "sw",
+        "se",
+        "ne",
+        "nw"
+      ],
+      "frontDirection": "sw",
+      "functionId": "sink",
+      "blenderSource": "assets/blender/equipment/kitchen_equipment.blend"
+    },
+    {
+      "id": "washing.b7.double-sink",
+      "code": "B7",
+      "name": "Estação de lavagem com duas cubas",
+      "category": "washing",
+      "assetId": "b7_double_sink",
+      "footprint": [
+        2,
+        1
+      ],
+      "heightCategory": "STANDARD_COUNTER",
+      "visualScale": 0.66,
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        0.5,
+        0.90625
+      ],
+      "directions": [
+        "sw",
+        "se",
+        "ne",
+        "nw"
+      ],
+      "frontDirection": "sw",
+      "functionId": "sink",
+      "blenderSource": "assets/blender/equipment/kitchen_equipment.blend"
+    },
+    {
+      "id": "preparation.b8.pastry",
+      "code": "B8",
+      "name": "Mesa de massas e confeitaria",
+      "category": "preparation",
+      "assetId": "b8_pastry_table",
+      "footprint": [
+        2,
+        1
+      ],
+      "heightCategory": "STANDARD_COUNTER",
+      "visualScale": 1,
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        0.5,
+        0.90625
+      ],
+      "directions": [
+        "sw",
+        "se",
+        "ne",
+        "nw"
+      ],
+      "frontDirection": "sw",
+      "functionId": "prep",
+      "blenderSource": "assets/blender/equipment/kitchen_equipment.blend"
+    },
+    {
+      "id": "washing.sink.t2",
+      "code": "B9",
+      "name": "Pia T2 - 15% mais rapida nas lavagens desta pia",
+      "category": "washing",
+      "assetId": "b5_industrial_sink",
+      "footprint": [
+        1,
+        1
+      ],
+      "heightCategory": "STANDARD_COUNTER",
+      "visualScale": 1,
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        0.5,
+        0.90625
+      ],
+      "directions": [
+        "sw",
+        "se",
+        "ne",
+        "nw"
+      ],
+      "frontDirection": "sw",
+      "functionId": "sink",
+      "blenderSource": "assets/blender/equipment/kitchen_equipment.blend"
+    },
+    {
+      "id": "service.c1.isolated",
+      "code": "C1",
+      "name": "Balcão de serviço",
+      "category": "service",
+      "assetId": "c1_service_isolated",
+      "footprint": [
+        1,
+        1
+      ],
+      "heightCategory": "STANDARD_COUNTER",
+      "visualScale": 1,
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        0.5,
+        0.90625
+      ],
+      "directions": [
+        "sw",
+        "se",
+        "ne",
+        "nw"
+      ],
+      "frontDirection": "sw",
+      "functionId": "pickup",
+      "blenderSource": "assets/blender/equipment/kitchen_equipment.blend"
+    },
+    {
+      "id": "service.c2.left",
+      "code": "C2",
+      "name": "Balcão de serviço",
+      "category": "service",
+      "assetId": "c2_service_left",
+      "footprint": [
+        1,
+        1
+      ],
+      "heightCategory": "STANDARD_COUNTER",
+      "visualScale": 1,
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        0.5,
+        0.90625
+      ],
+      "directions": [
+        "sw",
+        "se",
+        "ne",
+        "nw"
+      ],
+      "frontDirection": "sw",
+      "functionId": "pickup",
+      "blenderSource": "assets/blender/equipment/kitchen_equipment.blend"
+    },
+    {
+      "id": "service.c3.middle",
+      "code": "C3",
+      "name": "Balcão de serviço",
+      "category": "service",
+      "assetId": "c3_service_middle",
+      "footprint": [
+        1,
+        1
+      ],
+      "heightCategory": "STANDARD_COUNTER",
+      "visualScale": 1,
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        0.5,
+        0.90625
+      ],
+      "directions": [
+        "sw",
+        "se",
+        "ne",
+        "nw"
+      ],
+      "frontDirection": "sw",
+      "functionId": "pickup",
+      "blenderSource": "assets/blender/equipment/kitchen_equipment.blend"
+    },
+    {
+      "id": "service.c4.right",
+      "code": "C4",
+      "name": "Balcão de serviço",
+      "category": "service",
+      "assetId": "c4_service_right",
+      "footprint": [
+        1,
+        1
+      ],
+      "heightCategory": "STANDARD_COUNTER",
+      "visualScale": 1,
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        0.5,
+        0.90625
+      ],
+      "directions": [
+        "sw",
+        "se",
+        "ne",
+        "nw"
+      ],
+      "frontDirection": "sw",
+      "functionId": "pickup",
+      "blenderSource": "assets/blender/equipment/kitchen_equipment.blend"
+    },
+    {
+      "id": "service.counter.t2",
+      "code": "C11",
+      "name": "Balcao T2 - 12% mais rapido nas tarefas deste balcao",
+      "category": "service",
+      "assetId": "c1_service_isolated",
+      "footprint": [
+        1,
+        1
+      ],
+      "heightCategory": "STANDARD_COUNTER",
+      "visualScale": 1,
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        0.5,
+        0.90625
+      ],
+      "directions": [
+        "sw",
+        "se",
+        "ne",
+        "nw"
+      ],
+      "frontDirection": "sw",
+      "functionId": "pickup",
+      "blenderSource": "assets/blender/equipment/kitchen_equipment.blend"
+    },
+    {
+      "id": "storage.c5.pantry",
+      "code": "C5",
+      "name": "Despensa seca",
+      "category": "storage",
+      "assetId": "c5_dry_pantry",
+      "footprint": [
+        1,
+        1
+      ],
+      "heightCategory": "TALL",
+      "visualScale": 1,
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        0.5,
+        0.90625
+      ],
+      "directions": [
+        "sw",
+        "se",
+        "ne",
+        "nw"
+      ],
+      "frontDirection": "sw",
+      "functionId": "storage",
+      "blenderSource": "assets/blender/equipment/kitchen_equipment.blend"
+    },
+    {
+      "id": "storage.c6.ingredients",
+      "code": "C6",
+      "name": "Estante de ingredientes",
+      "category": "storage",
+      "assetId": "c6_ingredient_shelf",
+      "footprint": [
+        1,
+        1
+      ],
+      "heightCategory": "TALL",
+      "visualScale": 1,
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        0.5,
+        0.90625
+      ],
+      "directions": [
+        "sw",
+        "se",
+        "ne",
+        "nw"
+      ],
+      "frontDirection": "sw",
+      "functionId": "storage",
+      "blenderSource": "assets/blender/equipment/kitchen_equipment.blend"
+    },
+    {
+      "id": "service.c7.plates",
+      "code": "C7",
+      "name": "Estação de pratos e talheres",
+      "category": "service",
+      "assetId": "c7_plate_station",
+      "footprint": [
+        1,
+        1
+      ],
+      "heightCategory": "STANDARD_COUNTER",
+      "visualScale": 1,
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        0.5,
+        0.90625
+      ],
+      "directions": [
+        "sw",
+        "se",
+        "ne",
+        "nw"
+      ],
+      "frontDirection": "sw",
+      "functionId": "storage",
+      "blenderSource": "assets/blender/equipment/kitchen_equipment.blend"
+    },
+    {
+      "id": "service.c8.waste",
+      "code": "C8",
+      "name": "Lixeira e reciclagem",
+      "category": "service",
+      "assetId": "c8_waste_recycling",
+      "footprint": [
+        1,
+        1
+      ],
+      "heightCategory": "STANDARD_COUNTER",
+      "visualScale": 1,
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        0.5,
+        0.90625
+      ],
+      "directions": [
+        "sw",
+        "se",
+        "ne",
+        "nw"
+      ],
+      "frontDirection": "sw",
+      "functionId": "decoration",
+      "blenderSource": "assets/blender/equipment/kitchen_equipment.blend"
+    },
+    {
+      "id": "service.c9.drinks",
+      "code": "C9",
+      "name": "Dispensador de bebidas frias",
+      "category": "service",
+      "assetId": "c9_cold_drinks",
+      "footprint": [
+        1,
+        1
+      ],
+      "heightCategory": "STANDARD_COUNTER",
+      "visualScale": 1,
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        0.5,
+        0.90625
+      ],
+      "directions": [
+        "sw",
+        "se",
+        "ne",
+        "nw"
+      ],
+      "frontDirection": "sw",
+      "functionId": "coffee_machine",
+      "blenderSource": "assets/blender/equipment/kitchen_equipment.blend"
+    },
+    {
+      "id": "preparation.c10.block",
+      "code": "C10",
+      "name": "Bancada pequena de corte",
+      "category": "preparation",
+      "assetId": "c10_cutting_block",
+      "footprint": [
+        1,
+        1
+      ],
+      "heightCategory": "STANDARD_COUNTER",
+      "visualScale": 1,
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        0.5,
+        0.90625
+      ],
+      "directions": [
+        "sw",
+        "se",
+        "ne",
+        "nw"
+      ],
+      "frontDirection": "sw",
+      "functionId": "prep",
+      "blenderSource": "assets/blender/equipment/kitchen_equipment.blend"
+    },
+    {
+      "id": "dining.table.basic",
+      "code": "T1",
+      "name": "Mesa robusta",
+      "category": "tables",
+      "assetId": "table_two",
+      "footprint": [
+        1,
+        1
+      ],
+      "heightCategory": "LOW",
+      "visualScale": 1,
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        0.5,
+        0.90625
+      ],
+      "directions": [
+        "sw",
+        "se",
+        "ne",
+        "nw"
+      ],
+      "frontDirection": "sw",
+      "functionId": "table",
+      "blenderSource": "assets/blender/equipment/kitchen_equipment.blend"
+    },
+    {
+      "id": "dining.table.t2",
+      "code": "T2",
+      "name": "Mesa robusta T2",
+      "category": "tables",
+      "assetId": "table_two",
+      "footprint": [
+        2,
+        1
+      ],
+      "heightCategory": "LOW",
+      "visualScale": 1,
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        0.5,
+        0.90625
+      ],
+      "directions": [
+        "sw",
+        "se",
+        "ne",
+        "nw"
+      ],
+      "frontDirection": "sw",
+      "functionId": "table",
+      "blenderSource": "assets/blender/equipment/kitchen_equipment.blend"
+    },
+    {
+      "id": "dining.chair.basic",
+      "code": "CH1",
+      "name": "Banco robusto",
+      "category": "chairs",
+      "assetId": "chair_wood",
+      "footprint": [
+        1,
+        1
+      ],
+      "heightCategory": "LOW",
+      "visualScale": 0.93,
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        0.5,
+        0.90625
+      ],
+      "directions": [
+        "sw",
+        "se",
+        "ne",
+        "nw"
+      ],
+      "frontDirection": "sw",
+      "functionId": "chair",
+      "blenderSource": "assets/blender/equipment/kitchen_equipment.blend"
+    },
+    {
+      "id": "decor.plant.basic",
+      "code": "D1",
+      "name": "Planta em vaso",
+      "category": "decoration",
+      "assetId": "plant",
+      "footprint": [
+        1,
+        1
+      ],
+      "heightCategory": "LOW",
+      "visualScale": 1,
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        0.5,
+        0.90625
+      ],
+      "directions": [
+        "sw",
+        "se",
+        "ne",
+        "nw"
+      ],
+      "frontDirection": "sw",
+      "functionId": "decoration",
+      "blenderSource": "assets/blender/equipment/kitchen_equipment.blend"
+    }
+  ],
+  "staff": [
+    {
+      "id": "cook-0",
+      "actorId": "employee-cook-001",
+      "name": "Nina",
+      "role": "cook",
+      "profession": "Barista",
+      "specialties": [
+        "'Barista'"
+      ],
+      "compatibleStationId": "coffee_machine"
+    },
+    {
+      "id": "waiter-0",
+      "actorId": "employee-waiter-001",
+      "name": "Caio",
+      "role": "waiter",
+      "profession": "Atendimento",
+      "specialties": [],
+      "compatibleStationId": "prep"
+    },
+    {
+      "id": "cleaner-0",
+      "actorId": "employee-cleaner-001",
+      "name": "Iara",
+      "role": "cleaner",
+      "profession": "Limpeza",
+      "specialties": [],
+      "compatibleStationId": "prep"
+    },
+    {
+      "id": "cook-1",
+      "actorId": "employee-cook-002",
+      "name": "Lúcia",
+      "role": "cook",
+      "profession": "Forneiro",
+      "specialties": [
+        "'Forneiro'"
+      ],
+      "compatibleStationId": "oven"
+    },
+    {
+      "id": "cook-2",
+      "actorId": "employee-cook-003",
+      "name": "João",
+      "role": "cook",
+      "profession": "Chapeiro",
+      "specialties": [
+        "'Chapeiro'"
+      ],
+      "compatibleStationId": "grill"
+    },
+    {
+      "id": "cook-3",
+      "actorId": "employee-cook-004",
+      "name": "Célia",
+      "role": "cook",
+      "profession": "Chef de Sopas",
+      "specialties": [
+        "'Chef de Sopas'"
+      ],
+      "compatibleStationId": "cauldron"
+    },
+    {
+      "id": "cook-4",
+      "actorId": "employee-cook-005",
+      "name": "Akira",
+      "role": "cook",
+      "profession": "Chef Oriental",
+      "specialties": [
+        "'Chef Oriental'"
+      ],
+      "compatibleStationId": "stove"
+    },
+    {
+      "id": "cook-5",
+      "actorId": "employee-cook-006",
+      "name": "Mauro",
+      "role": "cook",
+      "profession": "Assador",
+      "specialties": [
+        "'Assador'"
+      ],
+      "compatibleStationId": "grill"
+    },
+    {
+      "id": "cook-6",
+      "actorId": "employee-cook-007",
+      "name": "Rosa",
+      "role": "cook",
+      "profession": "Cozinheiro Geral",
+      "specialties": [
+        "'Cozinheiro Geral'"
+      ],
+      "compatibleStationId": "stove"
+    },
+    {
+      "id": "cook-7",
+      "actorId": "employee-cook-008",
+      "name": "Bia",
+      "role": "cook",
+      "profession": "Fritureiro",
+      "specialties": [
+        "'Fritureiro'"
+      ],
+      "compatibleStationId": "grill"
+    },
+    {
+      "id": "cook-8",
+      "actorId": "employee-cook-009",
+      "name": "Dora",
+      "role": "cook",
+      "profession": "Confeiteiro",
+      "specialties": [
+        "'Confeiteiro'"
+      ],
+      "compatibleStationId": "prep"
+    },
+    {
+      "id": "cook-9",
+      "actorId": "employee-cook-010",
+      "name": "Kenji",
+      "role": "cook",
+      "profession": "Sushiman",
+      "specialties": [
+        "'Sushiman'"
+      ],
+      "compatibleStationId": "prep"
+    },
+    {
+      "id": "waiter-1",
+      "actorId": "employee-waiter-002",
+      "name": "Bento",
+      "role": "waiter",
+      "profession": "Atendimento",
+      "specialties": [],
+      "compatibleStationId": "prep"
+    }
+  ],
+  "characters": {
+    "base": [
+      "char_player_male_01",
+      "char_player_female_01",
+      "char_cook_female_01",
+      "char_waiter_male_01",
+      "char_customer_01",
+      "char_customer_02",
+      "char_customer_03",
+      "char_customer_04",
+      "char_customer_05",
+      "char_customer_06"
+    ],
+    "variants": [
+      "char_staff_cook_hat_white_01",
+      "char_staff_service_chef_01",
+      "char_staff_cleaner_chef_01",
+      "char_staff_stocker_chef_01",
+      "char_variant_customer_01",
+      "char_variant_customer_02",
+      "char_variant_customer_03",
+      "char_variant_customer_04",
+      "char_variant_customer_05",
+      "char_variant_customer_06",
+      "char_variant_customer_07",
+      "char_variant_customer_08",
+      "char_variant_customer_09",
+      "char_variant_customer_10",
+      "char_variant_customer_11",
+      "char_variant_customer_12",
+      "char_variant_customer_13",
+      "char_variant_customer_14",
+      "char_variant_customer_15",
+      "char_variant_customer_16"
+    ],
+    "runtimeCustomerVisualIds": [
+      "char_customer_01",
+      "char_customer_02",
+      "char_customer_03",
+      "char_customer_04",
+      "char_customer_05",
+      "char_customer_06",
+      "char_variant_customer_01",
+      "char_variant_customer_02",
+      "char_variant_customer_03",
+      "char_variant_customer_04",
+      "char_variant_customer_05",
+      "char_variant_customer_06",
+      "char_variant_customer_07",
+      "char_variant_customer_08",
+      "char_variant_customer_09",
+      "char_variant_customer_10",
+      "char_variant_customer_11",
+      "char_variant_customer_12",
+      "char_variant_customer_13",
+      "char_variant_customer_14",
+      "char_variant_customer_15",
+      "char_variant_customer_16",
+      "char_player_male_01"
+    ],
+    "runtimeCustomerVisualCount": 23,
+    "customerEntityCatalog": null
+  },
+  "counts": {
+    "furnitureDefinitions": 32,
+    "staffDefinitions": 13,
+    "baseCharacterAssets": 10,
+    "characterVariantAssets": 20,
+    "runtimeCustomerVisualIds": 23
+  },
+  "divergences": [
+    "STRUCTURAL_GRID_FIX.md describes A1 stove and B5 sink as 2x1, but the current catalog declares both as 1x1.",
+    "The legacy visual contract is 96x144 at feet (48,136); active Stage 2C assets are 112x168 at feet (56,158) and nativeScale 0.72.",
+    "The legacy direction order is NE/NW/SE/SW; active Stage 2C row order is SW/NW/NE/SE.",
+    "Furniture catalog baseAnchor is y=174/192 while the Blender manifest normalization line is y=178/192.",
+    "Legacy walk uses 6 frames, active Stage 2C uses 8, while the approval prototype explicitly requests 4 frames.",
+    "Exact counter-mounted equipment currently exposes only one idle frame, so runtime active frame requests clamp to idle for those sheets.",
+    "setup_camera.py and c3_br_v007.py label the camera inclination as 35.264 degrees, but their stored camera locations/targets do not mathematically reproduce that elevation exactly.",
+    "The furniture source manifest contains historical assets not present in the canonical 32-item gameplay catalog; the catalog remains the production scope source of truth."
+  ]
+}

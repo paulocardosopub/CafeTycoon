@@ -1,0 +1,1759 @@
+{
+  "version": "v003",
+  "root": "/assets/pixel/rendered/production_v003",
+  "files": [
+    {
+      "source": "atlases/characters/char_variant_customer_01.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_variant_customer_01.png",
+      "bytes": 536141,
+      "sha256": "c470f8e3751a86f5e2cb422b29770d0b6e5bf95fc481e7204ba8e0fe1303a265"
+    },
+    {
+      "source": "atlases/characters/char_variant_customer_02.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_variant_customer_02.png",
+      "bytes": 537439,
+      "sha256": "5d2355673b3bdd5fd61e42a3372b34e16790bf0bd599815c950f282584fc12b2"
+    },
+    {
+      "source": "atlases/characters/char_variant_customer_03.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_variant_customer_03.png",
+      "bytes": 560334,
+      "sha256": "e7df202a413885258452073eda7cb1a4dcd9d095ad9927580e5995835f45e091"
+    },
+    {
+      "source": "atlases/characters/char_variant_customer_04.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_variant_customer_04.png",
+      "bytes": 518430,
+      "sha256": "aa2643a653b8cb418179d1e92a8f5766b67cab27df06c767f3f2a95817c041e0"
+    },
+    {
+      "source": "atlases/characters/char_v003_customer_001.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_v003_customer_001.png",
+      "bytes": 546093,
+      "sha256": "7868e99971c1a2739815e79fcf2c66f0316d9ab69c34a69e02ac785557468e79"
+    },
+    {
+      "source": "atlases/characters/char_v003_customer_002.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_v003_customer_002.png",
+      "bytes": 527173,
+      "sha256": "509ce998aea166d80d626688a98789f43def863e8107990223a1c31f0fe3f75e"
+    },
+    {
+      "source": "atlases/characters/char_v003_customer_003.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_v003_customer_003.png",
+      "bytes": 540285,
+      "sha256": "8c1ab0235e80e50c87728833d6ff56777911391769cd45f910660d8522335022"
+    },
+    {
+      "source": "atlases/characters/char_v003_customer_004.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_v003_customer_004.png",
+      "bytes": 496712,
+      "sha256": "920f2049ecdf2516c1b497c84a178e712cad6013cee81aade80e437dd4bf8523"
+    },
+    {
+      "source": "atlases/characters/char_v003_customer_005.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_v003_customer_005.png",
+      "bytes": 547741,
+      "sha256": "60ac67bc148edcec2bc17c25f4a524ab6fb492fa9a7cd39b41de8f939b9831bb"
+    },
+    {
+      "source": "atlases/characters/char_v003_customer_006.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_v003_customer_006.png",
+      "bytes": 549206,
+      "sha256": "7daecf878dbda8865ef239e5c5e4df9cacf8ee692bbab137efa245f7580d818b"
+    },
+    {
+      "source": "atlases/characters/char_v003_customer_007.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_v003_customer_007.png",
+      "bytes": 533914,
+      "sha256": "a22ee5f5e36f897881056f1dd45de073c1b61e895cbb948c7b615dd28efbda9a"
+    },
+    {
+      "source": "atlases/characters/char_v003_customer_008.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_v003_customer_008.png",
+      "bytes": 542782,
+      "sha256": "d4ad6e0f5a83a3145a1eaf585b29d23f75ccbe955a1642a6418c7644b86929fc"
+    },
+    {
+      "source": "atlases/characters/char_v003_customer_009.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_v003_customer_009.png",
+      "bytes": 546086,
+      "sha256": "21ad9a9694feea5f00051a4c55a1009bd7b090b0a01c57b8c5922d904eb444be"
+    },
+    {
+      "source": "atlases/characters/char_v003_customer_010.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_v003_customer_010.png",
+      "bytes": 545026,
+      "sha256": "00f3d541f3441f479e71e4ac974f566a458a6dcc72e3d4ee5713aac4f8a33e2b"
+    },
+    {
+      "source": "atlases/characters/char_v003_customer_011.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_v003_customer_011.png",
+      "bytes": 550804,
+      "sha256": "ec57aff5d0229e8e5e7c414b2261c5fe3f0f79769f7c22a551a7ac823b79b2b5"
+    },
+    {
+      "source": "atlases/characters/char_v003_customer_012.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_v003_customer_012.png",
+      "bytes": 555391,
+      "sha256": "2babe269845a6787ac3a7196cbb501962cb0617dfe8dd36ee82da845496ee6bf"
+    },
+    {
+      "source": "atlases/characters/char_v003_customer_013.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_v003_customer_013.png",
+      "bytes": 535535,
+      "sha256": "a08b68793d38a7f2ff18bdef294a6696566ab40f021b547aa629267ec8ef7ba1"
+    },
+    {
+      "source": "atlases/characters/char_v003_customer_014.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_v003_customer_014.png",
+      "bytes": 549944,
+      "sha256": "3e766468be551857ce236604ba7fb96d81632f41e3a15bc486a5c07c4c0f06a7"
+    },
+    {
+      "source": "atlases/characters/char_v003_customer_015.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_v003_customer_015.png",
+      "bytes": 534669,
+      "sha256": "fd3761aafb4d1845a4d26b146256ada04c3c56139bd894d2334494114f53f9fe"
+    },
+    {
+      "source": "atlases/characters/char_v003_customer_016.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_v003_customer_016.png",
+      "bytes": 526915,
+      "sha256": "3a1743c2d53c7bc39799c8a31ef6fab0eea637854796239c494b0a503747048d"
+    },
+    {
+      "source": "atlases/characters/char_v003_customer_017.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_v003_customer_017.png",
+      "bytes": 553134,
+      "sha256": "4be5fce87c53b555e76081ef61498ffdf388d87984108fbc822efc54abc2b1b0"
+    },
+    {
+      "source": "atlases/characters/char_v003_customer_018.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_v003_customer_018.png",
+      "bytes": 528377,
+      "sha256": "f5a7a04ccf7be3b7a195e867e191f6b211a588f7454c8c356ac0b9f3afc035bb"
+    },
+    {
+      "source": "atlases/characters/char_v003_customer_019.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_v003_customer_019.png",
+      "bytes": 526554,
+      "sha256": "93ffb1f456206a83df05437d160799286a0b1c38c72442b00d88ca7bf756da43"
+    },
+    {
+      "source": "atlases/characters/char_v003_customer_020.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_v003_customer_020.png",
+      "bytes": 549379,
+      "sha256": "84a8133759b1678e751f4ac5062a566303778ccd4414c945db6a0d65f3344461"
+    },
+    {
+      "source": "atlases/characters/char_v003_customer_021.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_v003_customer_021.png",
+      "bytes": 540947,
+      "sha256": "a1a0daacbd1070774337b113604c3edfdd2b2de026669beede4603ca6d1bb8f2"
+    },
+    {
+      "source": "atlases/characters/char_v003_customer_022.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_v003_customer_022.png",
+      "bytes": 551770,
+      "sha256": "66dff73b0a653b3b18b8b0a7818069b7d20f9eddf04c412db41428520c877910"
+    },
+    {
+      "source": "atlases/characters/char_v003_customer_023.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_v003_customer_023.png",
+      "bytes": 547835,
+      "sha256": "a08467c790c02a1e2909448fb69ed90d3e7a8b735aca3cd603682fb509b7d7af"
+    },
+    {
+      "source": "atlases/characters/char_v003_customer_024.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_v003_customer_024.png",
+      "bytes": 508957,
+      "sha256": "ac0898139234d2be5da17c3cd56edfd76680aec5010af7b41ed08fdf7acb0156"
+    },
+    {
+      "source": "atlases/characters/char_v003_customer_025.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_v003_customer_025.png",
+      "bytes": 534664,
+      "sha256": "1a12e9e20f8c5d49385ef5bb4d8d32f3d492b5e9774e19ede4bb9131c8284f44"
+    },
+    {
+      "source": "atlases/characters/char_v003_customer_026.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_v003_customer_026.png",
+      "bytes": 541814,
+      "sha256": "28eaa62fc3ebc9df4a6265314663e0365292a1419ca8f99050ad62be714b3608"
+    },
+    {
+      "source": "atlases/characters/char_v003_customer_027.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_v003_customer_027.png",
+      "bytes": 551430,
+      "sha256": "ebcd21b3c5f408d292c1c7f4e1e260d3eee12e956579ce69be8511dd9a53625f"
+    },
+    {
+      "source": "atlases/characters/char_v003_customer_028.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_v003_customer_028.png",
+      "bytes": 516135,
+      "sha256": "e34b2d7a7b0aeba31f16ec742790af9f8a11963c10a5dddd6d5f76938c0d0305"
+    },
+    {
+      "source": "atlases/characters/char_v003_customer_029.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_v003_customer_029.png",
+      "bytes": 529273,
+      "sha256": "8ab3c3689d2eeb3deec79654fa94208b7094873feccc3e69958c4521a36880f4"
+    },
+    {
+      "source": "atlases/characters/char_v003_customer_030.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_v003_customer_030.png",
+      "bytes": 551857,
+      "sha256": "e859cb5e24430501dd16b8eb9debd6a0c5dd0257dd131d846f30605989ef9e61"
+    },
+    {
+      "source": "atlases/characters/char_v003_staff_barista.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_v003_staff_barista.png",
+      "bytes": 468643,
+      "sha256": "9b3bb66e69662cb01063368586ca96e3c7efebd08ba677df64903dce0cc67606"
+    },
+    {
+      "source": "atlases/characters/char_v003_staff_service.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_v003_staff_service.png",
+      "bytes": 479817,
+      "sha256": "32c29f5d62bc18f246db5e48ce880fae142941254af2846c1daf36a5b8994197"
+    },
+    {
+      "source": "atlases/characters/char_v003_staff_cleaner.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_v003_staff_cleaner.png",
+      "bytes": 352587,
+      "sha256": "b9730842bb9f90ba3b5114b966bea17fdc7e97c562847dc3b35a53eb0e2e2f45"
+    },
+    {
+      "source": "atlases/characters/char_v003_staff_oven.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_v003_staff_oven.png",
+      "bytes": 480794,
+      "sha256": "b0949c1ac6ce51347333e54d654a541fbca700cdfb4913000e8af51aa8f87926"
+    },
+    {
+      "source": "atlases/characters/char_v003_staff_griddle.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_v003_staff_griddle.png",
+      "bytes": 458811,
+      "sha256": "258303adb58db531d1d73ed73a6392b8a10c0219fe099391cb61de1bf12b813c"
+    },
+    {
+      "source": "atlases/characters/char_v003_staff_soup.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_v003_staff_soup.png",
+      "bytes": 480256,
+      "sha256": "9b31e65fb72137a4deb9ee3da074cccd799fb4691669393ffe13e82937e4b88a"
+    },
+    {
+      "source": "atlases/characters/char_v003_staff_oriental.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_v003_staff_oriental.png",
+      "bytes": 475039,
+      "sha256": "b3c18e6c4b3b58e630068a0741ac10f2c2392c00b899e66ac9108fcac3ece928"
+    },
+    {
+      "source": "atlases/characters/char_v003_staff_grill.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_v003_staff_grill.png",
+      "bytes": 452572,
+      "sha256": "64f06cbb6deef1c9d7527d7a2b65da7a4dfde35965b2d031091ff5dabef27a5d"
+    },
+    {
+      "source": "atlases/characters/char_v003_staff_general_cook.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_v003_staff_general_cook.png",
+      "bytes": 482131,
+      "sha256": "41cc18a82ed16c6f28ca2c4a812c3e39f97c28a463a55f465b160d036b1e8ad5"
+    },
+    {
+      "source": "atlases/characters/char_v003_staff_fryer.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_v003_staff_fryer.png",
+      "bytes": 475941,
+      "sha256": "6f175e2bc89f579449bfd436b6c3205b455799c3369343ba76d0cac2d814492e"
+    },
+    {
+      "source": "atlases/characters/char_v003_staff_pastry.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_v003_staff_pastry.png",
+      "bytes": 486338,
+      "sha256": "21bb21372ea8af9a8e077c6b783db1494f4d4dbe4df952e9acc8756e7a2f2f90"
+    },
+    {
+      "source": "atlases/characters/char_v003_staff_sushi.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/characters/char_v003_staff_sushi.png",
+      "bytes": 466951,
+      "sha256": "2bca8274d31d39362de510a379b42c13f7fc14267633417cf0f633577771a3a7"
+    },
+    {
+      "source": "atlases/furniture/v003_a1_stove_l1.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_a1_stove_l1.png",
+      "bytes": 43088,
+      "sha256": "108418897ac563d3e368fd63dee1be65fc75e2b13f62e3b47732df45e4c41c0f"
+    },
+    {
+      "source": "atlases/furniture/v003_a1_stove_l2.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_a1_stove_l2.png",
+      "bytes": 43223,
+      "sha256": "34829541fe4b1ba465610f3e7d50c16270cca4ed2689844d04eb1827f1531197"
+    },
+    {
+      "source": "atlases/furniture/v003_a1_stove_l3.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_a1_stove_l3.png",
+      "bytes": 41668,
+      "sha256": "003f42d17aedda7d09d5c64abf89f300e5449cf3af2032d6d1655f420f521304"
+    },
+    {
+      "source": "atlases/furniture/v003_a1_stove_l4.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_a1_stove_l4.png",
+      "bytes": 40373,
+      "sha256": "8dc672030c96d46b578231165841054afae6fe119947d0c3dba7f056c50747b7"
+    },
+    {
+      "source": "atlases/furniture/v003_a1_stove_l5.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_a1_stove_l5.png",
+      "bytes": 40694,
+      "sha256": "2491b29c71b9d59168845f32e4e934bc437b51ddf9670acd31abf5bf01fd8547"
+    },
+    {
+      "source": "atlases/furniture/v003_a2_convection_l1.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_a2_convection_l1.png",
+      "bytes": 47041,
+      "sha256": "6e6aaa12ca8bebe5df4caec9ca27afe369af9be1bc1934130d380ae9b68f1216"
+    },
+    {
+      "source": "atlases/furniture/v003_a2_convection_l2.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_a2_convection_l2.png",
+      "bytes": 47356,
+      "sha256": "ada93457a578474a979076ae8870a081b4292e9158e77835fb581e2cf9827bc5"
+    },
+    {
+      "source": "atlases/furniture/v003_a2_convection_l3.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_a2_convection_l3.png",
+      "bytes": 46117,
+      "sha256": "2771ad6f4d134a5584927882f0335271b18c3a55f3b7617f50f3248c6eb54ce9"
+    },
+    {
+      "source": "atlases/furniture/v003_a2_convection_l4.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_a2_convection_l4.png",
+      "bytes": 43706,
+      "sha256": "4d2a3e20f4e5353ad3f81ef7f153a74c6e75d23e7a2ddc864761ba67ff4c5434"
+    },
+    {
+      "source": "atlases/furniture/v003_a2_convection_l5.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_a2_convection_l5.png",
+      "bytes": 44087,
+      "sha256": "e0b2d92ea5ba98b0a208ec3ef801da1a07d94971f15b601d1d3baff4bcf0619d"
+    },
+    {
+      "source": "atlases/furniture/v003_a3_griddle_l1.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_a3_griddle_l1.png",
+      "bytes": 40606,
+      "sha256": "c07b20c770f5cced0bb9565e2ade98d17dc380a9a77280c5d2b678df806b500a"
+    },
+    {
+      "source": "atlases/furniture/v003_a3_griddle_l2.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_a3_griddle_l2.png",
+      "bytes": 40710,
+      "sha256": "04c31cfc5cb0980daee04ec79eacef3e92f94df22c421db5303ae97666a7c7f8"
+    },
+    {
+      "source": "atlases/furniture/v003_a3_griddle_l3.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_a3_griddle_l3.png",
+      "bytes": 39430,
+      "sha256": "8d389364c8989d28b455a2546dfae74275c55487101633be4b46ff0f954ba48b"
+    },
+    {
+      "source": "atlases/furniture/v003_a3_griddle_l4.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_a3_griddle_l4.png",
+      "bytes": 38255,
+      "sha256": "a3aeab4f061ed9cb32834da9898b73feee2c3ed1d985ebdff9285b21bd7911e9"
+    },
+    {
+      "source": "atlases/furniture/v003_a3_griddle_l5.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_a3_griddle_l5.png",
+      "bytes": 38535,
+      "sha256": "194b25325edc7ece02411ceb0ee5c4c284f8b079b506fe1159fe18f1fef55834"
+    },
+    {
+      "source": "atlases/furniture/v003_a4_fryer_l1.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_a4_fryer_l1.png",
+      "bytes": 48168,
+      "sha256": "4c17620b9127742e416d6da8e9634a5b301f657aca6557dd4f392d358bbcdd5a"
+    },
+    {
+      "source": "atlases/furniture/v003_a4_fryer_l2.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_a4_fryer_l2.png",
+      "bytes": 48195,
+      "sha256": "a8b6694d96efad636178351ec57b690200a1d05c8e6589681c15961a9cf96634"
+    },
+    {
+      "source": "atlases/furniture/v003_a4_fryer_l3.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_a4_fryer_l3.png",
+      "bytes": 46854,
+      "sha256": "678ec997ffab55ea5af909b6c3fba0b1d7a785a4e227616cb94e44b2c13a682b"
+    },
+    {
+      "source": "atlases/furniture/v003_a4_fryer_l4.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_a4_fryer_l4.png",
+      "bytes": 44976,
+      "sha256": "13478735a90e3b5d4515a73a0bdc040e8f81540e96b0d7039927b31ae4d1eb3a"
+    },
+    {
+      "source": "atlases/furniture/v003_a4_fryer_l5.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_a4_fryer_l5.png",
+      "bytes": 45419,
+      "sha256": "f9b9da72331874bc484d109835c257ff1620b9e465bf1071bf33e78cc8086a79"
+    },
+    {
+      "source": "atlases/furniture/v003_a5_kettle_l1.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_a5_kettle_l1.png",
+      "bytes": 48636,
+      "sha256": "d011a6dc3aff27fef2810af69ecf167c0bcbbbc6a373de23d98a972c448abcde"
+    },
+    {
+      "source": "atlases/furniture/v003_a5_kettle_l2.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_a5_kettle_l2.png",
+      "bytes": 48260,
+      "sha256": "e06ab372355a0aec2aa792327aba56b66bb31e85f987dffef527522b6d75a5a8"
+    },
+    {
+      "source": "atlases/furniture/v003_a5_kettle_l3.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_a5_kettle_l3.png",
+      "bytes": 47469,
+      "sha256": "600e47966193df8a153c33e8e4b968b2df4f8d3d8f3f72010a4a0bc746570292"
+    },
+    {
+      "source": "atlases/furniture/v003_a5_kettle_l4.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_a5_kettle_l4.png",
+      "bytes": 44402,
+      "sha256": "edf77bca8e18170f30b45d2303a89c2a82c7c484445090146672ef0476789a78"
+    },
+    {
+      "source": "atlases/furniture/v003_a5_kettle_l5.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_a5_kettle_l5.png",
+      "bytes": 44801,
+      "sha256": "c71853a45b87c8a4aed2a3542b28c6191f6eb346e6fb9cd14c810a1a6c232304"
+    },
+    {
+      "source": "atlases/furniture/v003_a6_grill_l1.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_a6_grill_l1.png",
+      "bytes": 40566,
+      "sha256": "1d5807c11a467f6fabee5fcee022f5fec2155afedf971c351bda0caaf9b8ea57"
+    },
+    {
+      "source": "atlases/furniture/v003_a6_grill_l2.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_a6_grill_l2.png",
+      "bytes": 40714,
+      "sha256": "cba81febc3ac1e5bd675fa6a1339d62942e1eeb8aa4ba29b574d22aa393bbd13"
+    },
+    {
+      "source": "atlases/furniture/v003_a6_grill_l3.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_a6_grill_l3.png",
+      "bytes": 39414,
+      "sha256": "2a5bf69630b467bcfca0c19a5e89396cee8d34949412b8cfa401e360994491ab"
+    },
+    {
+      "source": "atlases/furniture/v003_a6_grill_l4.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_a6_grill_l4.png",
+      "bytes": 38263,
+      "sha256": "025af590ecccfc920929a2bada4f440fadad599faa8d19376439bd18cceb582d"
+    },
+    {
+      "source": "atlases/furniture/v003_a6_grill_l5.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_a6_grill_l5.png",
+      "bytes": 38538,
+      "sha256": "80bf70d156962d028762c6590778ea82ad60c7b3f43de5eee6af5e5a689df297"
+    },
+    {
+      "source": "atlases/furniture/v003_a7_bakery_l1.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_a7_bakery_l1.png",
+      "bytes": 47077,
+      "sha256": "fb22479330c1da154dff0bc8cf459957c533469922f7658913ff5311f11ecd6d"
+    },
+    {
+      "source": "atlases/furniture/v003_a7_bakery_l2.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_a7_bakery_l2.png",
+      "bytes": 47402,
+      "sha256": "be80862f549ea72fa57d56773ac951cc1668c9bfe9374953be744bc53aa2b91a"
+    },
+    {
+      "source": "atlases/furniture/v003_a7_bakery_l3.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_a7_bakery_l3.png",
+      "bytes": 46089,
+      "sha256": "b1c6db56bf7da247ff41c257b6b6a4b55d247ff56e61a8e9adb89b56d2c20949"
+    },
+    {
+      "source": "atlases/furniture/v003_a7_bakery_l4.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_a7_bakery_l4.png",
+      "bytes": 43717,
+      "sha256": "d64f02eba3c8aa2b0d9f28fef1474aa5acbc81d3989031c5a53173300639edcc"
+    },
+    {
+      "source": "atlases/furniture/v003_a7_bakery_l5.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_a7_bakery_l5.png",
+      "bytes": 44098,
+      "sha256": "65064939087320f20574084d2c23ab5cb20484e5035b852488caa86ee6e3367c"
+    },
+    {
+      "source": "atlases/furniture/v003_a8_coffee_l1.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_a8_coffee_l1.png",
+      "bytes": 51343,
+      "sha256": "66c6d7eed50d74476863218ac8651e80fe18ba238a27385e6695eb983ac5092e"
+    },
+    {
+      "source": "atlases/furniture/v003_a8_coffee_l2.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_a8_coffee_l2.png",
+      "bytes": 51032,
+      "sha256": "c57fd1ecdcefb091d0cbc907b164ea5b6b6718053353651e7f1c178e1fb21acf"
+    },
+    {
+      "source": "atlases/furniture/v003_a8_coffee_l3.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_a8_coffee_l3.png",
+      "bytes": 50060,
+      "sha256": "d2a55e65e420702bdb538c010a730805f273bd6bf84d22d7ecd894cf4ee16c01"
+    },
+    {
+      "source": "atlases/furniture/v003_a8_coffee_l4.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_a8_coffee_l4.png",
+      "bytes": 46950,
+      "sha256": "c185100e631888cf4e73d717caa12fccc90f29d60e99a3e0ded5a80e419a4ddf"
+    },
+    {
+      "source": "atlases/furniture/v003_a8_coffee_l5.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_a8_coffee_l5.png",
+      "bytes": 47561,
+      "sha256": "2007e4df779a0817332d02efafe491765ffa4ba4da4303274dcdd6490be1e5b7"
+    },
+    {
+      "source": "atlases/furniture/v003_b3_preparation_l1.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_b3_preparation_l1.png",
+      "bytes": 39621,
+      "sha256": "7cbe5c7f0a84f6c1d8dc5bfd10afbd7a6005c1ea976a803c8b0804c561403357"
+    },
+    {
+      "source": "atlases/furniture/v003_b3_preparation_l2.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_b3_preparation_l2.png",
+      "bytes": 39963,
+      "sha256": "074606d63fbc991ef20d96474d79b26bce284fa75f195543cadc674f9ff3b101"
+    },
+    {
+      "source": "atlases/furniture/v003_b3_preparation_l3.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_b3_preparation_l3.png",
+      "bytes": 38689,
+      "sha256": "82fe1e6d5591007b66fc6eefbe92bdc50bf32727496258c976007d5a089b476d"
+    },
+    {
+      "source": "atlases/furniture/v003_b3_preparation_l4.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_b3_preparation_l4.png",
+      "bytes": 37024,
+      "sha256": "02294b97aeb9100d8a840919761b3cd4289e131aaf7554c7c371ea92ee03a07d"
+    },
+    {
+      "source": "atlases/furniture/v003_b3_preparation_l5.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_b3_preparation_l5.png",
+      "bytes": 37418,
+      "sha256": "bf72e5f27c6463ed1315139ea1ec4d1dcf1e3ec871d795ed5ce5be37061585d6"
+    },
+    {
+      "source": "atlases/furniture/v003_b5_sink_l1.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_b5_sink_l1.png",
+      "bytes": 44078,
+      "sha256": "aa884b6aa7d3a07c05deaf8d9f8c0114cec94c13fd68b6c2714f82d4691c2bed"
+    },
+    {
+      "source": "atlases/furniture/v003_b5_sink_l2.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_b5_sink_l2.png",
+      "bytes": 44081,
+      "sha256": "6fb19030f3adc7b4da7d15d9dedb74751031169f4fb6890905e5414c59d5c311"
+    },
+    {
+      "source": "atlases/furniture/v003_b5_sink_l3.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_b5_sink_l3.png",
+      "bytes": 43386,
+      "sha256": "b294f650512c077609fedfcfdaabe496068ae9508f3d6534c0d4dfd5804904f5"
+    },
+    {
+      "source": "atlases/furniture/v003_b5_sink_l4.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_b5_sink_l4.png",
+      "bytes": 41125,
+      "sha256": "3fc2f71f2949cb2718a74db9a5b0ffb7c26af49bb75519848c0c27e844ab25a6"
+    },
+    {
+      "source": "atlases/furniture/v003_b5_sink_l5.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_b5_sink_l5.png",
+      "bytes": 41534,
+      "sha256": "38ea57a73cce2fbf46c4c3a32d7c71dc4b198bc6a3a5224025f9378046b1ba1b"
+    },
+    {
+      "source": "atlases/furniture/v003_b8_pastry_l1.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_b8_pastry_l1.png",
+      "bytes": 59533,
+      "sha256": "47a9155f3ba088e6994990a0cdcb450e8b751b0c00985f0f87c7fb50a0455586"
+    },
+    {
+      "source": "atlases/furniture/v003_b8_pastry_l2.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_b8_pastry_l2.png",
+      "bytes": 59828,
+      "sha256": "f628468410946fb3514362d2a637608c9bb310cbd729ad71daea3d49cf2c525f"
+    },
+    {
+      "source": "atlases/furniture/v003_b8_pastry_l3.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_b8_pastry_l3.png",
+      "bytes": 58274,
+      "sha256": "8d726b3d1371a7d8a9fd74a0ddeb7ff8efc9ed90309f5ec97b6e51ec50e6c633"
+    },
+    {
+      "source": "atlases/furniture/v003_b8_pastry_l4.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_b8_pastry_l4.png",
+      "bytes": 55812,
+      "sha256": "ed22dd56648039e2c058e8617d9b1305e6350f6ac74432c9c8f502c43a0532ec"
+    },
+    {
+      "source": "atlases/furniture/v003_b8_pastry_l5.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_b8_pastry_l5.png",
+      "bytes": 56642,
+      "sha256": "594691bd73d06c6fe21575a2a6c1c7c34e1756fa63489fe4b34c5b751e678698"
+    },
+    {
+      "source": "atlases/furniture/v003_c1_service_isolated_l1.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_c1_service_isolated_l1.png",
+      "bytes": 24217,
+      "sha256": "7fdcc38686d795aad96fd652408ad22031cd6f75ad06a2a917201eda4e88bd97"
+    },
+    {
+      "source": "atlases/furniture/v003_c1_service_left_l1.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_c1_service_left_l1.png",
+      "bytes": 24541,
+      "sha256": "e774d7f030c91574cb40f59f4eab28deeb6af45644aca858d7fae9ee92805d7e"
+    },
+    {
+      "source": "atlases/furniture/v003_c1_service_middle_l1.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_c1_service_middle_l1.png",
+      "bytes": 24214,
+      "sha256": "ffb29c484242ca354b4f0d162fcc66885c5fc6619da1555435744fc5a87d97f4"
+    },
+    {
+      "source": "atlases/furniture/v003_c1_service_right_l1.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_c1_service_right_l1.png",
+      "bytes": 23037,
+      "sha256": "66692814f8f9afa90cdd415e780e3d6b9d3879be732b115f8fe12e3acae4ea7c"
+    },
+    {
+      "source": "atlases/furniture/v003_c1_service_isolated_l2.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_c1_service_isolated_l2.png",
+      "bytes": 24667,
+      "sha256": "a86dfcab683141b0921dcd41065da90542ee8163fa5e6f9b03de01e3821ecc25"
+    },
+    {
+      "source": "atlases/furniture/v003_c1_service_left_l2.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_c1_service_left_l2.png",
+      "bytes": 25094,
+      "sha256": "88a8b2c00627aeab8bb011e7d165891c50ea1468c17d811ad9ef41ec7c14289d"
+    },
+    {
+      "source": "atlases/furniture/v003_c1_service_middle_l2.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_c1_service_middle_l2.png",
+      "bytes": 24667,
+      "sha256": "a86dfcab683141b0921dcd41065da90542ee8163fa5e6f9b03de01e3821ecc25"
+    },
+    {
+      "source": "atlases/furniture/v003_c1_service_right_l2.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_c1_service_right_l2.png",
+      "bytes": 23251,
+      "sha256": "c0abcf08253b5c45b019f3aab593ab748f05eb96253885e9d4adca7f68f69314"
+    },
+    {
+      "source": "atlases/furniture/v003_c1_service_isolated_l3.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_c1_service_isolated_l3.png",
+      "bytes": 24003,
+      "sha256": "f0731e71a19ac03be4f09bdb1c612987d247dc3a73e1a7feb708bf079a9e301f"
+    },
+    {
+      "source": "atlases/furniture/v003_c1_service_left_l3.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_c1_service_left_l3.png",
+      "bytes": 24829,
+      "sha256": "ce5aaada6445ec8735b8bba6b39feeaecc197e04abf6e446c06252fb29b7a9fc"
+    },
+    {
+      "source": "atlases/furniture/v003_c1_service_middle_l3.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_c1_service_middle_l3.png",
+      "bytes": 24001,
+      "sha256": "5bbde6efce642c84274cd3f9438980c59b1bcb14876a0351aac95137e1ce4a8b"
+    },
+    {
+      "source": "atlases/furniture/v003_c1_service_right_l3.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_c1_service_right_l3.png",
+      "bytes": 23905,
+      "sha256": "347f0cf78658b69c394e5c676a17d535a3fc5cdf1c8edf86078571ce0cf258b0"
+    },
+    {
+      "source": "atlases/furniture/v003_c1_service_isolated_l4.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_c1_service_isolated_l4.png",
+      "bytes": 23119,
+      "sha256": "07265558233d62f4e9c5a4708ec63cc37b5a24db507869bb07adebdf05530a99"
+    },
+    {
+      "source": "atlases/furniture/v003_c1_service_left_l4.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_c1_service_left_l4.png",
+      "bytes": 23577,
+      "sha256": "d11cf65c5538ad2ae5753345d33cd3a3fe238b623a73b88aae9b89a38f12e962"
+    },
+    {
+      "source": "atlases/furniture/v003_c1_service_middle_l4.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_c1_service_middle_l4.png",
+      "bytes": 23096,
+      "sha256": "97a215a1ac147100bea22c7dcb1465943194dde1d4f9bf6c6ed7763d9f906d86"
+    },
+    {
+      "source": "atlases/furniture/v003_c1_service_right_l4.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_c1_service_right_l4.png",
+      "bytes": 21702,
+      "sha256": "9815d8f63ed0371701ce2360b8b4ac6510a0e16d9f62bc44c893baaed640a962"
+    },
+    {
+      "source": "atlases/furniture/v003_c1_service_isolated_l5.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_c1_service_isolated_l5.png",
+      "bytes": 23417,
+      "sha256": "4fc1ebfca31900f79cba9e93359593b3177a9d9fe5bd2f0880bf94c249df3186"
+    },
+    {
+      "source": "atlases/furniture/v003_c1_service_left_l5.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_c1_service_left_l5.png",
+      "bytes": 24021,
+      "sha256": "cab2a34b13065e6e98165d6e81cc54d453a5f0af5b10df78089601a496736850"
+    },
+    {
+      "source": "atlases/furniture/v003_c1_service_middle_l5.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_c1_service_middle_l5.png",
+      "bytes": 23415,
+      "sha256": "47dcef03ef3d699e2679e114c024aa77e0147cb7824bdaba637d7f2a1485e0ae"
+    },
+    {
+      "source": "atlases/furniture/v003_c1_service_right_l5.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_c1_service_right_l5.png",
+      "bytes": 22521,
+      "sha256": "e541615986f76f10581e5a13208285ea336232132fce121bde4533ca6ecf0ef0"
+    },
+    {
+      "source": "atlases/furniture/v003_c9_drinks_l1.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_c9_drinks_l1.png",
+      "bytes": 44182,
+      "sha256": "05cbad47dfb9bf7b01fcba7f3dff13bf6c01a0cc2eb6442a9ca6b27346eb0dd3"
+    },
+    {
+      "source": "atlases/furniture/v003_c9_drinks_l2.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_c9_drinks_l2.png",
+      "bytes": 44160,
+      "sha256": "02926b488d99cdb28abda104fbb448c320eaa937d2cd3d1144eabf567afcfd89"
+    },
+    {
+      "source": "atlases/furniture/v003_c9_drinks_l3.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_c9_drinks_l3.png",
+      "bytes": 43133,
+      "sha256": "a92df310c67e3ce339c17ae80c423b1e508fd20554dadce75b525ffd1efcdc31"
+    },
+    {
+      "source": "atlases/furniture/v003_c9_drinks_l4.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_c9_drinks_l4.png",
+      "bytes": 40579,
+      "sha256": "7d43cc9582b616139bd6946026f843c17927c347b5c2179c1ec6be96e2aba311"
+    },
+    {
+      "source": "atlases/furniture/v003_c9_drinks_l5.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_c9_drinks_l5.png",
+      "bytes": 41062,
+      "sha256": "9fd55af7f4ce5bfd1d6ce9b7d56e6d7f6399f7791294c6d9834d55fc11c4a3af"
+    },
+    {
+      "source": "atlases/furniture/v003_dining_table_l1.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_dining_table_l1.png",
+      "bytes": 14952,
+      "sha256": "a4a349d69243c7bd612c6c7f18cc02237f1d90c95a8259cf61c1e56dafcfe7cd"
+    },
+    {
+      "source": "atlases/furniture/v003_dining_table_l2.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_dining_table_l2.png",
+      "bytes": 15067,
+      "sha256": "911d6dec3f521fb00e37e6d316cf72dcefba3a537e10d66e321cf1898a5a0d33"
+    },
+    {
+      "source": "atlases/furniture/v003_dining_table_l3.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_dining_table_l3.png",
+      "bytes": 14291,
+      "sha256": "4848b8d8ed7ef7cf633fb6e76b3800b954d8742948baf017554d315f7f5bc40e"
+    },
+    {
+      "source": "atlases/furniture/v003_dining_table_l4.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_dining_table_l4.png",
+      "bytes": 14609,
+      "sha256": "941568953ef204171a684ab7934652fad5d270d4d56ce34ebad2bd871d96fb3f"
+    },
+    {
+      "source": "atlases/furniture/v003_dining_table_l5.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_dining_table_l5.png",
+      "bytes": 14521,
+      "sha256": "6b0ce255bb883e8a448548165d14992a105bd93b0266eea8e91e6cef66fd0455"
+    },
+    {
+      "source": "atlases/furniture/v003_dining_chair_l1.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_dining_chair_l1.png",
+      "bytes": 11531,
+      "sha256": "e47478a810e795a73bb355096aff005143da406f138e71b68ef373b54ff306b2"
+    },
+    {
+      "source": "atlases/furniture/v003_dining_chair_l1_back.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_dining_chair_l1_back.png",
+      "bytes": 7721,
+      "sha256": "f0a6eeb22e405a55af6b385541e5e11bb1a2ff8c1b03416bbddecdc2638f0864"
+    },
+    {
+      "source": "atlases/furniture/v003_dining_chair_l1_front.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_dining_chair_l1_front.png",
+      "bytes": 6309,
+      "sha256": "77a798bd4efcb69d86f8ebabe18f94dce3cb17f916682edc3abcb6baa2007531"
+    },
+    {
+      "source": "atlases/furniture/v003_dining_chair_l2.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_dining_chair_l2.png",
+      "bytes": 11688,
+      "sha256": "35e645df18a28abb35f5150b8b0f36a230d4b8bf0e3657cc959d4c7c5deeaaf3"
+    },
+    {
+      "source": "atlases/furniture/v003_dining_chair_l2_back.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_dining_chair_l2_back.png",
+      "bytes": 7780,
+      "sha256": "6968ffde676217a3e50ba3a6544265219d387cec0da0d68b87c040edc3552af8"
+    },
+    {
+      "source": "atlases/furniture/v003_dining_chair_l2_front.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_dining_chair_l2_front.png",
+      "bytes": 6377,
+      "sha256": "4b0fef75658fb17a7e897a707308f746254b799aec72aee37971800999b23522"
+    },
+    {
+      "source": "atlases/furniture/v003_dining_chair_l3.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_dining_chair_l3.png",
+      "bytes": 10820,
+      "sha256": "47e611ec11faebfad42589ca9548eea298a79d5be16d272168caf4295eec6aed"
+    },
+    {
+      "source": "atlases/furniture/v003_dining_chair_l3_back.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_dining_chair_l3_back.png",
+      "bytes": 7254,
+      "sha256": "d4fee4e146c23ac74de2789545baad97408441c5a6ebec64e97e300890cb36f1"
+    },
+    {
+      "source": "atlases/furniture/v003_dining_chair_l3_front.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_dining_chair_l3_front.png",
+      "bytes": 6083,
+      "sha256": "505429e3ea8daae6e31e1cb73f4dd34577b3eebc90712fbe37d51ab098141075"
+    },
+    {
+      "source": "atlases/furniture/v003_dining_chair_l4.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_dining_chair_l4.png",
+      "bytes": 11430,
+      "sha256": "d7a83fbb175288bf5725741401e590b0b160fee475b2392a3f7ede32415742d3"
+    },
+    {
+      "source": "atlases/furniture/v003_dining_chair_l4_back.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_dining_chair_l4_back.png",
+      "bytes": 7544,
+      "sha256": "7d1cac1731ba4810c7d2b7fc7de1df88216701f091d15a9fc9870ae8f1b8d8d4"
+    },
+    {
+      "source": "atlases/furniture/v003_dining_chair_l4_front.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_dining_chair_l4_front.png",
+      "bytes": 6118,
+      "sha256": "642ebb33659c5bafd75728a098aafb4936127dc2ba1617ca99cc76a214fbb775"
+    },
+    {
+      "source": "atlases/furniture/v003_dining_chair_l5.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_dining_chair_l5.png",
+      "bytes": 11302,
+      "sha256": "1dd2f35481c072115d39f0e997036a2d8b2c916f28fa084d8d8b5e2f1378ebba"
+    },
+    {
+      "source": "atlases/furniture/v003_dining_chair_l5_back.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_dining_chair_l5_back.png",
+      "bytes": 7423,
+      "sha256": "61ba03117a8960d8e1ca6c9d5bb21d301420b0f8d7d32968f078dee6093e28ec"
+    },
+    {
+      "source": "atlases/furniture/v003_dining_chair_l5_front.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/furniture/v003_dining_chair_l5_front.png",
+      "bytes": 6145,
+      "sha256": "d036d2c7f506427b8793e66ae861046f1f3ac252e4e41044e674b4c99278ba46"
+    },
+    {
+      "source": "atlases/thumbnails/char_v003_customer_001.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_v003_customer_001.png",
+      "bytes": 9396,
+      "sha256": "f150a785a469fdb9ce9c0e2be5696ee76ea1276334504f3717000eaec535d5c4"
+    },
+    {
+      "source": "atlases/thumbnails/char_v003_customer_002.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_v003_customer_002.png",
+      "bytes": 9356,
+      "sha256": "0b8adf2f85adb61bf5367235cffeca89d38e92435909a6f0b4a473fc5e3acd6a"
+    },
+    {
+      "source": "atlases/thumbnails/char_v003_customer_003.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_v003_customer_003.png",
+      "bytes": 9508,
+      "sha256": "c62870b22f51f3b343c6ebbd48792819fbe4108478462e39690fb4492f87caac"
+    },
+    {
+      "source": "atlases/thumbnails/char_v003_customer_004.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_v003_customer_004.png",
+      "bytes": 9173,
+      "sha256": "966d5e8d7abc2ca9aa14c0dab62171f501fdd9883b7f7c99bfc01ed8aeaf780a"
+    },
+    {
+      "source": "atlases/thumbnails/char_v003_customer_005.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_v003_customer_005.png",
+      "bytes": 9461,
+      "sha256": "e9b1271675273fb80774510d69a9aef71ae957f97d365586b8825a0f9aef1228"
+    },
+    {
+      "source": "atlases/thumbnails/char_v003_customer_006.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_v003_customer_006.png",
+      "bytes": 9347,
+      "sha256": "060973e13eb2f1d94c78c39df91c9bc50da222f9f787c4f397db362e184f423a"
+    },
+    {
+      "source": "atlases/thumbnails/char_v003_customer_007.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_v003_customer_007.png",
+      "bytes": 8816,
+      "sha256": "aea2b783e680afb932572ca95074537d1da57a2f84254b53a3c3ffb0f6af9f92"
+    },
+    {
+      "source": "atlases/thumbnails/char_v003_customer_008.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_v003_customer_008.png",
+      "bytes": 9280,
+      "sha256": "473a6fcf61bbd740cc1cf55cdd01bc55cfe708a519ca2e9ddd40c56cbc0fcec1"
+    },
+    {
+      "source": "atlases/thumbnails/char_v003_customer_009.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_v003_customer_009.png",
+      "bytes": 8702,
+      "sha256": "80a544060e2ffbbd5dda28ce0a40ec94fd24b47c979e544afd8066b9a95c0c87"
+    },
+    {
+      "source": "atlases/thumbnails/char_v003_customer_010.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_v003_customer_010.png",
+      "bytes": 9451,
+      "sha256": "8947f68b50ec22873eed9ab06b293749f50da1c145e82b50742fb71897a7d2e2"
+    },
+    {
+      "source": "atlases/thumbnails/char_v003_customer_011.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_v003_customer_011.png",
+      "bytes": 9404,
+      "sha256": "1b06e960054381a4afdcec4accc85e1ecc33f47b8535aeb315a1c269f0ed0e63"
+    },
+    {
+      "source": "atlases/thumbnails/char_v003_customer_012.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_v003_customer_012.png",
+      "bytes": 9612,
+      "sha256": "3fb92c6203fab60b8bd0b9c384d8cd808de89692fccaa99d75e22372132c2b4b"
+    },
+    {
+      "source": "atlases/thumbnails/char_v003_customer_013.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_v003_customer_013.png",
+      "bytes": 9373,
+      "sha256": "b55d099fd3eded80fa2126d25750ffcbd9f369aaade12ec9f81966bf8c6725bd"
+    },
+    {
+      "source": "atlases/thumbnails/char_v003_customer_014.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_v003_customer_014.png",
+      "bytes": 9174,
+      "sha256": "061f097e65e7f77efc43a5e0da886fa5dc60be3ce6812011adf792f9143ec097"
+    },
+    {
+      "source": "atlases/thumbnails/char_v003_customer_015.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_v003_customer_015.png",
+      "bytes": 9262,
+      "sha256": "f448d753f4f4f96c893beb0181c1c5911d0fc6650f3097de0c99f138f2c564a8"
+    },
+    {
+      "source": "atlases/thumbnails/char_v003_customer_016.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_v003_customer_016.png",
+      "bytes": 9206,
+      "sha256": "b2f843a1b7dd7591cabd01d01b3c560cc7e60c2bd9a5f95af8e1457831ac4352"
+    },
+    {
+      "source": "atlases/thumbnails/char_v003_customer_017.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_v003_customer_017.png",
+      "bytes": 8986,
+      "sha256": "c5203aa2efc4197ef47d22466e202fb2f65f9fed030721c8a388f85f68e8d7ed"
+    },
+    {
+      "source": "atlases/thumbnails/char_v003_customer_018.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_v003_customer_018.png",
+      "bytes": 9155,
+      "sha256": "80c93c3e14abea50a1475e51e2efa59b1907e2a3d9131b62f9b7da6d071654c9"
+    },
+    {
+      "source": "atlases/thumbnails/char_v003_customer_019.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_v003_customer_019.png",
+      "bytes": 9392,
+      "sha256": "c4f83f622f641f6150871385bff034af3564eba67524e7cec6e3c8264c6d8468"
+    },
+    {
+      "source": "atlases/thumbnails/char_v003_customer_020.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_v003_customer_020.png",
+      "bytes": 9287,
+      "sha256": "9370797ed034b546f66a5d1135c54888fd051d706df0193c78d68258b24a9d82"
+    },
+    {
+      "source": "atlases/thumbnails/char_v003_customer_021.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_v003_customer_021.png",
+      "bytes": 8962,
+      "sha256": "999805fd2fc782f91d033cd01f43260594ecb5e289739e78cff0f562d44c3e50"
+    },
+    {
+      "source": "atlases/thumbnails/char_v003_customer_022.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_v003_customer_022.png",
+      "bytes": 9293,
+      "sha256": "4f325f1681dbe93a37d112cf21970620bc3a6f0b17c16bd1a1a6c0fb9ea9dae8"
+    },
+    {
+      "source": "atlases/thumbnails/char_v003_customer_023.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_v003_customer_023.png",
+      "bytes": 9443,
+      "sha256": "a5cf86415d7a6e2c0813977c8e6da1f2eb8d5550245e8becb1897863155e7471"
+    },
+    {
+      "source": "atlases/thumbnails/char_v003_customer_024.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_v003_customer_024.png",
+      "bytes": 9472,
+      "sha256": "02ff93c5b8c8b1a4801d593949955166f7f5ef25b84979b846413c08864fb1f8"
+    },
+    {
+      "source": "atlases/thumbnails/char_v003_customer_025.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_v003_customer_025.png",
+      "bytes": 9181,
+      "sha256": "0e68b1eacb9840eb2cd4a4a530609a6678e0963000e5fba4e3a0d9ce757147a2"
+    },
+    {
+      "source": "atlases/thumbnails/char_v003_customer_026.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_v003_customer_026.png",
+      "bytes": 9188,
+      "sha256": "ae27c5d91baaeb07a6030e60812a8608ed4a871b36539b29f9fe4345df3136d0"
+    },
+    {
+      "source": "atlases/thumbnails/char_v003_customer_027.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_v003_customer_027.png",
+      "bytes": 9456,
+      "sha256": "f33f468a955e303b6c682455df08bb32b971b50de3fd1f183aa13684c5d03fc3"
+    },
+    {
+      "source": "atlases/thumbnails/char_v003_customer_028.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_v003_customer_028.png",
+      "bytes": 9323,
+      "sha256": "9ba21e8d2205ffe99a11c5953af05264f1905456d0ec11735673eef7351ce374"
+    },
+    {
+      "source": "atlases/thumbnails/char_v003_customer_029.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_v003_customer_029.png",
+      "bytes": 9348,
+      "sha256": "0d84a2ac73c1587d83c5e75b3a4d8476268cc30e1362ea3778c789229d3ad63e"
+    },
+    {
+      "source": "atlases/thumbnails/char_v003_customer_030.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_v003_customer_030.png",
+      "bytes": 8826,
+      "sha256": "32d0a2b86a5373b58cfa0ea94d29fe39fb295ac2c0a07122c61ad44c72635a36"
+    },
+    {
+      "source": "atlases/thumbnails/char_v003_staff_barista.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_v003_staff_barista.png",
+      "bytes": 8628,
+      "sha256": "9ecff1acfc33f01a9725792bf9572b36d5620ed4d0e612be6e7e813586214c47"
+    },
+    {
+      "source": "atlases/thumbnails/char_v003_staff_cleaner.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_v003_staff_cleaner.png",
+      "bytes": 8873,
+      "sha256": "f7292989085c39dc00d97bf118aff09f9c34dcefd14c486f925443e63f13b540"
+    },
+    {
+      "source": "atlases/thumbnails/char_v003_staff_fryer.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_v003_staff_fryer.png",
+      "bytes": 9407,
+      "sha256": "a7c7c5334e1e72724ab56916c55c549f8db308bbd17a764991e2e89161ae8814"
+    },
+    {
+      "source": "atlases/thumbnails/char_v003_staff_general_cook.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_v003_staff_general_cook.png",
+      "bytes": 9029,
+      "sha256": "0efd146b9495927c0be1a086adaca3b7b68be674e406dac098facc6f8f02f96c"
+    },
+    {
+      "source": "atlases/thumbnails/char_v003_staff_griddle.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_v003_staff_griddle.png",
+      "bytes": 9336,
+      "sha256": "c4356ca729d19a7449841ee2f9a8e35a0318460728ceb0a00365ed4515a8593c"
+    },
+    {
+      "source": "atlases/thumbnails/char_v003_staff_grill.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_v003_staff_grill.png",
+      "bytes": 9248,
+      "sha256": "4603aa55e8dbef17737645f21d7be09fa874101eb6a9a8782573abd614ec7b20"
+    },
+    {
+      "source": "atlases/thumbnails/char_v003_staff_oriental.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_v003_staff_oriental.png",
+      "bytes": 9313,
+      "sha256": "357621cfb1991dd370d474d310dd83a47ec3129fee98648d760635b9cd021354"
+    },
+    {
+      "source": "atlases/thumbnails/char_v003_staff_oven.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_v003_staff_oven.png",
+      "bytes": 8873,
+      "sha256": "2cefc85c8fabfbd82e3c3e29c5d63b413803b9c87d77cabf69385dffb3f8395b"
+    },
+    {
+      "source": "atlases/thumbnails/char_v003_staff_pastry.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_v003_staff_pastry.png",
+      "bytes": 8706,
+      "sha256": "b3969399414462b2f5da99d8fd49d559ad3d3bb04d758e00408ae234f0c5fbe2"
+    },
+    {
+      "source": "atlases/thumbnails/char_v003_staff_service.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_v003_staff_service.png",
+      "bytes": 9091,
+      "sha256": "293f6d36afd7a295bb8eaa4dfb0eb462cb8de3289f019718bef61d8402e85222"
+    },
+    {
+      "source": "atlases/thumbnails/char_v003_staff_soup.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_v003_staff_soup.png",
+      "bytes": 9486,
+      "sha256": "47305823aca3cc4c899d6da75ad9cc9bca5614946b8984b41e5a8601011a16c0"
+    },
+    {
+      "source": "atlases/thumbnails/char_v003_staff_sushi.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_v003_staff_sushi.png",
+      "bytes": 9248,
+      "sha256": "c30affc24de8d29a38edc5ada761ae8ac89205fb8a0e033110cb15ad46de8ca6"
+    },
+    {
+      "source": "atlases/thumbnails/char_variant_customer_01.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_variant_customer_01.png",
+      "bytes": 8957,
+      "sha256": "defad20af03a6006808eadff514799c7e3d32e80d162e95044fbd0127ab7cac2"
+    },
+    {
+      "source": "atlases/thumbnails/char_variant_customer_02.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_variant_customer_02.png",
+      "bytes": 9225,
+      "sha256": "506b1bfb40db3b4171403fbe685485e050f99857a4bf52fa62c13d6e39b4d791"
+    },
+    {
+      "source": "atlases/thumbnails/char_variant_customer_03.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_variant_customer_03.png",
+      "bytes": 9384,
+      "sha256": "b23ea2d42ce3bbea4e7e3208194ec46ba316ab36f8b60a64631aa6df0ea41cc0"
+    },
+    {
+      "source": "atlases/thumbnails/char_variant_customer_04.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/char_variant_customer_04.png",
+      "bytes": 9118,
+      "sha256": "447994f3c316bb879a4d8b7bae9d8fad6bebdc02803eb6d39cd5da2644e1a81f"
+    },
+    {
+      "source": "atlases/thumbnails/v003_a1_stove_l1.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_a1_stove_l1.png",
+      "bytes": 6982,
+      "sha256": "083b5da52cc81416146b372f9c418b5bd30391a87baa973691cc68b091d0d8f4"
+    },
+    {
+      "source": "atlases/thumbnails/v003_a1_stove_l2.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_a1_stove_l2.png",
+      "bytes": 7079,
+      "sha256": "50924b1c5b9611295de8fcb01778b698c0e2c1182fc4121f023d80ac9308d0ec"
+    },
+    {
+      "source": "atlases/thumbnails/v003_a1_stove_l3.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_a1_stove_l3.png",
+      "bytes": 6908,
+      "sha256": "d79744918bbaacf0206cabf6f3f72604fb8a254b87b9912fecf35992e8d7005a"
+    },
+    {
+      "source": "atlases/thumbnails/v003_a1_stove_l4.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_a1_stove_l4.png",
+      "bytes": 6653,
+      "sha256": "c6fb81190d6cbc581774d693c22e013789b81153b4584fa545f8695cf497e73d"
+    },
+    {
+      "source": "atlases/thumbnails/v003_a1_stove_l5.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_a1_stove_l5.png",
+      "bytes": 6754,
+      "sha256": "8e79f828d9f36769504308954ccc9719e5b65f0e70ace161716ba00345b00e45"
+    },
+    {
+      "source": "atlases/thumbnails/v003_a2_convection_l1.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_a2_convection_l1.png",
+      "bytes": 8516,
+      "sha256": "a05bc6096d17ffa5f5d1327a7257358b6631d93e3766402db5bee52e667225e8"
+    },
+    {
+      "source": "atlases/thumbnails/v003_a2_convection_l2.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_a2_convection_l2.png",
+      "bytes": 8589,
+      "sha256": "ec52f851e7447d254657cd9b89e2f830474160dc5249d41c2e02f8fa029238a3"
+    },
+    {
+      "source": "atlases/thumbnails/v003_a2_convection_l3.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_a2_convection_l3.png",
+      "bytes": 8363,
+      "sha256": "600b3bc1cb91b3ce1627d915ccc9a85cfa60f6998be54726bd1748b786bb8cb3"
+    },
+    {
+      "source": "atlases/thumbnails/v003_a2_convection_l4.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_a2_convection_l4.png",
+      "bytes": 7990,
+      "sha256": "16218483ae7455d959c86336105ab9c922722533a362217233ff7cf81e417dcd"
+    },
+    {
+      "source": "atlases/thumbnails/v003_a2_convection_l5.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_a2_convection_l5.png",
+      "bytes": 8078,
+      "sha256": "5cd2a9f8d509cccdc740a825631f7197a967b92699045acccfaf35fc87da1f37"
+    },
+    {
+      "source": "atlases/thumbnails/v003_a3_griddle_l1.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_a3_griddle_l1.png",
+      "bytes": 6982,
+      "sha256": "f9a5d7729900e448fa22ea49f66c001a40a360d31c4070b2b0e1eeef820540f0"
+    },
+    {
+      "source": "atlases/thumbnails/v003_a3_griddle_l2.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_a3_griddle_l2.png",
+      "bytes": 7080,
+      "sha256": "461b4b665febc561c68988b731565d5d5fa89111a073997af48334f27c430415"
+    },
+    {
+      "source": "atlases/thumbnails/v003_a3_griddle_l3.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_a3_griddle_l3.png",
+      "bytes": 6912,
+      "sha256": "3b12479567a19688c40e9635824dedc4280b7c4afee9dbd3d3a173432c9c6525"
+    },
+    {
+      "source": "atlases/thumbnails/v003_a3_griddle_l4.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_a3_griddle_l4.png",
+      "bytes": 6653,
+      "sha256": "c6fb81190d6cbc581774d693c22e013789b81153b4584fa545f8695cf497e73d"
+    },
+    {
+      "source": "atlases/thumbnails/v003_a3_griddle_l5.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_a3_griddle_l5.png",
+      "bytes": 6754,
+      "sha256": "8e79f828d9f36769504308954ccc9719e5b65f0e70ace161716ba00345b00e45"
+    },
+    {
+      "source": "atlases/thumbnails/v003_a4_fryer_l1.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_a4_fryer_l1.png",
+      "bytes": 7382,
+      "sha256": "3a9e788c4a91b640c334f5f6519af75c6bccd4827bb36b2fc3f893a4cff67683"
+    },
+    {
+      "source": "atlases/thumbnails/v003_a4_fryer_l2.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_a4_fryer_l2.png",
+      "bytes": 7473,
+      "sha256": "de9ad9562969c4f9b2658f33bbe92ec5c416ab316ce91f028c77f634667d2b7a"
+    },
+    {
+      "source": "atlases/thumbnails/v003_a4_fryer_l3.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_a4_fryer_l3.png",
+      "bytes": 7299,
+      "sha256": "83b3d8d92bbeff10159db9aebee501f50e0282c61bd90f0bf74e30298d091775"
+    },
+    {
+      "source": "atlases/thumbnails/v003_a4_fryer_l4.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_a4_fryer_l4.png",
+      "bytes": 7010,
+      "sha256": "fbc8149a7e0e755cdd3f73158392e6d342c915a8e97651282e6d5e3273f25e42"
+    },
+    {
+      "source": "atlases/thumbnails/v003_a4_fryer_l5.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_a4_fryer_l5.png",
+      "bytes": 7074,
+      "sha256": "52adf824cfaf131c7b0484f13b4bf1da1cbda3ee8569df2771163b393c6c37c7"
+    },
+    {
+      "source": "atlases/thumbnails/v003_a5_kettle_l1.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_a5_kettle_l1.png",
+      "bytes": 7862,
+      "sha256": "2cb1c3f9ab5f9cd292900d47b552b0094149ca64e314addf9cdb8dc30ed512d4"
+    },
+    {
+      "source": "atlases/thumbnails/v003_a5_kettle_l2.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_a5_kettle_l2.png",
+      "bytes": 7890,
+      "sha256": "8972682a59a70e53a34407e313d1dbb15affc5f60859ea3390b6f9c6fbcb26ec"
+    },
+    {
+      "source": "atlases/thumbnails/v003_a5_kettle_l3.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_a5_kettle_l3.png",
+      "bytes": 7717,
+      "sha256": "c8889032a9c9e1cf62ba81fd79e0501bbfcd3309820e2c85602ef58938951990"
+    },
+    {
+      "source": "atlases/thumbnails/v003_a5_kettle_l4.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_a5_kettle_l4.png",
+      "bytes": 7296,
+      "sha256": "14834fe6af73f97c85b8c58cdfcfc2793301e31ea7eb15d760f0aac79da41b79"
+    },
+    {
+      "source": "atlases/thumbnails/v003_a5_kettle_l5.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_a5_kettle_l5.png",
+      "bytes": 7451,
+      "sha256": "c5ba7f02aaf84d0945a2537750a38268a730a636c821108f8d62536fe741cfe3"
+    },
+    {
+      "source": "atlases/thumbnails/v003_a6_grill_l1.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_a6_grill_l1.png",
+      "bytes": 6983,
+      "sha256": "c1369b4a16f0b1918ea9c11e0bbcbba60e2b04187c071955cc890301701837b3"
+    },
+    {
+      "source": "atlases/thumbnails/v003_a6_grill_l2.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_a6_grill_l2.png",
+      "bytes": 7079,
+      "sha256": "50924b1c5b9611295de8fcb01778b698c0e2c1182fc4121f023d80ac9308d0ec"
+    },
+    {
+      "source": "atlases/thumbnails/v003_a6_grill_l3.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_a6_grill_l3.png",
+      "bytes": 6912,
+      "sha256": "3b12479567a19688c40e9635824dedc4280b7c4afee9dbd3d3a173432c9c6525"
+    },
+    {
+      "source": "atlases/thumbnails/v003_a6_grill_l4.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_a6_grill_l4.png",
+      "bytes": 6653,
+      "sha256": "c6fb81190d6cbc581774d693c22e013789b81153b4584fa545f8695cf497e73d"
+    },
+    {
+      "source": "atlases/thumbnails/v003_a6_grill_l5.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_a6_grill_l5.png",
+      "bytes": 6754,
+      "sha256": "8e79f828d9f36769504308954ccc9719e5b65f0e70ace161716ba00345b00e45"
+    },
+    {
+      "source": "atlases/thumbnails/v003_a7_bakery_l1.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_a7_bakery_l1.png",
+      "bytes": 8516,
+      "sha256": "479a9a394551d59eb6a7670a9723f1b6ce444bc594e17dde1826114e950a713d"
+    },
+    {
+      "source": "atlases/thumbnails/v003_a7_bakery_l2.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_a7_bakery_l2.png",
+      "bytes": 8589,
+      "sha256": "b7f7b88055e7ff92fbc406aef07d499d76739dcd60710bf367431a7173c34b7d"
+    },
+    {
+      "source": "atlases/thumbnails/v003_a7_bakery_l3.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_a7_bakery_l3.png",
+      "bytes": 8360,
+      "sha256": "45cc05e879d9e1b0ecdf5e977fa33a607a954275f9c86f450e34a88aa0ec3243"
+    },
+    {
+      "source": "atlases/thumbnails/v003_a7_bakery_l4.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_a7_bakery_l4.png",
+      "bytes": 7990,
+      "sha256": "16218483ae7455d959c86336105ab9c922722533a362217233ff7cf81e417dcd"
+    },
+    {
+      "source": "atlases/thumbnails/v003_a7_bakery_l5.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_a7_bakery_l5.png",
+      "bytes": 8081,
+      "sha256": "02e0c45bb64965f48fa5b9a560f93852c81ce01cd19e7992159a5b044a486286"
+    },
+    {
+      "source": "atlases/thumbnails/v003_a8_coffee_l1.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_a8_coffee_l1.png",
+      "bytes": 8199,
+      "sha256": "2dbf65ea1ed8b9c6716ec98a25e8917880a5af650cea738a2bd3caff0015a968"
+    },
+    {
+      "source": "atlases/thumbnails/v003_a8_coffee_l2.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_a8_coffee_l2.png",
+      "bytes": 8241,
+      "sha256": "a2b28bd82fd3a176a6b907047e4b704508bf5a18a443082f488566fb1344aa9e"
+    },
+    {
+      "source": "atlases/thumbnails/v003_a8_coffee_l3.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_a8_coffee_l3.png",
+      "bytes": 8014,
+      "sha256": "dbf08d60b33ccb9ca95629eb5b41018a3305f408dce9739d67de76a674f69f0b"
+    },
+    {
+      "source": "atlases/thumbnails/v003_a8_coffee_l4.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_a8_coffee_l4.png",
+      "bytes": 7571,
+      "sha256": "dca28db3ccb0083b0a8dc42b1c1812ac494d30344d4f0bd420f3e1a9a9b135c2"
+    },
+    {
+      "source": "atlases/thumbnails/v003_a8_coffee_l5.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_a8_coffee_l5.png",
+      "bytes": 7668,
+      "sha256": "1261b6bd0b0bcec4607aafcc84e06a8e7c44b32065e9bd1bac84b76d65b0d63b"
+    },
+    {
+      "source": "atlases/thumbnails/v003_b3_preparation_l1.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_b3_preparation_l1.png",
+      "bytes": 6473,
+      "sha256": "5ccb002b850a1e7ec3a0ed69fa3e9376605fe213608e09fd3e6dbca9ec69b9d6"
+    },
+    {
+      "source": "atlases/thumbnails/v003_b3_preparation_l2.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_b3_preparation_l2.png",
+      "bytes": 6638,
+      "sha256": "ea20be0ffb5bc3805a1cf7a5519b5a9e670fee738b608c7995df33b1c63c1a85"
+    },
+    {
+      "source": "atlases/thumbnails/v003_b3_preparation_l3.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_b3_preparation_l3.png",
+      "bytes": 6457,
+      "sha256": "aaed92c650130dd24becb76f1de8c63534e99471ee1607b91cf50496a8a64274"
+    },
+    {
+      "source": "atlases/thumbnails/v003_b3_preparation_l4.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_b3_preparation_l4.png",
+      "bytes": 6135,
+      "sha256": "f2ddb32057a26256916e0c4b5d6c61602a07fa45fd3434c215a7a1f213c40a8d"
+    },
+    {
+      "source": "atlases/thumbnails/v003_b3_preparation_l5.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_b3_preparation_l5.png",
+      "bytes": 6237,
+      "sha256": "1b3d0a4db2873fbca8f8c73035b409b5554328e5ddd915be3e5a59c3669fb770"
+    },
+    {
+      "source": "atlases/thumbnails/v003_b5_sink_l1.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_b5_sink_l1.png",
+      "bytes": 7197,
+      "sha256": "500d5fa7a7e14333ed970dd15323bcd9dcc1509c5b73c40cf740ebfccf0f974b"
+    },
+    {
+      "source": "atlases/thumbnails/v003_b5_sink_l2.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_b5_sink_l2.png",
+      "bytes": 7298,
+      "sha256": "14aa9fc3a4bf6ff3541dfcc4b57fac18d50d0858b3ac2eb13ff4d4e8add54924"
+    },
+    {
+      "source": "atlases/thumbnails/v003_b5_sink_l3.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_b5_sink_l3.png",
+      "bytes": 7092,
+      "sha256": "c9024bbdb40127b353ee206e07112118bb3f5d1e477572b27de8fda345b2c8bf"
+    },
+    {
+      "source": "atlases/thumbnails/v003_b5_sink_l4.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_b5_sink_l4.png",
+      "bytes": 6843,
+      "sha256": "037b2114bbd926b6eea8e69be849de541a900372420152d29dfe10ef311a2ad2"
+    },
+    {
+      "source": "atlases/thumbnails/v003_b5_sink_l5.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_b5_sink_l5.png",
+      "bytes": 6958,
+      "sha256": "dc93a47a8d1289cca2511a533b21afe7ddd1817cf4bdd46aab15a941a840e04d"
+    },
+    {
+      "source": "atlases/thumbnails/v003_b8_pastry_l1.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_b8_pastry_l1.png",
+      "bytes": 10466,
+      "sha256": "c72841e71937487a9a0a22bc97ccf82a36ec1c617fe720a40a74937a2a905226"
+    },
+    {
+      "source": "atlases/thumbnails/v003_b8_pastry_l2.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_b8_pastry_l2.png",
+      "bytes": 10658,
+      "sha256": "6f3858a50d080b9b249e7def618036e427f4dfe7075863050920ff1c2f893a1b"
+    },
+    {
+      "source": "atlases/thumbnails/v003_b8_pastry_l3.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_b8_pastry_l3.png",
+      "bytes": 10293,
+      "sha256": "4a6add93caa5ea1123be5080f5309f42f06232995b5c53de49cc3d0266e765a4"
+    },
+    {
+      "source": "atlases/thumbnails/v003_b8_pastry_l4.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_b8_pastry_l4.png",
+      "bytes": 9754,
+      "sha256": "57ace8ab4eb6e1f0c4115ce257d8b2a3770b735e7799c916e195fbe764b5f431"
+    },
+    {
+      "source": "atlases/thumbnails/v003_b8_pastry_l5.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_b8_pastry_l5.png",
+      "bytes": 9947,
+      "sha256": "a5dff55b39c6e0d36bfad4d96d56eba211760ff1944014c737f4b6962c597bac"
+    },
+    {
+      "source": "atlases/thumbnails/v003_c1_service_isolated_l1.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_c1_service_isolated_l1.png",
+      "bytes": 6152,
+      "sha256": "814d3c411bdce49c6d0c981108af2fc40cac783920749cbc4d673be58e9e2ee6"
+    },
+    {
+      "source": "atlases/thumbnails/v003_c1_service_isolated_l2.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_c1_service_isolated_l2.png",
+      "bytes": 6249,
+      "sha256": "ed66c3c14ee61f3173cd1ae353b28d1767b0c9d84e9bdb29745f5bb6da75277a"
+    },
+    {
+      "source": "atlases/thumbnails/v003_c1_service_isolated_l3.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_c1_service_isolated_l3.png",
+      "bytes": 6010,
+      "sha256": "587ac683eac412f046be42775d85b51dc3a5c0fc35956a43fa706e04337c3305"
+    },
+    {
+      "source": "atlases/thumbnails/v003_c1_service_isolated_l4.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_c1_service_isolated_l4.png",
+      "bytes": 5760,
+      "sha256": "77054fcbb968d01ff70dd5901769a910b179262ed4dc0aba6443368ce4616f9f"
+    },
+    {
+      "source": "atlases/thumbnails/v003_c1_service_isolated_l5.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_c1_service_isolated_l5.png",
+      "bytes": 5851,
+      "sha256": "87657bcd6ed86b131b7a93bd4199120d36bc01ee69cd02afd1adcb55883ebefa"
+    },
+    {
+      "source": "atlases/thumbnails/v003_c1_service_left_l1.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_c1_service_left_l1.png",
+      "bytes": 6217,
+      "sha256": "77e9aa4c12ddd21ba51eb60cc1d7efd88bc7f8e9623bf05bda7cf0d129d2c57e"
+    },
+    {
+      "source": "atlases/thumbnails/v003_c1_service_left_l2.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_c1_service_left_l2.png",
+      "bytes": 6352,
+      "sha256": "f8e8a2c2429a18a21205a5f3568788d1b063cd19b96c2d6feddae4baea51cadb"
+    },
+    {
+      "source": "atlases/thumbnails/v003_c1_service_left_l3.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_c1_service_left_l3.png",
+      "bytes": 6282,
+      "sha256": "13c4b3346eee31227ade7f9e7309ea3ab729f041e539e9645b030a61320111e6"
+    },
+    {
+      "source": "atlases/thumbnails/v003_c1_service_left_l4.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_c1_service_left_l4.png",
+      "bytes": 5875,
+      "sha256": "2aabcf04f91af537aa82b79ca59e3ff04347c31fa4b7fdb1ffd7fc6d8309c3da"
+    },
+    {
+      "source": "atlases/thumbnails/v003_c1_service_left_l5.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_c1_service_left_l5.png",
+      "bytes": 5975,
+      "sha256": "0c24b1dbb27983411b0f33c3c7287a3a70b07f0f68c1154913c8009a579a9926"
+    },
+    {
+      "source": "atlases/thumbnails/v003_c1_service_middle_l1.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_c1_service_middle_l1.png",
+      "bytes": 6151,
+      "sha256": "1e9de7be79953b0840a75f0cd5221c418eb29eabe57d2fc45ae5e08b27d1470e"
+    },
+    {
+      "source": "atlases/thumbnails/v003_c1_service_middle_l2.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_c1_service_middle_l2.png",
+      "bytes": 6249,
+      "sha256": "ed66c3c14ee61f3173cd1ae353b28d1767b0c9d84e9bdb29745f5bb6da75277a"
+    },
+    {
+      "source": "atlases/thumbnails/v003_c1_service_middle_l3.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_c1_service_middle_l3.png",
+      "bytes": 6017,
+      "sha256": "8a3e6f420f40075e7fd343719a5fdfb4dd29f368b5dcf8a85c64550de59944b6"
+    },
+    {
+      "source": "atlases/thumbnails/v003_c1_service_middle_l4.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_c1_service_middle_l4.png",
+      "bytes": 5746,
+      "sha256": "2d7760f577aa0dd0dea6893037e3b5e33d6b7330901342661333a656425411af"
+    },
+    {
+      "source": "atlases/thumbnails/v003_c1_service_middle_l5.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_c1_service_middle_l5.png",
+      "bytes": 5852,
+      "sha256": "d2822bdf8ead50d33c9f748d1d765731515d2dafa4936288eff7fb35a664ec5a"
+    },
+    {
+      "source": "atlases/thumbnails/v003_c1_service_right_l1.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_c1_service_right_l1.png",
+      "bytes": 5972,
+      "sha256": "8564e677778e6bc9bd1cd80e55d9fc902f0590c0445aef09db9ab5307571fa17"
+    },
+    {
+      "source": "atlases/thumbnails/v003_c1_service_right_l2.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_c1_service_right_l2.png",
+      "bytes": 6055,
+      "sha256": "64fb3a223fc524b5d8c836c8213e72b1ab5cf5c3ad4adc0dadd8d07d106ef38a"
+    },
+    {
+      "source": "atlases/thumbnails/v003_c1_service_right_l3.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_c1_service_right_l3.png",
+      "bytes": 6123,
+      "sha256": "51c644371a6cc1f15c6903e2f5c8ea5f8173325b3ad43dffa5be20c0650f0976"
+    },
+    {
+      "source": "atlases/thumbnails/v003_c1_service_right_l4.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_c1_service_right_l4.png",
+      "bytes": 5621,
+      "sha256": "cee0909f72b04768a8096d3375f84edc7f6ad1414b9ea31fbc7eab7c2d06e8fc"
+    },
+    {
+      "source": "atlases/thumbnails/v003_c1_service_right_l5.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_c1_service_right_l5.png",
+      "bytes": 5790,
+      "sha256": "a2103d26c2ef91ff3fa6bd99197e85d8144e4457ab8f5ff3e27025615d83a6f4"
+    },
+    {
+      "source": "atlases/thumbnails/v003_c9_drinks_l1.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_c9_drinks_l1.png",
+      "bytes": 8263,
+      "sha256": "56dd6cad8ae00369769386e4ca9ffe3f3d54dd80fab03404a13d2997e5d9facd"
+    },
+    {
+      "source": "atlases/thumbnails/v003_c9_drinks_l2.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_c9_drinks_l2.png",
+      "bytes": 8307,
+      "sha256": "8deef6224f5a9f9485423352c70ee4060b7ea36e0cd7eb233795b489f27a7592"
+    },
+    {
+      "source": "atlases/thumbnails/v003_c9_drinks_l3.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_c9_drinks_l3.png",
+      "bytes": 8134,
+      "sha256": "83dacc1d0a9f30dcadd9caa8b807ad1bdd12703bad196289335aee2d0da9e79b"
+    },
+    {
+      "source": "atlases/thumbnails/v003_c9_drinks_l4.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_c9_drinks_l4.png",
+      "bytes": 7625,
+      "sha256": "edb0501950c8eed4b327fa49b5939c11210e254f45e75a99e87cfb35029587a1"
+    },
+    {
+      "source": "atlases/thumbnails/v003_c9_drinks_l5.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_c9_drinks_l5.png",
+      "bytes": 7756,
+      "sha256": "3bb6eb0276b3ba24c7773075d1057c045d953e66f7cd996c824d654f6f41d538"
+    },
+    {
+      "source": "atlases/thumbnails/v003_dining_chair_l1.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_dining_chair_l1.png",
+      "bytes": 2806,
+      "sha256": "d7c133d822663c79586ff36594ec8eaa0ffb0d495f65d784947ba0d964446835"
+    },
+    {
+      "source": "atlases/thumbnails/v003_dining_chair_l1_back.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_dining_chair_l1_back.png",
+      "bytes": 1904,
+      "sha256": "f6fcfb093be2076b262a973d8172045f2634b3a7915447fdfb2ac16f51e63d01"
+    },
+    {
+      "source": "atlases/thumbnails/v003_dining_chair_l1_front.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_dining_chair_l1_front.png",
+      "bytes": 1563,
+      "sha256": "4df678913bc5e7817ccd01aedc9fdc6cbcd5dfe45873cd9c8f49c44d4145314c"
+    },
+    {
+      "source": "atlases/thumbnails/v003_dining_chair_l2.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_dining_chair_l2.png",
+      "bytes": 2842,
+      "sha256": "9f06eee0d1ea48fed966e83e02d0e9b2d7536c2ebecdce25789cea87cdae9ffc"
+    },
+    {
+      "source": "atlases/thumbnails/v003_dining_chair_l2_back.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_dining_chair_l2_back.png",
+      "bytes": 1914,
+      "sha256": "01fa25f1edb360adbcfba3dc9e34ef769fedfcbae80c91a24b139131f2c1533f"
+    },
+    {
+      "source": "atlases/thumbnails/v003_dining_chair_l2_front.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_dining_chair_l2_front.png",
+      "bytes": 1571,
+      "sha256": "07083fbd3ad36a10fa2fa55a23ba963385cdd7404c8b5061b52f38d6ddcd5180"
+    },
+    {
+      "source": "atlases/thumbnails/v003_dining_chair_l3.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_dining_chair_l3.png",
+      "bytes": 2631,
+      "sha256": "09e2b5f0b50ea82cf1adaee1f7c4725312d3417e10f8effa54277bafd49a3736"
+    },
+    {
+      "source": "atlases/thumbnails/v003_dining_chair_l3_back.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_dining_chair_l3_back.png",
+      "bytes": 1789,
+      "sha256": "2f32fb96df0885dba1ebfe68cfe6f11cdc9652cd3d1a991110ced0477f9423a6"
+    },
+    {
+      "source": "atlases/thumbnails/v003_dining_chair_l3_front.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_dining_chair_l3_front.png",
+      "bytes": 1484,
+      "sha256": "25e5eab387b5927d69ed8433ff0b9e0c91db26a15103fb19d72730db6bf3e9a6"
+    },
+    {
+      "source": "atlases/thumbnails/v003_dining_chair_l4.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_dining_chair_l4.png",
+      "bytes": 2776,
+      "sha256": "f1fd9a1fc863450dffd2c09822ed8415df64d74d91cd247060261244bd79aef3"
+    },
+    {
+      "source": "atlases/thumbnails/v003_dining_chair_l4_back.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_dining_chair_l4_back.png",
+      "bytes": 1861,
+      "sha256": "6e597c62f4caa86cd5e5124ad77148ab7d975360c68c56d7a87dcf906b73ced5"
+    },
+    {
+      "source": "atlases/thumbnails/v003_dining_chair_l4_front.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_dining_chair_l4_front.png",
+      "bytes": 1505,
+      "sha256": "1684fa46317674b44d4c69bfb318b300f213678c5eba07163241bf4d728d481f"
+    },
+    {
+      "source": "atlases/thumbnails/v003_dining_chair_l5.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_dining_chair_l5.png",
+      "bytes": 2743,
+      "sha256": "a4cc19f0d47c3cd11790afa7f25458b06779fa3a74345c7474dfba98f5683c35"
+    },
+    {
+      "source": "atlases/thumbnails/v003_dining_chair_l5_back.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_dining_chair_l5_back.png",
+      "bytes": 1833,
+      "sha256": "f343367646a5ef8b5db1a0c334b912903d7f36cdd8b4371ec7ff775c6894ccc4"
+    },
+    {
+      "source": "atlases/thumbnails/v003_dining_chair_l5_front.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_dining_chair_l5_front.png",
+      "bytes": 1508,
+      "sha256": "e90546d01ca1a572cd9255dfc7fb29db91e0adea76a89d64e5ac0fbdf0056317"
+    },
+    {
+      "source": "atlases/thumbnails/v003_dining_table_l1.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_dining_table_l1.png",
+      "bytes": 3650,
+      "sha256": "1803231b565c083b2d23077f6d9e5bc266eb609a87610de0fbecbff12f783595"
+    },
+    {
+      "source": "atlases/thumbnails/v003_dining_table_l2.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_dining_table_l2.png",
+      "bytes": 3655,
+      "sha256": "b6d424427c86af16d9eb2c19b023bf01c7a11dcfcef565970a4f8791c0e266d3"
+    },
+    {
+      "source": "atlases/thumbnails/v003_dining_table_l3.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_dining_table_l3.png",
+      "bytes": 3485,
+      "sha256": "77e6c31816bb00f7f8404edf9e8e983a2599f31dc3954295e4044024ee92b55c"
+    },
+    {
+      "source": "atlases/thumbnails/v003_dining_table_l4.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_dining_table_l4.png",
+      "bytes": 3555,
+      "sha256": "8cea083e4c1e005ee41e452cad34b58fdfa1dba2033e6ee1b578d917bc0f9ae9"
+    },
+    {
+      "source": "atlases/thumbnails/v003_dining_table_l5.png",
+      "runtimePath": "/assets/pixel/rendered/production_v003/thumbnails/v003_dining_table_l5.png",
+      "bytes": 3523,
+      "sha256": "4cc5e9b935c24e6a4d19e1179c2ac5e0462a8d6b96ad67e3197884955490ddfd"
+    }
+  ],
+  "totalBytes": 28283442
+}

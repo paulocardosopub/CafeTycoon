@@ -1,0 +1,1506 @@
+{
+  "v001Blend": {
+    "path": "C:\\Users\\paulo\\OneDrive\\Área de Trabalho\\Projetos\\CafeTycoon\\art_source\\blender\\sprite_refresh\\cafe_tycoon_sprite_refresh_approval.blend",
+    "bytes": 407104,
+    "sha256": "adda9d00bb8b52a3838d71f6df62de5e3b84471afd7c149e12d9cd0e97578ed4"
+  },
+  "v002Blend": {
+    "path": "C:\\Users\\paulo\\OneDrive\\Área de Trabalho\\Projetos\\CafeTycoon\\art_source\\blender\\sprite_refresh\\cafe_tycoon_sprite_refresh_refinement_v002.blend",
+    "bytes": 700956,
+    "sha256": "614cb6b4f6a55d20aaf079aacc5843ba807c7f8fd5470d123c16097fa6cd0cd5"
+  },
+  "v001Outputs": [
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/cook/ne/000.png",
+      "bytes": 16441,
+      "sha256": "62ee3b6c086196b9392724a1c21b800888e84cf1d49830b4dd2ce9ab85909aa8"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/cook/ne/001.png",
+      "bytes": 16774,
+      "sha256": "3cec593d074b7bb7b1b405b3e700137a59fccf4b042f3e2b48d9f642abf2ed98"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/cook/ne/002.png",
+      "bytes": 16566,
+      "sha256": "4d0fba23400869491c6cf85c7dbdac1c36e4bfecde03f43fa51f02750f9b4e14"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/cook/ne/003.png",
+      "bytes": 16425,
+      "sha256": "3fd97e5322abf2e2a8d4737727fa7226acb509f69188039d893ba14ee93e493f"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/cook/nw/000.png",
+      "bytes": 16388,
+      "sha256": "e7cafe295b3a8fe9f09ab5a7d86e74e6e59766248a9432ecfc9e8dc5aafc2596"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/cook/nw/001.png",
+      "bytes": 16382,
+      "sha256": "8d603a11c11cf4a5e59d7ce719483ec851dea9f9dd6c928bad607c7b28c68c76"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/cook/nw/002.png",
+      "bytes": 16396,
+      "sha256": "affb652538d66730cac02dfe8ae6b6f3659b6e2a9464b6fbb868df0aa1b6533b"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/cook/nw/003.png",
+      "bytes": 16302,
+      "sha256": "17939848f8d92c6d5b629d5c12c9d774c31c2456323f8549d6d80c9f9e1f69ef"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/cook/se/000.png",
+      "bytes": 18096,
+      "sha256": "11b5c7e33926234ee1d8216216b092cbfb0cbaeeb89c2ac48807ce7d1d4c3b5b"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/cook/se/001.png",
+      "bytes": 17914,
+      "sha256": "320f5a1245e34432dfa41415e21b52c0ed2a2f906d08cd057d5f9a6c3ce9f2e7"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/cook/se/002.png",
+      "bytes": 17969,
+      "sha256": "e2812bcfe595736f7c5b6d1e57a9d117e19b17a25ba500151329dbff64126bd5"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/cook/se/003.png",
+      "bytes": 18107,
+      "sha256": "0bacaf6af649b2ca647ff986c883d273eeba33f743c0899d995c2deccfa4367b"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/cook/sw/000.png",
+      "bytes": 17929,
+      "sha256": "1bfd3a2d622c9d90c50863c410d6acd57d1371fc4e6effc18bf8f3b47ebd588e"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/cook/sw/001.png",
+      "bytes": 18334,
+      "sha256": "47a7a6f5a210996e7786f05a5865233db5eeaf3afcfb94b9541c520a20652886"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/cook/sw/002.png",
+      "bytes": 18032,
+      "sha256": "c8de9aaa285d72344ddcc7bfbd3e69477d5ee51fd9302abe26feeca19065c2c4"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/cook/sw/003.png",
+      "bytes": 17940,
+      "sha256": "9b6386d120f8d5c6e757029d15b9129638a7689dbee03fa265212d03345c657c"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/walk/ne/000.png",
+      "bytes": 17102,
+      "sha256": "f95fc13619cf67204b0fdb805d64a7c4ba4f4302a847e502a01b2242d492e15b"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/walk/ne/001.png",
+      "bytes": 16739,
+      "sha256": "d17b1d5d228d68f8f7ae5c41d441fba55fe54a7dbc4fcd401350c11102aec46e"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/walk/ne/002.png",
+      "bytes": 16785,
+      "sha256": "872a4cddd456691f46529616f5433464c31951158335994cf8e250259f41179c"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/walk/ne/003.png",
+      "bytes": 16365,
+      "sha256": "1351622225961aa665257a4a1bf20c797c29d7aac549c2eee61f3723d56f7fb6"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/walk/nw/000.png",
+      "bytes": 16676,
+      "sha256": "f6e5154551e18d645ee79885b14ef84402989fe867b8d22fd829275457f8a122"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/walk/nw/001.png",
+      "bytes": 16189,
+      "sha256": "7d2922bddbe1ff0c057b7b2cf4a3baaae591ba4a6ff84ad07a7cb622644d58a8"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/walk/nw/002.png",
+      "bytes": 16958,
+      "sha256": "4b0a84a79d5b3b18696ace8773746b3ae14f7cec436c1751b67c1d6a47421665"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/walk/nw/003.png",
+      "bytes": 16501,
+      "sha256": "80528a8fa8923466bae281ce8543d75c37b2c41f1e2f974f9bde2740de55f853"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/walk/se/000.png",
+      "bytes": 17909,
+      "sha256": "55b346c764d0151414ccd1286fca69bd26a72ea6c8601a3c783cb9bd6d207cce"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/walk/se/001.png",
+      "bytes": 17691,
+      "sha256": "31644d527096630f22709d68db794e1458e827d2bdcc43d9c3deaa0f0f96ce30"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/walk/se/002.png",
+      "bytes": 18328,
+      "sha256": "bdc354a1d531472c49daae0a25ff2d3f60d79cca9cfa51c5df69b5853ab81d7f"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/walk/se/003.png",
+      "bytes": 18140,
+      "sha256": "021368e713ef3335429d422fce594160f571530e63daa8ef2a57c71796c6f757"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/walk/sw/000.png",
+      "bytes": 18403,
+      "sha256": "61a0157d03ffb2b0dee7852a8c6adf10cf946a60f2c99ab4845705f5f6eca111"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/walk/sw/001.png",
+      "bytes": 18288,
+      "sha256": "2ec048b59b4660f017f58a225e1d4074705f47e8cd86f69900637a0c09484282"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/walk/sw/002.png",
+      "bytes": 18127,
+      "sha256": "2adf3d7f29107ac8e1b7c57f98d33f75a5bfc3e8589fa7e170fcad0d1ed22798"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/walk/sw/003.png",
+      "bytes": 17836,
+      "sha256": "58d0906b45659fb2a417d594f5fb4582a87d412bafa561f0595f7e72bc0e7571"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/walk_tray/ne/000.png",
+      "bytes": 17787,
+      "sha256": "3b6df36438a6426bd65df9b4aab504c0fe1ec4030d673895e12be83da9f36758"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/walk_tray/ne/001.png",
+      "bytes": 17253,
+      "sha256": "e90922b6897020792d362eb046f909e82d7d98f7c3280d325aff29065b084a6f"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/walk_tray/ne/002.png",
+      "bytes": 16881,
+      "sha256": "7cf852b009ffab2f829e5e834bb6c32b763c929da0a0d996b1b207a6780723fd"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/walk_tray/ne/003.png",
+      "bytes": 16837,
+      "sha256": "8329c7f30707d437c58025255edece4f7944f864ccc29018cfeb1f52d19715b9"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/walk_tray/nw/000.png",
+      "bytes": 17057,
+      "sha256": "8950e4192e3b8fc8aa40d48de5a36cda5f9a0a4e855c4e90e251b79206c9e9bd"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/walk_tray/nw/001.png",
+      "bytes": 16795,
+      "sha256": "fdaad61776f87054766ec4e790a85b52e27c07d50c7b9a9c7756fb307fc795ae"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/walk_tray/nw/002.png",
+      "bytes": 17919,
+      "sha256": "56d5ea05da2d37d4765dac4d8cc53ad0676f59d7709494fe40fafac4012fa965"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/walk_tray/nw/003.png",
+      "bytes": 17112,
+      "sha256": "54732ed232cddc3b40d39af952f25dfdb25c4c99ee52458ede4d739d7f2a5fca"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/walk_tray/se/000.png",
+      "bytes": 18231,
+      "sha256": "fc0bb0df4e1590fd81d6c2012ff317456b448db5a7651197b40ed15178606c08"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/walk_tray/se/001.png",
+      "bytes": 18760,
+      "sha256": "92cbadc82d3da5e93f0358d6703fee1a6488afaa95dbe734863aa7b541d99025"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/walk_tray/se/002.png",
+      "bytes": 19515,
+      "sha256": "dbe0cdf6fad05f7b5485227b6f8333bab0fe3fd01701092d269d562e2900e591"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/walk_tray/se/003.png",
+      "bytes": 19199,
+      "sha256": "cb6abe04cbe89782dd0b2111f6fbbefc73063c1028b97b8981ca4379488a4cf3"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/walk_tray/sw/000.png",
+      "bytes": 19242,
+      "sha256": "110cda18a8252e3f9d5f0ca9f90a90a9984dffd6301158d8b14708a3801d1699"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/walk_tray/sw/001.png",
+      "bytes": 19118,
+      "sha256": "15e6b055ba959a0c997f5b46995dbf15ded2fbcc12d1f190c9c192293e637f4f"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/walk_tray/sw/002.png",
+      "bytes": 18180,
+      "sha256": "0b714726132b7b0de3d4c35028ed5b38a2e50c2c0da8208edfcb38a7a54d21bf"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/animation_frames/walk_tray/sw/003.png",
+      "bytes": 18742,
+      "sha256": "aa901157cfc973e6f2aeccfb0b25b01c71b51394ea8542cff2a0bf957684c6ed"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/approval_active_states.png",
+      "bytes": 92069,
+      "sha256": "f184468629a11eb5de78a05c12f299455f09d0c89ab0cf7fbb2361bf20763179"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/approval_character_family.png",
+      "bytes": 141043,
+      "sha256": "c776769629976e87eb4a52ea38a9523826a85e0ada46f3278cea3e202f0fbc74"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/approval_cook_sheet.png",
+      "bytes": 115709,
+      "sha256": "63af76f68722e4f1198f98c47f86930304da593ea03d9d0aa372244f9aace476"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/approval_counter_alignment.png",
+      "bytes": 1933982,
+      "sha256": "17761825caae52b5ad468529feb0eac04edf186c46a7175aa54c91c31cda5609"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/approval_furniture_scale.png",
+      "bytes": 1736373,
+      "sha256": "c1680cee8878ac79e4f584012fdbe9e04ad024162744dd1083ab1fda59a51501"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/approval_player_presets.png",
+      "bytes": 93314,
+      "sha256": "28afee995c500ddc01b5bcec9216730247bf4ffd7a341642c91edd8887bdd492"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/approval_player_turnaround.png",
+      "bytes": 79753,
+      "sha256": "b7478645789dd18eb4f0b45d7d839cf218ea9792dda1752d355ce21c5b390835"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/approval_player_turnaround_nearest_4x.png",
+      "bytes": 92294,
+      "sha256": "fcb66f11f390156297bc2e00237060e28ef6aab42423bfb17bf6ebde55326da3"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/approval_walk_sheet.png",
+      "bytes": 146780,
+      "sha256": "cc60749f9429d4ac87cffc48f966c38b8b752c278c1275d55c806d1d450f7a20"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/approval_walk_tray_sheet.png",
+      "bytes": 143258,
+      "sha256": "f845f502320713428e138ff51dd0d2bc6c0cfe811f5c12f8f009534df0ad8d26"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/audit_git_status.txt",
+      "bytes": 120,
+      "sha256": "f16bbd57335784c704cd62e0d6d5b0652edcd0ac50e1cbc31c2c25167d6df5ed"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/AUDIT_REPORT.md",
+      "bytes": 10070,
+      "sha256": "4e0e9e1463fa9fac33d86ec3a1e8ce1a073790e60ac9286bcf99376e93b0546e"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/current_assets_manifest.json",
+      "bytes": 31577,
+      "sha256": "6347f60369a7a4e10e62b2105c0823103657d9a7e446ae694a3b61a6f4cc183b"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/previews/cook_4_directions.gif",
+      "bytes": 1598961,
+      "sha256": "2c7ba4085350d57a98d074dd58e1d06ab75c3245567c2175ae75330728a70162"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/previews/walk_4_directions.gif",
+      "bytes": 1598961,
+      "sha256": "2e40ff0b7eae2f54e853947e1e694ca16c5104685f2e341db7efb444704aaba3"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/previews/walk_tray_4_directions.gif",
+      "bytes": 1598961,
+      "sha256": "15a87434b2c33b482aa14b99caf6b5392af0085c5e6539d97ed12894464fc338"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/production_v003/CATALOG_AUDIT.md",
+      "bytes": 7612,
+      "sha256": "f6914439414b5d2c00fdee354e40452c86bef6f49e76a34b9bc38f14aec5fd93"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/prototype_manifest.json",
+      "bytes": 20590,
+      "sha256": "b7d2ee14a3c942335462da3289114bb8a4b4b5a69069f099c1619129d35881b9"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/README.md",
+      "bytes": 1638,
+      "sha256": "306979f766fb508ff0968c2bca15b711c9030737143ceb361fff2573a8ff3a98"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/customer_approval_01/idle/ne.png",
+      "bytes": 16866,
+      "sha256": "15e284aca86f9338a6c41e65e3862a0650dad2e16fb59a821efe873597e339c2"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/customer_approval_01/idle/nw.png",
+      "bytes": 16783,
+      "sha256": "b83b02b91856c5473183b1078cab54abb57e386159711d0ca1ba26705557f69a"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/customer_approval_01/idle/se.png",
+      "bytes": 17741,
+      "sha256": "58fb0679e7ae5a2f6a763cbb40eaaa8a935e474791612063d47cf558a688855a"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/customer_approval_01/idle/sw.png",
+      "bytes": 18047,
+      "sha256": "6b493fdcd98089ec017fd95d28d4ff0c78599d0cee9db86de93e2fc793ed6ca1"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/customer_approval_02/idle/ne.png",
+      "bytes": 16878,
+      "sha256": "11c019a6dd464685df90248b82f1202647d2e51236e22a9dde9663b0127c0c50"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/customer_approval_02/idle/nw.png",
+      "bytes": 16817,
+      "sha256": "4455f5cf739db07eb92d48c911c8d945b27ad1bd8f695e952319872abafc9e44"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/customer_approval_02/idle/se.png",
+      "bytes": 17966,
+      "sha256": "5cb96e3c29d8a3ada0c89cd870022697c84a4b9855a688ffb8b628b3d7446325"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/customer_approval_02/idle/sw.png",
+      "bytes": 18167,
+      "sha256": "6cfef478c8173b651f92a98cfb7df52d813f2fac3e0f8dda354db91f2a3d0114"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/customer_approval_03/idle/ne.png",
+      "bytes": 17517,
+      "sha256": "a85b2fd9063a3bd2a278a97a2856e5067604bf720e70becc13a5a0f29ba8aa71"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/customer_approval_03/idle/nw.png",
+      "bytes": 17347,
+      "sha256": "e24728f33df983029f9bf90bc3c8b4068db321e25e00a5a87c77ce250d6cbf5c"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/customer_approval_03/idle/se.png",
+      "bytes": 18360,
+      "sha256": "acab59e323892c311d698b60b8e3c38690387e6be3de7198136f8ab867ab1500"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/customer_approval_03/idle/sw.png",
+      "bytes": 18561,
+      "sha256": "eca69a7fddec2aade2122adddf1056eda234b043b16683c53963b513cb02ce14"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/customer_approval_04/idle/ne.png",
+      "bytes": 16525,
+      "sha256": "e5503bab42a22c5bb1e0852ee5e51c78f6163ce6842382c10309d0e6408cbe49"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/customer_approval_04/idle/nw.png",
+      "bytes": 16488,
+      "sha256": "d612eef222f1e8933770ea7f3edac8e8ce066c73f44766551a589ead3c45a514"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/customer_approval_04/idle/se.png",
+      "bytes": 17494,
+      "sha256": "7a5df6865efcfa87a568c05656df22b4cec5ed60c4094beecf5f55faa0a149f0"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/customer_approval_04/idle/sw.png",
+      "bytes": 17841,
+      "sha256": "b95bc21c1927e614af1a784d683f0853759b6faf7278b735251aac7d31208b67"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/player_01_male_short/idle/ne.png",
+      "bytes": 16458,
+      "sha256": "ededb62271e4f7a12fb85b954b9a853b5b6ca83211504619c1db844bd7232898"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/player_01_male_short/idle/nw.png",
+      "bytes": 16257,
+      "sha256": "5f3cf4dcc7f6442a7159dad647966467b39499db86072f664c81bcc48d96c2b8"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/player_01_male_short/idle/se.png",
+      "bytes": 17680,
+      "sha256": "7517f58bc3ebe16f956814addc1a399be1df543126b38886bca7384f8af0276a"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/player_01_male_short/idle/sw.png",
+      "bytes": 17987,
+      "sha256": "cadf03a0a24993ac2abb2c272365667697133cb7d5ec7ff3ce58c4cb28cb23ab"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/player_02_female_bun/idle/ne.png",
+      "bytes": 15934,
+      "sha256": "5f6efcc081ecc7123fa5c445d7e9725cbdcbafa34c20c142bf72dc1d690c6443"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/player_02_female_bun/idle/nw.png",
+      "bytes": 15885,
+      "sha256": "158144a130792840b28d74318c9c751bc96ad66cc48e8bc2d5b4e0c900e4addb"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/player_02_female_bun/idle/se.png",
+      "bytes": 17884,
+      "sha256": "a227057c2b5b38f8628a9c76bfb2a678eb438d33ebae88e205c725d0e5dd0ac7"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/player_02_female_bun/idle/sw.png",
+      "bytes": 18219,
+      "sha256": "1952e3b4ee5a37e92462ef4e7d606851e8e35d455860871910c93a4e5528d22a"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/player_03_male_coily/idle/ne.png",
+      "bytes": 16777,
+      "sha256": "0a106d01aa86df1c0ea44b1aa70d354c7b2fa53e8acded57a391a019396267d4"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/player_03_male_coily/idle/nw.png",
+      "bytes": 16578,
+      "sha256": "f24d9f42cdd5137d5f5aa66bafbbc8fb83e8f64d1d1f210b53a3b3a0b102a0a7"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/player_03_male_coily/idle/se.png",
+      "bytes": 18174,
+      "sha256": "ff69e0e97a28ee640f6a8b5586eacd407e5e5568456be0afebbc4e8fd310f7db"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/player_03_male_coily/idle/sw.png",
+      "bytes": 18533,
+      "sha256": "04a2a80605e5a67154cdb4c8671aee2d92eb1a1702013b57f036d966af8ebbbd"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/player_04_female_curls/idle/ne.png",
+      "bytes": 17500,
+      "sha256": "c986bbc1ab57d9eb4200ec763af478709c3b46edff67af997f51d0805180568d"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/player_04_female_curls/idle/nw.png",
+      "bytes": 17130,
+      "sha256": "b69dc0e71c14f8877233010810b7a83b2de4bc0d1368ddc3448fca275f9b445e"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/player_04_female_curls/idle/se.png",
+      "bytes": 18675,
+      "sha256": "c1b0fbfb59ef3bb8b42578db9dd182f9a1c0abc1312add979ee96b8e11a7609f"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/player_04_female_curls/idle/sw.png",
+      "bytes": 18824,
+      "sha256": "2bd962a50b59fa94c014b1195990fc56c5855efba7249634a93cabd64eacd982"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/player_05_male_wave/idle/ne.png",
+      "bytes": 16855,
+      "sha256": "5f8ab521dc8636dd390148956a79a7c3d44873ddba14142bc16dcdc38d8115b5"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/player_05_male_wave/idle/nw.png",
+      "bytes": 16739,
+      "sha256": "cd2bfe84a5cf8163662f7ce393d80afbed6f09d07c88cfc355ceb6b3b3c2665e"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/player_05_male_wave/idle/se.png",
+      "bytes": 18165,
+      "sha256": "2facb31a1df5370b294ef3406af1e8cd9e3f227aba26fda578fb0758fab3d59b"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/player_05_male_wave/idle/sw.png",
+      "bytes": 18429,
+      "sha256": "e5a521e7c3fd6af6e1890c368ac3a5c617b2f1652e0796ea97c76c649bd26e8b"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/staff_attendant_caio/idle/ne.png",
+      "bytes": 16379,
+      "sha256": "d406b19246462281138ffdd9c2268606022731dd8dd14a39a53c6543ce4a754d"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/staff_attendant_caio/idle/nw.png",
+      "bytes": 16222,
+      "sha256": "9ae5de905cda86ecd2424efa16f27c4b6ba97720d7e3630e1443368c23472104"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/staff_attendant_caio/idle/se.png",
+      "bytes": 17553,
+      "sha256": "74e0856d0d6a4e12546c1a5c3e384b9e1ed93232bc65c73b963323e106feda81"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/staff_attendant_caio/idle/sw.png",
+      "bytes": 17926,
+      "sha256": "3b53a05bf407205b22e5c385e5bb8f5ea244e7452ea0c0f7ccefce44661d1ff7"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/staff_barista_nina/idle/ne.png",
+      "bytes": 15934,
+      "sha256": "61f4ea53755cb70721c9d213571a24c95e8e87d6c4a6b8d937b63e9d94029e5c"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/staff_barista_nina/idle/nw.png",
+      "bytes": 15885,
+      "sha256": "0f13db7a919dfec34e6d87b1c7c2f32a2b21987d46c5f10cb04275bed6b4a7e3"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/staff_barista_nina/idle/se.png",
+      "bytes": 17894,
+      "sha256": "028b9cddceb8f8d74d15b66db3034e46ba2510811a2859062b717bdc32c1804e"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/characters/staff_barista_nina/idle/sw.png",
+      "bytes": 18204,
+      "sha256": "7c4a7a17104929f0429b8341804f4d713119521882a93d48d7010cc8cbe6698c"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/counter_coffee/active_1/ne.png",
+      "bytes": 19637,
+      "sha256": "41002efbbb502fb6cf008c9d182fea70c05c3dd8e4325cf880de29a3e6c52556"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/counter_coffee/active_1/nw.png",
+      "bytes": 19621,
+      "sha256": "86e1b3b86e5418325ab35e44a158291e7a2c3d8467afe6edf278f74517b79915"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/counter_coffee/active_1/se.png",
+      "bytes": 20057,
+      "sha256": "929626d108ecedad27cbd3f46855b761e06d853a2977c7f57b24729f21ba9555"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/counter_coffee/active_1/sw.png",
+      "bytes": 20075,
+      "sha256": "42cbb5986a64eb292bf5c07a6e13d783d95b72892b692e320cd9d57519bf3b56"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/counter_coffee/active_2/ne.png",
+      "bytes": 19785,
+      "sha256": "74da8f4b3a5cf3d9ebd360eb6ef349207b059a91e4378de24ef63faccbb8c1a7"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/counter_coffee/active_2/nw.png",
+      "bytes": 19773,
+      "sha256": "fa4fb15605f0f4457588966d1cf9035ed39a9ad9a5a7fc92d1f14632275fefd8"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/counter_coffee/active_2/se.png",
+      "bytes": 20179,
+      "sha256": "ff2b758cde4cfab2fbfcefaff6ea92e173564cdf223850f3e39b40538e158dd2"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/counter_coffee/active_2/sw.png",
+      "bytes": 20156,
+      "sha256": "c106de923d5018747cf51deaf0d43caef95c6deafff5946455b52eca400bfaa6"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/counter_coffee/idle/ne.png",
+      "bytes": 19479,
+      "sha256": "b87ca3084f50d280f6c05a6599fb8d9d805f88d90501538662a51136f9487152"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/counter_coffee/idle/nw.png",
+      "bytes": 19442,
+      "sha256": "fa6ecfa1cb7561b38f6d55925b99b32f2caf0f994ef8ee17876a58ad7dd7959e"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/counter_coffee/idle/se.png",
+      "bytes": 19903,
+      "sha256": "0c75553579ed798fdb83904f816f9a4831d0390d41ec70a84f542433b7e22488"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/counter_coffee/idle/sw.png",
+      "bytes": 19897,
+      "sha256": "5bf23a00db76920686e0a38c95fce0aa5d9003001bbbd2803712968cf5e608c7"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/counter_fryer/off/ne.png",
+      "bytes": 18022,
+      "sha256": "59db775a2ac742a6e8fd4be3a01b38812becda689a6ac55ac336955f2772546c"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/counter_fryer/off/nw.png",
+      "bytes": 18058,
+      "sha256": "f129106f4dbb5d1a9825e98d138f4c1d26fdd13efa98a0a0f9923f16dd201813"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/counter_fryer/off/se.png",
+      "bytes": 18417,
+      "sha256": "ab0b481c07c03de517e4a21af69dba760febb757a69fc0c82a13336e249a6c57"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/counter_fryer/off/sw.png",
+      "bytes": 18435,
+      "sha256": "5290669e8be21bcb5b2ff994ab1815c79870cd3bf13f18ab5eaff979cac24d14"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/counter_fryer/on/ne.png",
+      "bytes": 18035,
+      "sha256": "497b017d677295e269e4d871c794e73a36eeb20c134196776b6c9b3622a54204"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/counter_fryer/on/nw.png",
+      "bytes": 18126,
+      "sha256": "21946e752c7cf8fe97700f8aa2cf61db073f0482b2dc6329a1db39b8e2150e25"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/counter_fryer/on/se.png",
+      "bytes": 18506,
+      "sha256": "8cbd2f19ed00a04568ca0cd1d65389d73599c1453c8a007f91fef7d14d245b7d"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/counter_fryer/on/sw.png",
+      "bytes": 18586,
+      "sha256": "55c645c28e00f926b4d4d0f362e14ae84cd94bddcfa23b4c6064178ff585e66a"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/counter_service/idle/ne.png",
+      "bytes": 16873,
+      "sha256": "5c5d10cee9a52fb9a4ab83fb947fcab26d7bee858d59a61efef5657092ab25fe"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/counter_service/idle/nw.png",
+      "bytes": 16823,
+      "sha256": "a34bcc353fb975dbc9599d6d453ddb88f3f66b4cf11c2359d0811f95094b8230"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/counter_service/idle/se.png",
+      "bytes": 17284,
+      "sha256": "93d2b401d86a2d43409d3af721e71c289166a034634af02d0d4d424634181fe9"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/counter_service/idle/sw.png",
+      "bytes": 17350,
+      "sha256": "b6f27315815843c439b5bef8b2bd5e0fe3de543e56ebdba118f8a6076e6aaca1"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/counter_sink/active/ne.png",
+      "bytes": 18634,
+      "sha256": "d0ebe319cfe7d0530811979ca8145db41dabacc7f3db26f48ae1218196378460"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/counter_sink/active/nw.png",
+      "bytes": 18625,
+      "sha256": "9bef18b4c8476113933de9ffa556f3d23a97c8ea08efda4668bac497b777ddf7"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/counter_sink/active/se.png",
+      "bytes": 19056,
+      "sha256": "9d11902a501cd2c4130f24a9f949e410d831307678900fb34d95d6d920d10e87"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/counter_sink/active/sw.png",
+      "bytes": 19075,
+      "sha256": "4f42109c9d07ad872c49f2a1b9bae7b15baac9741d45a8672453f173ad5b893a"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/counter_sink/idle/ne.png",
+      "bytes": 18103,
+      "sha256": "af23de82d99eaf7d2ddf54c2813d9fbbd1123e6234a8433585a67ee7559cba7b"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/counter_sink/idle/nw.png",
+      "bytes": 18070,
+      "sha256": "eb137bd551022111242baf257e8db03b3a3e10140c9b0c8b3149a4a353145593"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/counter_sink/idle/se.png",
+      "bytes": 18519,
+      "sha256": "c000c76924d0abe9be0628b20c8ff9e8f5d498a263a38d04977648d0e4a0b154"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/counter_sink/idle/sw.png",
+      "bytes": 18533,
+      "sha256": "37ce7af528bf270a89ac93be01691dbeb656b43f2e7cf2ef0849af0b8555d40d"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/counter_stove/off/ne.png",
+      "bytes": 17730,
+      "sha256": "77d7d0fbe603b4e26ea428338c8cbdb9bd3ffd0d50901d80d71eed095749c8d1"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/counter_stove/off/nw.png",
+      "bytes": 17733,
+      "sha256": "d110dceddda79ed5927d4609e56d6f292acd59192d0b5ccda65b542428fc7bda"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/counter_stove/off/se.png",
+      "bytes": 18131,
+      "sha256": "c1e5766d9631eef04406f3d7be0a97dd7a6234f63ac7de3661353cc48f576a65"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/counter_stove/off/sw.png",
+      "bytes": 18270,
+      "sha256": "202e70fae88c477958e4fe878fa21a1b898378ec17206f218078573b8c1f5bf2"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/counter_stove/on/ne.png",
+      "bytes": 18002,
+      "sha256": "0991912e29d434c452ec2704338f436951167f3d97b985600ad5dff9c38409aa"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/counter_stove/on/nw.png",
+      "bytes": 18000,
+      "sha256": "58d87caaedc5afa542dc55dbdf1b5489165d8f2a5dbb90a9c6acff21b8e068d3"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/counter_stove/on/se.png",
+      "bytes": 18383,
+      "sha256": "4341fb6ab4acc604dcac62479d54aca08d18f8f2298fa5c510a68cf4dde41eaa"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/counter_stove/on/sw.png",
+      "bytes": 18491,
+      "sha256": "0aec3224c26c26f33dff6b20fa3981ce46804857e4cdf2317bba96b19f5fdb72"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/dining_chair_basic/idle/ne.png",
+      "bytes": 13222,
+      "sha256": "82cb258f641a347508fbb8a696a7b3a621f3e7c32bf1e0b04c741cf0d322d745"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/dining_chair_basic/idle/nw.png",
+      "bytes": 13210,
+      "sha256": "a04b662281aa44333540690723e9ec99a9525f0034be3f13c45a8df311e7bfc7"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/dining_chair_basic/idle/se.png",
+      "bytes": 13222,
+      "sha256": "751710c92c7510b835b9beaa0d5df99fdc8ac27bc9ae16ac0af24b8fac1f7d4e"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/dining_chair_basic/idle/sw.png",
+      "bytes": 13222,
+      "sha256": "14952e22c46ebb048366a6a0181931a3cc150bda69816c3733eff27a7db36a31"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/dining_table_basic/idle/ne.png",
+      "bytes": 13971,
+      "sha256": "18b006d5d3bce2fe56b7659d35ad95ba390ccba717d4b7c6be8621ab8779248c"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/dining_table_basic/idle/nw.png",
+      "bytes": 13971,
+      "sha256": "8cdbc342411592d48ca5eb8fde8bfa2c7914d56ab3483b87d576fc9d06e79572"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/dining_table_basic/idle/se.png",
+      "bytes": 13971,
+      "sha256": "4b2f201351aaecb2cb327d861685c804ebf03831e37d8541acbfc40a2d18a314"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/dining_table_basic/idle/sw.png",
+      "bytes": 13971,
+      "sha256": "b0aa7dd1cbddde4241e275080b9eb6b36e9c6f115623ea373e20e4547e11498e"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/industrial_fridge/closed/ne.png",
+      "bytes": 18838,
+      "sha256": "3c1a3affbfce2eb9cd62e9935550260d6b40e9fe5cb5eee1f049baa62dcb5f4d"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/industrial_fridge/closed/nw.png",
+      "bytes": 18838,
+      "sha256": "1ffa0ae50dc71d6df09da8a5341103ee9f26330e49ddc96996f8a6cdeed10f57"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/industrial_fridge/closed/se.png",
+      "bytes": 18838,
+      "sha256": "cd7e4803bad19b9ffa0db51b46cff608d361fc172c15030645ad17e8880384f5"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/sprites/furniture/industrial_fridge/closed/sw.png",
+      "bytes": 18838,
+      "sha256": "d1d2c8b08b8ee6be91010a7bdf524ce8c7bef04ad2ee6b16898bf88d3d6dc472"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/validation_blender.log",
+      "bytes": 7546,
+      "sha256": "088af2f6d057af09ab3aab28463683d3091d64769d7fa5c1fcb3c7f826f34dd7"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/validation_results.json",
+      "bytes": 4417,
+      "sha256": "c102227edef484edca3196a252834cd4dcb771441a5d181de395fa2034fb4946"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/VALIDATION_RESULTS.md",
+      "bytes": 2737,
+      "sha256": "83143a4bc749196b27621e8ccfaefadd17e3c73cb874be76fd619ce247d8885b"
+    }
+  ],
+  "v002Outputs": [
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/cook/ne/000.png",
+      "bytes": 17613,
+      "sha256": "52492b944c98fcdf9d59a1a096a51bd4d586e68af17c656fb0251d936afd9863"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/cook/ne/001.png",
+      "bytes": 17930,
+      "sha256": "bcf2ebb137d1b5c81cf1b6652c4d3ddb88a552d0105b91318874f6c24913d16a"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/cook/ne/002.png",
+      "bytes": 17707,
+      "sha256": "a7362a947e569206111d6891e5b6aeb4a46d16e7dd2e0d8540beab7c21017981"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/cook/ne/003.png",
+      "bytes": 17595,
+      "sha256": "a4c2dcb87aee0d25e58560897e87ec51abb5c1556bb13957fce959dfac8b5dd4"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/cook/nw/000.png",
+      "bytes": 17574,
+      "sha256": "07490f9248156c568d7b4b83626b570b4667f18ab24dd06423a89237c600e350"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/cook/nw/001.png",
+      "bytes": 17482,
+      "sha256": "7068382a405a161dea27e6a13c910fb635565bd6143d43bf1a62176533dabe9b"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/cook/nw/002.png",
+      "bytes": 17538,
+      "sha256": "74a18f8445697e175d0119c15ba8d8234d41cbaf71d2e831b79b847e593ea519"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/cook/nw/003.png",
+      "bytes": 17493,
+      "sha256": "48dcf32a70322e28a522c4a4ff0de7e67670e20555480948dc5ac988743c2185"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/cook/se/000.png",
+      "bytes": 19076,
+      "sha256": "50f51ef6027bf69576a0074594bb00725e5092fc9f67ad1ed85b61d096bf9eb1"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/cook/se/001.png",
+      "bytes": 18761,
+      "sha256": "7d0268ac8b85fad486cab1aa4637c8304ea34079d0f4a47710b3f607a6ec1fb1"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/cook/se/002.png",
+      "bytes": 18825,
+      "sha256": "eb15d126fb966ffa7c1bff20f53812c7b7fdded5059f1bc3f02157c15916071f"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/cook/se/003.png",
+      "bytes": 19016,
+      "sha256": "8390bea39f0558fb5849321fd3befd606f1b93ffe549f6efb5908bda1794bd9b"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/cook/sw/000.png",
+      "bytes": 18608,
+      "sha256": "6c54fbab9423dc22c3a8807c05b60b3736773d87f4618bbf14007b03e050a825"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/cook/sw/001.png",
+      "bytes": 19013,
+      "sha256": "60b94d97ea10179d49f7affc1198b531dd30077151725f87413b85e8fc4c1311"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/cook/sw/002.png",
+      "bytes": 18942,
+      "sha256": "fa4426855d028526072221c707df4541426934f0be6702255effd43f293a2d65"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/cook/sw/003.png",
+      "bytes": 18620,
+      "sha256": "49cc65f121cbec28d0107c0109d83988667a6f131e8731621ebf813913f59aa1"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/walk/ne/000.png",
+      "bytes": 17913,
+      "sha256": "9efbeea0741c83bc09a85d1736ee4db71ce59e453d87a0adba3a2c87a84e3105"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/walk/ne/001.png",
+      "bytes": 17774,
+      "sha256": "e4a3706d41ad6dc2dc62ad5337097099194c635f459fadfcbb358b8e08fddba9"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/walk/ne/002.png",
+      "bytes": 17780,
+      "sha256": "ffb4066fa4240fdf38c92b5a40121bd47391db12fe9f8d76726398e99680b009"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/walk/ne/003.png",
+      "bytes": 17317,
+      "sha256": "c91a0080aaaf8b34807ab42a22f571ca61c8587d7d8e094be46066c570f7f3b6"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/walk/nw/000.png",
+      "bytes": 17620,
+      "sha256": "2bb72f7d90c732d3719387d7d538187fe5e195a8cd3f4243a19773c082203fa1"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/walk/nw/001.png",
+      "bytes": 17180,
+      "sha256": "1bd26c79ddc0b73b147e7f13ea58ec4917a70979589bcb1bbd67d7936641ce91"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/walk/nw/002.png",
+      "bytes": 17853,
+      "sha256": "37ec2c9296be6ba93b2b0b99b4c7b79acd799bbd8a2a9d61c7f2766356c9e3c0"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/walk/nw/003.png",
+      "bytes": 17572,
+      "sha256": "d917a28bcf52a9cc3ebc311b234b1cffc52435c3056e1c1ad40a87bbbc6ed4f3"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/walk/se/000.png",
+      "bytes": 18667,
+      "sha256": "32071ea5dfb747dc6fc6e7741fca333fcd8ebc45ad8d5cbb5b04f1a517ef7233"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/walk/se/001.png",
+      "bytes": 18642,
+      "sha256": "3c8739a4f4e449852c359be51c352a48a3039e05a1cf0bdce7f4db5bbc712cfa"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/walk/se/002.png",
+      "bytes": 19107,
+      "sha256": "73aed6e6f48b5ab5c09ec87cd39c117af7f7199aeae2e935627cf62241591ea3"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/walk/se/003.png",
+      "bytes": 19094,
+      "sha256": "194b975f6e5cd85177c3cb88cce7ccb53aef162cbff1dfe0fc153fd7fea54503"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/walk/sw/000.png",
+      "bytes": 19144,
+      "sha256": "a06e12aae71b854d37b3d9ecb4fcf86d543231ea00a43ee28ddcc706218b2419"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/walk/sw/001.png",
+      "bytes": 19138,
+      "sha256": "102e08359d91549b1036f5205cfd0b379261849304b9521138ec49489c67681c"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/walk/sw/002.png",
+      "bytes": 18804,
+      "sha256": "291bf32607da78b216e6d189d56f7daa8494d4406d1730ce63b512e1ceae935f"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/walk/sw/003.png",
+      "bytes": 18718,
+      "sha256": "81949bd3d1fc77a51f34d5e9b8bf24fdf8642ec3f6d0beff6b6a6e3a9f8ee4b0"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/walk_tray/ne/000.png",
+      "bytes": 18386,
+      "sha256": "b0ef5e4c388492f571df6b7291583abadaed4e76d6f2824bb07565bfb3301258"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/walk_tray/ne/001.png",
+      "bytes": 17896,
+      "sha256": "237ad6c986d5c8b160a5ce756eeb32e7b71a5b4a158a1f3c16dabe1756b38576"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/walk_tray/ne/002.png",
+      "bytes": 17549,
+      "sha256": "fea3df32fad241a71a73b4438fdc3a2d4a49e604d8c51f665c9e387dcb6bcd81"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/walk_tray/ne/003.png",
+      "bytes": 17427,
+      "sha256": "c66056b71ce946f03899ab397d799197c71255164406ca829efa8935aa4c730e"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/walk_tray/nw/000.png",
+      "bytes": 17571,
+      "sha256": "71aedae91fa7a6d859deda49ddc3c606bc169a20e8d95e9148a4146a442ab273"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/walk_tray/nw/001.png",
+      "bytes": 17496,
+      "sha256": "e2ed5c5851bda7f006dadfef4cb1c8a5fd0adecdc128cf5e1aacadb68f341e88"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/walk_tray/nw/002.png",
+      "bytes": 18411,
+      "sha256": "83cae58b8317265858cd6878852c4bbb3aefaec30e421034011061de85f21275"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/walk_tray/nw/003.png",
+      "bytes": 17876,
+      "sha256": "a44583b21e68a2a6c6fef73580e856a8556099611f115a44541c4096c94cb30c"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/walk_tray/se/000.png",
+      "bytes": 17829,
+      "sha256": "e78af779e9988b3c429657378d0bc70afc1c0526f7489fc7661de2a9cbdee274"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/walk_tray/se/001.png",
+      "bytes": 18312,
+      "sha256": "6e88012b7cdca1d0f78ecdeebc43f37a0a5d8ba14e4cbb89f944f5f38ad2d1b3"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/walk_tray/se/002.png",
+      "bytes": 19177,
+      "sha256": "e3be0d1bbaa6febb518ac9e207cf9738071d737febfdfeb2b1c85328991139fa"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/walk_tray/se/003.png",
+      "bytes": 18773,
+      "sha256": "772a52d9fe649dfe44b2dfcc5ca02b8ec061e81132d292c2f1af8b38369fbeed"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/walk_tray/sw/000.png",
+      "bytes": 19062,
+      "sha256": "a0343f77e23346cb35b59a357f15d9f8e5929839569ad1d57f7e666f8df80305"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/walk_tray/sw/001.png",
+      "bytes": 18743,
+      "sha256": "acb70fcde63bbd6d1ba199ba2ead6fddfb30f356298f5a9284447ac37f94d230"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/walk_tray/sw/002.png",
+      "bytes": 17835,
+      "sha256": "9e7f62a463f112e52abc36dcbe1de974bb3260d03116bfab9636b7a2e34cd1df"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/animation_frames/walk_tray/sw/003.png",
+      "bytes": 18278,
+      "sha256": "02767fe6571080fa4c8eeb444558136474d3a73edd89f989860d43fd993ab68e"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/approval_character_detail_comparison.png",
+      "bytes": 1591106,
+      "sha256": "1512d6953594493fd5e367c2539022339784124d004307a04b84c5dd611115d1"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/approval_character_family.png",
+      "bytes": 160914,
+      "sha256": "1f48518218bded1390ef034e30f20517f01c5048976b3983b8c6afbc67a311ed"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/approval_characters_enlarged.png",
+      "bytes": 233128,
+      "sha256": "06544dc4558c8ec7881f524d9ca9d238c84b4b046d1745c88027febe4f5264bd"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/approval_cook_sheet.png",
+      "bytes": 124519,
+      "sha256": "f5a3c179032e5990b725a235dc60b7b02fe99af7a4609c98e1970feabc6a133a"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/approval_player_presets.png",
+      "bytes": 100978,
+      "sha256": "34580067db144d8afa97dcfadd8a4ad7393ec36088789cbed3153469c811c2ff"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/approval_player_turnaround.png",
+      "bytes": 83577,
+      "sha256": "9ec93d5952e246a1eb5f7e9da76dc0bed84532e51e671fcd1e84f8438d3e0ee7"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/approval_tray_arm_pose_comparison.png",
+      "bytes": 1724119,
+      "sha256": "e467165d6d8ed11df6cb4f5d0f079d060e9451cde26c0cb5d2da6e3cc0cbdeed"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/approval_walk_sheet.png",
+      "bytes": 155713,
+      "sha256": "5564ec593d1404d2a7866a48ab5c8efd5adc45107fc71512430d5d7e138e9381"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/approval_walk_tray_sheet.png",
+      "bytes": 142146,
+      "sha256": "be59836e0d9956cd50e71cfedd8cd97ca58f4d99160a160bbc3a6b2e51f2ee1d"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/baseline_v001.json",
+      "bytes": 26977,
+      "sha256": "2992fe250242cd36ac0b5bf2a8acbe6830331373a6e539bcbd256d34d6a4123d"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/preview_character_diversity.png",
+      "bytes": 233582,
+      "sha256": "b81c03332f818e16cb46e8d9253f279eb4ee4fce68758efec8551d762be30ed7"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/preview_frames/diversity_customer_approval_01.png",
+      "bytes": 19058,
+      "sha256": "50dace610080dfac7b6e7215a23f880b97ae944ef1c2c163d613853d20b7b921"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/preview_frames/diversity_customer_approval_02.png",
+      "bytes": 19524,
+      "sha256": "e605182a47efef61cefffe737e18b180c97c91ea94c1917d90061529d088ea9c"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/preview_frames/diversity_customer_approval_03.png",
+      "bytes": 19904,
+      "sha256": "c5b471b2632a75183df2d5f4200de430a7ceb3d0e202b89ccc0c717e133b74ef"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/preview_frames/diversity_customer_approval_04.png",
+      "bytes": 18871,
+      "sha256": "e008b2df3aff10a9f122e8b086a0e7b573141e5454441addf381bf534b9e9c1b"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/preview_frames/diversity_player_01_male_short.png",
+      "bytes": 18909,
+      "sha256": "4f255ca77ee545012395b85b658e67dd5923edaaf92b3fc028688442ad78bc89"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/preview_frames/diversity_player_02_female_bun.png",
+      "bytes": 19435,
+      "sha256": "5aed2e1ce5f5e49f4495ac11896cd4aea47ce22f13589588ebc8e80bcb084307"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/preview_frames/diversity_player_03_male_coily.png",
+      "bytes": 19754,
+      "sha256": "9567d065223bd52cf9feaec0ed9a95e901c35ea32a8f7080c56def19486cb316"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/preview_frames/diversity_player_04_female_curls.png",
+      "bytes": 20072,
+      "sha256": "498548e388870e4adfc5226d4e665729789c1481f30feedc0be209d247beadef"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/preview_frames/diversity_player_05_male_wave.png",
+      "bytes": 19351,
+      "sha256": "3268e95505b1fbb5fcfd5ba49acc664a0e2a41dda884af89009a073916da6fdd"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/preview_frames/diversity_staff_attendant_caio.png",
+      "bytes": 18921,
+      "sha256": "8b49c2541f1aa83baab8f4a6a5125ffa56b2a7a807c20dcd53f40e4607403456"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/preview_frames/diversity_staff_barista_nina.png",
+      "bytes": 19586,
+      "sha256": "ea5b41a49037250ac4e2033fbe442796fddde564456504f70b07fb0181fce8f9"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/preview_frames/refined_ne.png",
+      "bytes": 17517,
+      "sha256": "a5ff229b1627a8340f6ef5e8b2aea1bed5689c32783bcb655cab653e7b04206c"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/preview_frames/refined_nw.png",
+      "bytes": 17294,
+      "sha256": "507d7ad760516da15006e0e44e38db048abc8b28cdeaefbabc4183c8d09707b0"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/preview_frames/refined_se.png",
+      "bytes": 18786,
+      "sha256": "06a3554b2063ffaa53ac68ff69b8f022d2e954f6440e3030cb1d772d598d9209"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/preview_frames/refined_sw.png",
+      "bytes": 18896,
+      "sha256": "c645d1de75891cb00952cd1b6d80bafea261a3f02c60393923d8b15993173e27"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/preview_frames/sole_check_sw.png",
+      "bytes": 18865,
+      "sha256": "387f0d6f24fb8044c54375ba5aa89ee9d4b2a6e7eb8f59c7526ac65550db2497"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/preview_frames/tray_sw_0.png",
+      "bytes": 19136,
+      "sha256": "8e1aee7b65429822d77fafbfaa8b80b250c80a622c087801b067b7079a74184f"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/preview_frames/tray_sw_1.png",
+      "bytes": 18814,
+      "sha256": "42a9cf36ffacedb980b6b359ee83eea02d5e631e55c44ca1da36e2e84ccb60aa"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/preview_frames/tray_sw_2.png",
+      "bytes": 17910,
+      "sha256": "b8a9d06dc889537477b7b8ce9865306eceaf7b75c2fe805f177d61b410b8e9e9"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/preview_frames/tray_sw_3.png",
+      "bytes": 18402,
+      "sha256": "1659aefa6d4b7afee2917abf1b54316275f2e6c144785344c23c20abe8baebcf"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/preview_refined_player.png",
+      "bytes": 83723,
+      "sha256": "61ea8f69e6ce659f1a9e81bebeb498e32c3571c5e3f484b0d1877586b7fbbcca"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/preview_tray_pose.png",
+      "bytes": 78834,
+      "sha256": "fa75aae720dc545a0e2044922bb1f5f002b8786f1280827570748ad278a6555b"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/previews/walk_tray_4_directions.gif",
+      "bytes": 1598961,
+      "sha256": "f6ac13844dd296cddab429a5386b8042b58062f38c2cc4cbae42529d05e01264"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/README.md",
+      "bytes": 1057,
+      "sha256": "6f1ed773bfbe928acf7d536a68034514403af77d5b7ce532b55174a9052ce80d"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/refinement_manifest.json",
+      "bytes": 3056,
+      "sha256": "53317d38343c86a618e7f2c2a8fb7e769bd1508fc9f5b277dd0fa80945781950"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/REFINEMENT_REPORT.md",
+      "bytes": 2665,
+      "sha256": "2f23fe0f62138c917d3966688253cb3dc394207fe78712b6f3a0c2c32fd92135"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/refinement_validation_results.json",
+      "bytes": 4874,
+      "sha256": "16a58bb6388efefa42e4dbfbede6cbfe31e975cb1808e0a4b722295241e42b7b"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/REFINEMENT_VALIDATION_RESULTS.md",
+      "bytes": 3130,
+      "sha256": "50680460da61da67f5efb0463f1a6607433735ae0e4c001e1ba75ea76fe8fb17"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/customer_approval_01/idle/ne.png",
+      "bytes": 17364,
+      "sha256": "808110310085ff3db1f04495087dff6c5b01e627a3a54da8256751f82943b890"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/customer_approval_01/idle/nw.png",
+      "bytes": 17167,
+      "sha256": "7f1ce297550c05a0245cbfdf335a82354d20328d1ccea125fa82ca587106072d"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/customer_approval_01/idle/se.png",
+      "bytes": 18697,
+      "sha256": "4063d0c83811f69b42b4e124939d4cc4030326d34ff676d7ddb377c610323ef0"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/customer_approval_01/idle/sw.png",
+      "bytes": 18988,
+      "sha256": "ebe10d9f4d6f55df476cde3254ec3ec817a8a3f12b1780ac62d87dd3804a7695"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/customer_approval_02/idle/ne.png",
+      "bytes": 17334,
+      "sha256": "6b89cfdbc381a5ac092366aeb82324fe70c99adb48b6d4906a6890db875a0e16"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/customer_approval_02/idle/nw.png",
+      "bytes": 17112,
+      "sha256": "d8fecc7d60ca38f69dcb199ce098aaa9de62459e582bb29bf61476db926e6cb5"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/customer_approval_02/idle/se.png",
+      "bytes": 19188,
+      "sha256": "51c0b0277438c8acf0adc3aaf93ae9147552337175d18faaa2a884e695a0af7d"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/customer_approval_02/idle/sw.png",
+      "bytes": 19459,
+      "sha256": "8fe7f1d2ad779ab144ba3964fb087f23834e27d1e7f22c312e929daa67fd18be"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/customer_approval_03/idle/ne.png",
+      "bytes": 17877,
+      "sha256": "af811493fc9c04cc98ce2496627de1dc2fa8dcfcdfdd58d9f0dc727f29fbae8e"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/customer_approval_03/idle/nw.png",
+      "bytes": 17658,
+      "sha256": "93c6a0b3df102af3564dd0d133e97ee504f91686e8cab4b809130f07fee5993b"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/customer_approval_03/idle/se.png",
+      "bytes": 19602,
+      "sha256": "98dd5ad574a5937eb962e09a781b8d1f53e4ddd621fb7e7b8e3927a78b05d05a"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/customer_approval_03/idle/sw.png",
+      "bytes": 19783,
+      "sha256": "b9b36350da6cd4dd6907e9dd4eace53ec74e376ee21bd79f6dfdf199b1f92486"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/customer_approval_04/idle/ne.png",
+      "bytes": 16913,
+      "sha256": "aa371e03af1fd3c17b03a378797afcbcd4f5c4c62b8476e4d092a0c8bdbd0dcf"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/customer_approval_04/idle/nw.png",
+      "bytes": 16555,
+      "sha256": "e7083a4e825745d7666eb7f34ae3f3963bf4adcbd98706652522afae6fee4fbd"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/customer_approval_04/idle/se.png",
+      "bytes": 18552,
+      "sha256": "83fe8a2afcdaee36b8c911885d1d55924f27b1e73ef7bfba84f2cc5400bd4f08"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/customer_approval_04/idle/sw.png",
+      "bytes": 18720,
+      "sha256": "2a123cd33421041c37a4da82fee82d44b00545651b7e8c1c7a70d780f4b50f2f"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/player_01_male_short/idle/ne.png",
+      "bytes": 17492,
+      "sha256": "dabdbd931286b4ca2d4a4c63ba667d3e63f37b07aa471f24952e028805a80506"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/player_01_male_short/idle/nw.png",
+      "bytes": 17214,
+      "sha256": "e59618f040fb21469e0bcabe6a51759d5e7158aea3084819db7c316399bcec48"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/player_01_male_short/idle/se.png",
+      "bytes": 18735,
+      "sha256": "2d2928b1fdcf0764664a5dfc8b12f1a54f8adb418a7de8bbef1a77edaa6cb1c4"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/player_01_male_short/idle/sw.png",
+      "bytes": 18861,
+      "sha256": "08b2bdee9266a8193090dc46969006078952665dd20b9f5cce2dfd4dc2459b17"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/player_02_female_bun/idle/ne.png",
+      "bytes": 17187,
+      "sha256": "318a4825aafeeda70e88f2822e38820ff81dd099f8b3392fc70d83864dffb958"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/player_02_female_bun/idle/nw.png",
+      "bytes": 16880,
+      "sha256": "2a156c1121e108ccce6b0d81d004b19e713eeafb14cfb00d34fb99523b5fc416"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/player_02_female_bun/idle/se.png",
+      "bytes": 19138,
+      "sha256": "e80877ec098defa68822348c7a1fa6102c00fdc98aecff9721f27af241a6de81"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/player_02_female_bun/idle/sw.png",
+      "bytes": 19372,
+      "sha256": "6d2fdbc1f8db55871122f6a5628a5fae844f0e85479a6070a0852a8e9617879c"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/player_03_male_coily/idle/ne.png",
+      "bytes": 17964,
+      "sha256": "307881aeabe5d5f1015419d569654818bd30d4350d35be45d8c007d60006fc9a"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/player_03_male_coily/idle/nw.png",
+      "bytes": 17631,
+      "sha256": "2887cb4ee529925db2106a22d778146cf0aff94cf3b3a75bad27353aecffeb33"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/player_03_male_coily/idle/se.png",
+      "bytes": 19452,
+      "sha256": "1cde876951cca12a3ac2841e2995a1581f73c7d998bd5c38113cc298250287fa"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/player_03_male_coily/idle/sw.png",
+      "bytes": 19619,
+      "sha256": "ae3931de5419d0ed567c5966ebe1c4330b3fc0ab0a6bab385c2d8d0e3726a876"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/player_04_female_curls/idle/ne.png",
+      "bytes": 18553,
+      "sha256": "4f47dbe92b406978ca586798b31e3cc36c13f03ed1b8c7edc0986f6a0821bb76"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/player_04_female_curls/idle/nw.png",
+      "bytes": 18186,
+      "sha256": "5fd1a6e5f8dee61910069d1cf5b5a9b3feebc8c20b1a74ceedae9e5a5d1c4eac"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/player_04_female_curls/idle/se.png",
+      "bytes": 19712,
+      "sha256": "0c8aabbcd9e9945017b341bc4eff2591be099b6848511bf0d2ac83022508cdfc"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/player_04_female_curls/idle/sw.png",
+      "bytes": 19946,
+      "sha256": "44ae7b3c34de30acb2ba38bedd609d024d7f102e80946bba598ad6190af504c5"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/player_05_male_wave/idle/ne.png",
+      "bytes": 17924,
+      "sha256": "c7755bd217e02c6d11a7f5ddba914289c14af22469487c0b2c07e080040d9ce5"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/player_05_male_wave/idle/nw.png",
+      "bytes": 17630,
+      "sha256": "3e210de8c32aa337aae3da080e6e5d544b475b2d4f5de3f7d0492dd5cbe581e3"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/player_05_male_wave/idle/se.png",
+      "bytes": 18964,
+      "sha256": "240ee27bc6ce5059356cadcab41392055f6ea7084fc5ad3584695380dde482ff"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/player_05_male_wave/idle/sw.png",
+      "bytes": 19258,
+      "sha256": "8a8c8e36f9e845b4f5d66339df0eb1dae05ea83b3734c34a7043c629c6c2aac6"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/staff_attendant_caio/idle/ne.png",
+      "bytes": 17252,
+      "sha256": "62020663dc3d7a43889d3fac2d3d3f9e71f5ac52d0855de91544e23008ee194f"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/staff_attendant_caio/idle/nw.png",
+      "bytes": 17075,
+      "sha256": "e59ec5c9d71e3efdd7fe37b9f377c66742516bd40b573b895b8c869a3f76b343"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/staff_attendant_caio/idle/se.png",
+      "bytes": 18772,
+      "sha256": "f3a6013b63dd8dcf42aca7c959666695d656ac164ac2958a3a22872260449cbe"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/staff_attendant_caio/idle/sw.png",
+      "bytes": 18838,
+      "sha256": "2773ce3c8595b11a137097b8690fe4c7ecbd5158f1f8143f8f99fcbb963f4de7"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/staff_barista_nina/idle/ne.png",
+      "bytes": 17152,
+      "sha256": "c7829a2a4a63b90bf348535ce22d3383b26eeffb56544ba975c9c8c0d7d8b52a"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/staff_barista_nina/idle/nw.png",
+      "bytes": 16889,
+      "sha256": "d0d24542219599ba9443da462ccb855cb79b6be00501f694680ca615dbe62a18"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/staff_barista_nina/idle/se.png",
+      "bytes": 19277,
+      "sha256": "fac0d3bf774cfdbc29aaa5559406fd12808168209ca49a2920a6fb6fce67faf7"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/sprites/characters/staff_barista_nina/idle/sw.png",
+      "bytes": 19487,
+      "sha256": "af29c655c1d6a259fc351504e634496fbf68163866bb3b6be1b1780638743168"
+    },
+    {
+      "path": "art/prototypes/sprite_refresh/refinement_v002/validation_blender.log",
+      "bytes": 8410,
+      "sha256": "fa486f93c7c23ac790e277ca1598f970ac29caea2281a1099d8ae226ffbadcd0"
+    }
+  ]
+}

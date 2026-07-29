@@ -6,7 +6,7 @@ const PLAYER_DEFAULT_ASSET_ID = 'char_staff_stocker_chef_01';
 const FORMER_PLAYER_ASSET_ID = 'char_player_male_01';
 const playerAssets = [
   ...C3_BR_VARIANT_ASSETS.filter((asset) => asset.assetId === PLAYER_DEFAULT_ASSET_ID),
-  ...C3_BR_CHARACTER_ASSETS.filter((asset) => asset.assetId !== FORMER_PLAYER_ASSET_ID),
+  ...C3_BR_CHARACTER_ASSETS,
   ...C3_BR_VARIANT_ASSETS.filter((asset) => asset.assetId !== PLAYER_DEFAULT_ASSET_ID),
 ];
 

@@ -1,0 +1,1356 @@
+{
+  "version": "v001-approved",
+  "blend": "art_source/blender/sprite_refresh/cafe_tycoon_sprite_refresh_approval.blend",
+  "blendSha256": "adda9d00bb8b52a3838d71f6df62de5e3b84471afd7c149e12d9cd0e97578ed4",
+  "camera": {
+    "type": "ORTHO",
+    "location": [
+      6.36396122,
+      -6.36396122,
+      7.67396116
+    ],
+    "rotation": [
+      0.95531654,
+      -7e-08,
+      0.78539819
+    ],
+    "orthoScale": 2.79999995,
+    "azimuthDegrees": 45.0,
+    "elevationDegrees": 35.264389682754654
+  },
+  "render": {
+    "frameSize": [
+      112,
+      168
+    ],
+    "feetAnchor": [
+      56,
+      158
+    ],
+    "directions": [
+      "sw",
+      "nw",
+      "ne",
+      "se"
+    ],
+    "filterSize": 0.3499999940395355
+  },
+  "player": {
+    "rootLocation": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "gameplayHeight": 2.2,
+    "sharedSkeleton": "SpriteRefresh_Humanoid_Shared"
+  },
+  "poseSignatures": {
+    "walk": [
+      {
+        "pelvis": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "torso": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "head": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "thigh.L": {
+          "rotation": [
+            0.52359879,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "shin.L": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "thigh.R": {
+          "rotation": [
+            -0.52359879,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "shin.R": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "upper_arm.L": {
+          "rotation": [
+            -0.38397244,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "forearm.L": {
+          "rotation": [
+            -0.13962634,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "upper_arm.R": {
+          "rotation": [
+            0.38397244,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "forearm.R": {
+          "rotation": [
+            -0.13962634,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      {
+        "pelvis": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "torso": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "head": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "thigh.L": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "shin.L": {
+          "rotation": [
+            0.48869219,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "thigh.R": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "shin.R": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "upper_arm.L": {
+          "rotation": [
+            -0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "forearm.L": {
+          "rotation": [
+            -0.13962634,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "upper_arm.R": {
+          "rotation": [
+            -0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "forearm.R": {
+          "rotation": [
+            -0.13962634,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      {
+        "pelvis": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "torso": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "head": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "thigh.L": {
+          "rotation": [
+            -0.52359879,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "shin.L": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "thigh.R": {
+          "rotation": [
+            0.52359879,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "shin.R": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "upper_arm.L": {
+          "rotation": [
+            0.38397244,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "forearm.L": {
+          "rotation": [
+            -0.13962634,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "upper_arm.R": {
+          "rotation": [
+            -0.38397244,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "forearm.R": {
+          "rotation": [
+            -0.13962634,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      {
+        "pelvis": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "torso": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "head": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "thigh.L": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "shin.L": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "thigh.R": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "shin.R": {
+          "rotation": [
+            0.48869219,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "upper_arm.L": {
+          "rotation": [
+            -0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "forearm.L": {
+          "rotation": [
+            -0.13962634,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "upper_arm.R": {
+          "rotation": [
+            -0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "forearm.R": {
+          "rotation": [
+            -0.13962634,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      }
+    ],
+    "cook": [
+      {
+        "pelvis": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "torso": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "head": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "thigh.L": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "shin.L": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "thigh.R": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "shin.R": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "upper_arm.L": {
+          "rotation": [
+            -0.59341192,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "forearm.L": {
+          "rotation": [
+            -0.73303831,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "upper_arm.R": {
+          "rotation": [
+            -0.97738439,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "forearm.R": {
+          "rotation": [
+            -1.18682384,
+            0.0,
+            -0.20943952
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      {
+        "pelvis": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "torso": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "head": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "thigh.L": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "shin.L": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "thigh.R": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "shin.R": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "upper_arm.L": {
+          "rotation": [
+            -0.87266463,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "forearm.L": {
+          "rotation": [
+            -1.11701071,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "upper_arm.R": {
+          "rotation": [
+            -0.66322511,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "forearm.R": {
+          "rotation": [
+            -0.83775806,
+            0.0,
+            0.13962634
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      {
+        "pelvis": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "torso": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "head": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "thigh.L": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "shin.L": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "thigh.R": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "shin.R": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "upper_arm.L": {
+          "rotation": [
+            -0.66322511,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "forearm.L": {
+          "rotation": [
+            -0.83775806,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "upper_arm.R": {
+          "rotation": [
+            -0.9075712,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "forearm.R": {
+          "rotation": [
+            -1.15191734,
+            0.0,
+            0.2617994
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      {
+        "pelvis": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "torso": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "head": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "thigh.L": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "shin.L": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "thigh.R": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "shin.R": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "upper_arm.L": {
+          "rotation": [
+            -0.38397244,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "forearm.L": {
+          "rotation": [
+            -0.66322511,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "upper_arm.R": {
+          "rotation": [
+            -1.08210409,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "forearm.R": {
+          "rotation": [
+            -1.2566371,
+            0.0,
+            -0.13962634
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      }
+    ],
+    "walkTrayLegs": [
+      {
+        "thigh.L": {
+          "rotation": [
+            0.52359879,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "shin.L": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "thigh.R": {
+          "rotation": [
+            -0.52359879,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "shin.R": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      {
+        "thigh.L": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "shin.L": {
+          "rotation": [
+            0.48869219,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "thigh.R": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "shin.R": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      {
+        "thigh.L": {
+          "rotation": [
+            -0.52359879,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "shin.L": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "thigh.R": {
+          "rotation": [
+            0.52359879,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "shin.R": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      {
+        "thigh.L": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "shin.L": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "thigh.R": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "shin.R": {
+          "rotation": [
+            0.48869219,
+            0.0,
+            0.0
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      }
+    ]
+  },
+  "approvedRenders": {
+    "playerPresets": "C:\\Users\\paulo\\OneDrive\\Área de Trabalho\\Projetos\\CafeTycoon\\art\\prototypes\\sprite_refresh\\approval_player_presets.png",
+    "walkTrayFrames": {
+      "sw": [
+        "C:\\Users\\paulo\\OneDrive\\Área de Trabalho\\Projetos\\CafeTycoon\\art\\prototypes\\sprite_refresh\\animation_frames\\walk_tray\\sw\\000.png",
+        "C:\\Users\\paulo\\OneDrive\\Área de Trabalho\\Projetos\\CafeTycoon\\art\\prototypes\\sprite_refresh\\animation_frames\\walk_tray\\sw\\001.png",
+        "C:\\Users\\paulo\\OneDrive\\Área de Trabalho\\Projetos\\CafeTycoon\\art\\prototypes\\sprite_refresh\\animation_frames\\walk_tray\\sw\\002.png",
+        "C:\\Users\\paulo\\OneDrive\\Área de Trabalho\\Projetos\\CafeTycoon\\art\\prototypes\\sprite_refresh\\animation_frames\\walk_tray\\sw\\003.png"
+      ],
+      "nw": [
+        "C:\\Users\\paulo\\OneDrive\\Área de Trabalho\\Projetos\\CafeTycoon\\art\\prototypes\\sprite_refresh\\animation_frames\\walk_tray\\nw\\000.png",
+        "C:\\Users\\paulo\\OneDrive\\Área de Trabalho\\Projetos\\CafeTycoon\\art\\prototypes\\sprite_refresh\\animation_frames\\walk_tray\\nw\\001.png",
+        "C:\\Users\\paulo\\OneDrive\\Área de Trabalho\\Projetos\\CafeTycoon\\art\\prototypes\\sprite_refresh\\animation_frames\\walk_tray\\nw\\002.png",
+        "C:\\Users\\paulo\\OneDrive\\Área de Trabalho\\Projetos\\CafeTycoon\\art\\prototypes\\sprite_refresh\\animation_frames\\walk_tray\\nw\\003.png"
+      ],
+      "ne": [
+        "C:\\Users\\paulo\\OneDrive\\Área de Trabalho\\Projetos\\CafeTycoon\\art\\prototypes\\sprite_refresh\\animation_frames\\walk_tray\\ne\\000.png",
+        "C:\\Users\\paulo\\OneDrive\\Área de Trabalho\\Projetos\\CafeTycoon\\art\\prototypes\\sprite_refresh\\animation_frames\\walk_tray\\ne\\001.png",
+        "C:\\Users\\paulo\\OneDrive\\Área de Trabalho\\Projetos\\CafeTycoon\\art\\prototypes\\sprite_refresh\\animation_frames\\walk_tray\\ne\\002.png",
+        "C:\\Users\\paulo\\OneDrive\\Área de Trabalho\\Projetos\\CafeTycoon\\art\\prototypes\\sprite_refresh\\animation_frames\\walk_tray\\ne\\003.png"
+      ],
+      "se": [
+        "C:\\Users\\paulo\\OneDrive\\Área de Trabalho\\Projetos\\CafeTycoon\\art\\prototypes\\sprite_refresh\\animation_frames\\walk_tray\\se\\000.png",
+        "C:\\Users\\paulo\\OneDrive\\Área de Trabalho\\Projetos\\CafeTycoon\\art\\prototypes\\sprite_refresh\\animation_frames\\walk_tray\\se\\001.png",
+        "C:\\Users\\paulo\\OneDrive\\Área de Trabalho\\Projetos\\CafeTycoon\\art\\prototypes\\sprite_refresh\\animation_frames\\walk_tray\\se\\002.png",
+        "C:\\Users\\paulo\\OneDrive\\Área de Trabalho\\Projetos\\CafeTycoon\\art\\prototypes\\sprite_refresh\\animation_frames\\walk_tray\\se\\003.png"
+      ]
+    }
+  }
+}

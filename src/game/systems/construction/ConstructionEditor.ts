@@ -11,6 +11,7 @@ import { seatFacingTowardTable } from '../../map/initialMap';
 import { modulesFromFurniture } from '../service-counter/ServiceCounterSystem';
 import { availableStaffFurniture, linkedStaffStart, nearestSafeStaffStart, staffFurnitureRequirement, syncLinkedStaffStarts, validateStaffStartPosition } from './StaffStartSystem';
 import { createStaffInstance } from '../../staff/StaffService';
+import { clampFurnitureLevel, furnitureUpgradeCost, furnitureUpgradeUnlockLevel, MAX_FURNITURE_LEVEL } from '../../data/furniture/levels';
 
 export interface ConstructionDraft {
   construction: ConstructionSaveState;
@@ -355,6 +356,27 @@ export class ConstructionEditor {
     }
     this.state.construction = clone(this.current.construction); this.state.coins = this.current.coins; this.active = false;
     return { ok: true, warnings: validation.warnings };
+  }
+
+  upgradeFurniture(id: string, restaurantLevel: number): EditorResult {
+    const item = this.current.construction.placedFurniture.find((entry) => entry.id === id)
+      ?? this.current.construction.storedFurniture.find((entry) => entry.id === id);
+    const definition = item ? FURNITURE_BY_ID[item.definitionId] : undefined;
+    if (!item || !definition) return { ok: false, reason: 'Móvel não encontrado.' };
+    const currentLevel = clampFurnitureLevel(item.level);
+    if (currentLevel >= MAX_FURNITURE_LEVEL) return { ok: false, reason: 'Este móvel já está no nível máximo.' };
+    const targetLevel = currentLevel + 1;
+    const unlockLevel = furnitureUpgradeUnlockLevel(targetLevel);
+    if (restaurantLevel < unlockLevel) return { ok: false, reason: `O nível ${targetLevel} libera no nível ${unlockLevel} do restaurante.` };
+    const cost = furnitureUpgradeCost(definition.id, currentLevel);
+    if (cost === undefined) return { ok: false, reason: 'Este móvel não possui evolução visual v003.' };
+    if (this.current.coins < cost) return { ok: false, reason: 'Moedas insuficientes.' };
+    this.record();
+    this.current.coins -= cost;
+    item.level = targetLevel;
+    item.purchasePricePaid = Math.max(0, item.purchasePricePaid ?? definition.price) + cost;
+    this.refreshFurnitureRelationships();
+    return { ok: true };
   }
 
   confirmPurchases(): EditorResult {
