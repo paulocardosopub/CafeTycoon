@@ -7,6 +7,7 @@ import { STAGE_2C_CHARACTER_ASSETS } from '../assets/pixel/stage2cCharacterManif
 import { FOOD_DIRTY_ASSET_ID, FOOD_DISPLAY_SCALE, recipeFoodAssetId } from '../assets/pixel/stage2dFoodManifest';
 import { RUNTIME_RENDERED_ASSETS, runtimeWorldRenderedFrame } from '../assets/pixel/runtimeRenderedAssets';
 import { footprintDepthPoint, VISUAL_METRICS } from '../assets/pixel/VisualMetrics';
+import { publicAssetUrl } from '../assets/pixel/publicAssetUrl';
 import { gameEvents } from '../core/events';
 import type { ConstructionSaveState, Direction, FurnitureEditSession, GridPoint, PixelAnimationName, StationRuntime, TableRuntime, WorldAssetId } from '../core/types';
 import { gridToWorld, isoDepth, worldToGrid } from '../game/grid/IsoGrid';
@@ -96,7 +97,7 @@ export class RestaurantScene extends Phaser.Scene {
     const preloadAssets = RENDERED_ASSETS.filter((asset) => !CHARACTER_RENDER_ASSET_IDS.has(asset.assetId) || sessionCharacterIds.has(asset.assetId));
     this.load.on('progress', (progress: number) => this.updateLoadingProgress(progress));
     for (const asset of preloadAssets) {
-      const source = `${asset.spriteSheet}?v=${encodeURIComponent(asset.renderVersion)}`;
+      const source = `${publicAssetUrl(asset.spriteSheet)}?v=${encodeURIComponent(asset.renderVersion)}`;
       this.load.spritesheet(`blender:${asset.assetId}`, source, { frameWidth: asset.frameSize[0], frameHeight: asset.frameSize[1] });
     }
   }
@@ -748,7 +749,7 @@ export class RestaurantScene extends Phaser.Scene {
     const asset = blenderAsset(assetId);
     if (!asset || asset.kind !== 'character') return;
     this.loadingCharacterIds.add(assetId);
-    this.load.spritesheet(`blender:${assetId}`, `${asset.spriteSheet}?v=${encodeURIComponent(asset.renderVersion)}`, { frameWidth: asset.frameSize[0], frameHeight: asset.frameSize[1] });
+    this.load.spritesheet(`blender:${assetId}`, `${publicAssetUrl(asset.spriteSheet)}?v=${encodeURIComponent(asset.renderVersion)}`, { frameWidth: asset.frameSize[0], frameHeight: asset.frameSize[1] });
     this.load.once(Phaser.Loader.Events.COMPLETE, () => {
       this.loadingCharacterIds.delete(assetId);
       if (this.textures.exists(`blender:${assetId}`)) this.textures.get(`blender:${assetId}`).setFilter(Phaser.Textures.FilterMode.NEAREST);

@@ -1,6 +1,7 @@
 import type { RecipeId } from '../../core/types';
 import { RECIPES } from '../../content/recipes/recipes';
 import type { BlenderRenderedAsset } from './blenderManifest';
+import { publicAssetUrl } from './publicAssetUrl';
 
 export const FOOD_ASSET_BY_RECIPE: Record<RecipeId, string> = Object.fromEntries(RECIPES.map((recipe) => [recipe.id, recipe.assetId]));
 export const FOOD_CLEAN_ASSET_ID = 'food_clean';
@@ -22,4 +23,4 @@ const foodAsset = (assetId: string): BlenderRenderedAsset => {
 
 export const STAGE_2D_FOOD_ASSETS = [...Object.values(FOOD_ASSET_BY_RECIPE).map(foodAsset), foodAsset(FOOD_CLEAN_ASSET_ID), foodAsset(FOOD_DIRTY_ASSET_ID)];
 export function recipeFoodAssetId(recipeId: RecipeId | undefined): string { return recipeId ? FOOD_ASSET_BY_RECIPE[recipeId] : FOOD_CLEAN_ASSET_ID; }
-export function recipeFoodThumbnail(recipeId: RecipeId): string { return `/assets/pixel/rendered/food/v008/thumbnails/${FOOD_ASSET_BY_RECIPE[recipeId]}.png?v=0.0.8-food-2`; }
+export function recipeFoodThumbnail(recipeId: RecipeId): string { return publicAssetUrl(`assets/pixel/rendered/food/v008/thumbnails/${FOOD_ASSET_BY_RECIPE[recipeId]}.png?v=0.0.8-food-2`); }
