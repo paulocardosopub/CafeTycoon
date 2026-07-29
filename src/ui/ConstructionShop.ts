@@ -9,6 +9,7 @@ import type { SaveRepository } from '../game/save/SaveRepository';
 import type { RestaurantSimulation } from '../game/simulation/RestaurantSimulation';
 import { availableStaffFurniture, staffFurnitureRequirement } from '../game/systems/construction/StaffStartSystem';
 import { C3_BR_LEGACY_ALIASES } from '../assets/pixel/c3brManifest';
+import { publicAssetUrl } from '../assets/pixel/publicAssetUrl';
 import { playerSkinAsset } from '../content/characters/playerSkins';
 import { furnitureLevelAssetId, furnitureUpgradeCost, furnitureUpgradeUnlockLevel, MAX_FURNITURE_LEVEL } from '../game/data/furniture/levels';
 
@@ -623,8 +624,8 @@ function matchesGroup(category: FurnitureCategory, group: CatalogGroup): boolean
 function thumbnail(assetId: string): string {
   const canonical = C3_BR_LEGACY_ALIASES[assetId] ?? assetId;
   return canonical.startsWith('v003_') || canonical.startsWith('char_v003_')
-    ? `/assets/pixel/rendered/production_v003/thumbnails/${canonical}.png?v=production-v003`
-    : `/assets/pixel/rendered/thumbnails/${canonical}.png?v=${ASSET_VERSION}`;
+    ? publicAssetUrl(`assets/pixel/rendered/production_v003/thumbnails/${canonical}.png?v=production-v003`)
+    : publicAssetUrl(`assets/pixel/rendered/thumbnails/${canonical}.png?v=${ASSET_VERSION}`);
 }
 function escapeHtml(value: string): string { const element = document.createElement('div'); element.textContent = value; return element.innerHTML; }
 function directionLabel(direction: Direction): string { return ({ ne: 'nordeste', nw: 'noroeste', se: 'sudeste', sw: 'sudoeste' } as Record<Direction, string>)[direction]; }

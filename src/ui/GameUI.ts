@@ -20,6 +20,7 @@ import { FURNITURE_BY_ID } from '../game/data/furniture/catalog';
 import { availableStaffFurniture, staffFurnitureRequirement } from '../game/systems/construction/StaffStartSystem';
 import { recipeRequirements } from '../game/recipes/RecipeAvailability';
 import { recipeFoodThumbnail } from '../assets/pixel/stage2dFoodManifest';
+import { publicAssetUrl } from '../assets/pixel/publicAssetUrl';
 import { playerSkinAsset } from '../content/characters/playerSkins';
 import { EXPANSIONS } from '../game/data/expansions';
 import { ConstructionEditor } from '../game/systems/construction/ConstructionEditor';
@@ -31,7 +32,7 @@ type PanelId = 'staff' | 'stock' | 'recipes' | 'production' | 'orders' | 'upgrad
 
 function playerSpriteThumb(appearance: CharacterAppearance | string, presentation?: CharacterAppearance['presentation']): string {
   const assetId = typeof appearance === 'string' ? playerSkinAsset({ presentation: presentation ?? 'feminina' }) : playerSkinAsset(appearance);
-  return `/assets/pixel/rendered/thumbnails/${assetId}.png?v=0.0.7-c3-br-1`;
+  return publicAssetUrl(`assets/pixel/rendered/thumbnails/${assetId}.png?v=0.0.7-c3-br-1`);
 }
 
 function recipeVisual(recipeId: RecipeId): string {
@@ -569,7 +570,7 @@ export class GameUI {
       { id: 'dishStorage', icon: '◉', name: 'Eficiência de lote', text: 'Operação mais eficiente para grandes lotes' },
       { id: 'stationSpeed', icon: '⚡', name: 'Utensílios eficientes', text: `${Math.round(BALANCE.upgrades.stationSpeed.amount * 100)}% mais rapidez nas estações` },
     ];
-    const equipment = EQUIPMENT_ASSETS.map((item) => `<article class="equipment-card"><img src="/assets/pixel/rendered/thumbnails/${item.assetId}.png" alt="${item.name}"/><div><strong>${item.name}</strong><small>Nível visual 1 · ${item.footprint.width}×${item.footprint.depth}</small></div></article>`).join('');
+    const equipment = EQUIPMENT_ASSETS.map((item) => `<article class="equipment-card"><img src="${publicAssetUrl(`assets/pixel/rendered/thumbnails/${item.assetId}.png`)}" alt="${item.name}"/><div><strong>${item.name}</strong><small>Nível visual 1 · ${item.footprint.width}×${item.footprint.depth}</small></div></article>`).join('');
     const expansionLevel = EXPANSIONS.filter((expansion) => this.state.construction.builtAreas.some((area) => area.expansionDefinitionId === expansion.id)).length;
     const nextExpansion = EXPANSIONS[expansionLevel];
     const expansionShape = ['18×18 original', '36×18, duas áreas', 'formato L, três áreas', 'quatro áreas completas'][expansionLevel];
@@ -871,8 +872,8 @@ function hudPill(css: string, icon: string, value: string, label: string): strin
 function emptyState(icon: string, title: string, text: string): string { return `<div class="empty-state"><span>${icon}</span><strong>${title}</strong><p>${text}</p></div>`; }
 function renderedThumbnail(assetId: string): string {
   return assetId.startsWith('char_v003_') || assetId.startsWith('v003_')
-    ? `/assets/pixel/rendered/production_v003/thumbnails/${assetId}.png?v=production-v003`
-    : `/assets/pixel/rendered/thumbnails/${assetId}.png`;
+    ? publicAssetUrl(`assets/pixel/rendered/production_v003/thumbnails/${assetId}.png?v=production-v003`)
+    : publicAssetUrl(`assets/pixel/rendered/thumbnails/${assetId}.png`);
 }
 function escapeHtml(value: string): string { const element = document.createElement('div'); element.textContent = value; return element.innerHTML; }
 function statusLabel(status: string): string { return ({ queued: 'Na fila', producing: 'Em preparo', blocked_ingredients: 'Aguardando saldo', blocked_storage: 'Aguardando balcão' } as Record<string, string>)[status] ?? status; }
