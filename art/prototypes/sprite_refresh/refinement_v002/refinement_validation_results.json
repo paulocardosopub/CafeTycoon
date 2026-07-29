@@ -1,0 +1,136 @@
+{
+  "passed": 26,
+  "failed": 0,
+  "results": [
+    {
+      "validation": "Arquivo v001 preservado byte a byte",
+      "status": "PASS",
+      "details": "sha256=adda9d00bb8b52a3838d71f6df62de5e3b84471afd7c149e12d9cd0e97578ed4"
+    },
+    {
+      "validation": "Câmera e enquadramento idênticos à v001",
+      "status": "PASS",
+      "details": "ortho=2.79999995; frame=(112, 168)"
+    },
+    {
+      "validation": "Escala, altura, pivô, canvas e âncora preservados",
+      "status": "PASS",
+      "details": "11 personagens; altura=2,200 BU; pivot=(0,0,0); canvas=112×168; pés=(56,158)"
+    },
+    {
+      "validation": "Caminhada comum mantém os mesmos keyframes",
+      "status": "PASS",
+      "details": "assinatura de rotação/localização dos 11 ossos deformadores × 4 frames"
+    },
+    {
+      "validation": "Cozinha mantém os mesmos keyframes",
+      "status": "PASS",
+      "details": "assinatura de rotação/localização dos 11 ossos deformadores × 4 frames"
+    },
+    {
+      "validation": "Pernas da bandeja idênticas à caminhada aprovada",
+      "status": "PASS",
+      "details": "thigh/shin L/R × 4 frames sem alteração"
+    },
+    {
+      "validation": "Modularidade preservada e ampliada",
+      "status": "PASS",
+      "details": "BODY/HEAD/FACE/HAIR/CLOTHING/APRON/ACCESSORIES separados nos 11 modelos"
+    },
+    {
+      "validation": "Rig compartilhado funciona com controles IK",
+      "status": "PASS",
+      "details": "11 rigs usam SpriteRefresh_Humanoid_Shared_v002; 2 hand IK + 2 pole targets"
+    },
+    {
+      "validation": "Cinco rostos possuem geometrias próprias",
+      "status": "PASS",
+      "details": "assinaturas distintas=5/5"
+    },
+    {
+      "validation": "Cinco cabelos possuem silhuetas modeladas próprias",
+      "status": "PASS",
+      "details": "estilos/contagens distintas=[('bun', 11), ('coily', 17), ('curls', 16), ('short', 11), ('wave', 13)]"
+    },
+    {
+      "validation": "Cinco jogadores possuem combinações de roupa próprias",
+      "status": "PASS",
+      "details": "combinações tecido/avental=5/5"
+    },
+    {
+      "validation": "Roupas têm detalhes funcionais legíveis",
+      "status": "PASS",
+      "details": "golas, punhos, botões, costuras, sola/abertura e avental confeccionado presentes"
+    },
+    {
+      "validation": "Materiais separam pele, cabelo, tecidos, couro e metal",
+      "status": "PASS",
+      "details": "grupos={'skin': True, 'hair': True, 'shirt/apron': True, 'shoe': True, 'metal': True}; roughness=[0.27, 0.31, 0.42, 0.46, 0.62, 0.64, 0.75, 0.76, 0.78, 0.8, 0.81, 0.82, 0.84, 0.87, 0.88]"
+    },
+    {
+      "validation": "Sem peças de rosto/roupa deslocadas ou clipping estrutural",
+      "status": "PASS",
+      "details": "peças deslocadas=[]"
+    },
+    {
+      "validation": "Cotovelos relaxados entre 80° e 100°",
+      "status": "PASS",
+      "details": "mín/máx=81.48°/81.48°"
+    },
+    {
+      "validation": "Cotovelos permanecem próximos ao tronco",
+      "status": "PASS",
+      "details": "amostras=32; limite lateral=0,46 BU"
+    },
+    {
+      "validation": "Mãos ficam sob os dois pontos de apoio",
+      "status": "PASS",
+      "details": "palmas abaixo do fundo, próximas às laterais e afastadas do torso em 16 poses"
+    },
+    {
+      "validation": "Bandeja permanece horizontal",
+      "status": "PASS",
+      "details": "normal da superfície alinhada ao Z global nas 4 direções × 4 frames"
+    },
+    {
+      "validation": "Oscilação vertical da bandeja limitada a 2 px",
+      "status": "PASS",
+      "details": "máxima=1.715 px"
+    },
+    {
+      "validation": "Superfície da bandeja continua completamente vazia",
+      "status": "PASS",
+      "details": "sem comida, pratos, copos, talheres, guardanapos, filhos ou decoração"
+    },
+    {
+      "validation": "Somente renders de personagens foram produzidos",
+      "status": "PASS",
+      "details": "idle=44/44; animações=48/48; móveis=0"
+    },
+    {
+      "validation": "PNGs permanecem RGBA 112×168 e transparentes",
+      "status": "PASS",
+      "details": "92 arquivos individuais"
+    },
+    {
+      "validation": "Nenhum personagem ou detalhe foi cortado",
+      "status": "PASS",
+      "details": "bbox opaco com margem mínima de 1 px"
+    },
+    {
+      "validation": "Pés permanecem exatamente na linha visual da v001",
+      "status": "PASS",
+      "details": "v001/v002 min=156; máx=160; âncora=158"
+    },
+    {
+      "validation": "Todas as pranchas e prévias solicitadas existem",
+      "status": "PASS",
+      "details": "ausentes=[]"
+    },
+    {
+      "validation": "Nenhum arquivo em src/ foi alterado",
+      "status": "PASS",
+      "details": "git status -- src vazio"
+    }
+  ]
+}

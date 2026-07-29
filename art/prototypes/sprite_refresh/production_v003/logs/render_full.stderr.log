@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "C:\Users\paulo\OneDrive\Área de Trabalho\Projetos\CafeTycoon\work\blender\sprite-refresh-production-v003\render_full.py", line 49, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\paulo\OneDrive\Área de Trabalho\Projetos\CafeTycoon\work\blender\sprite-refresh-production-v003\render_full.py", line 36, in main
+    write_scene_manifest()
+    ~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\paulo\OneDrive\Área de Trabalho\Projetos\CafeTycoon\tools\blender\sprite_refresh\sprite_refresh_production.py", line 654, in write_scene_manifest
+    "contract": {"characterFrame": list(CHARACTER_FRAME_SIZE), "feetAnchor": list(CHARACTER_ANCHOR), "furnitureFrame": list(FURNITURE_FRAME_SIZE), "furnitureAnchor": list(FURNITURE_ANCHOR), "directions": list(ACTIVE_DIRECTIONS)},
+                                                                                                                            ^^^^^^^^^^^^^^^^^^^^
+NameError: name 'FURNITURE_FRAME_SIZE' is not defined. Did you mean: 'CHARACTER_FRAME_SIZE'?
+
+Error: script failed, file: 'C:\Users\paulo\OneDrive\Área de Trabalho\Projetos\CafeTycoon\work\blender\sprite-refresh-production-v003\render_full.py', exiting.

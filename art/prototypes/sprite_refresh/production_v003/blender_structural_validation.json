@@ -1,0 +1,41 @@
+{
+  "version": "v003",
+  "ok": true,
+  "checks": [
+    {
+      "name": "Cinco bases mestras de balcão",
+      "ok": true,
+      "detail": "5/5 dentro da tolerância de 0,001 BU"
+    },
+    {
+      "name": "Rig, pivô e altura compartilhados",
+      "ok": true,
+      "detail": "46/46 personagens"
+    },
+    {
+      "name": "Matriz estrutural dos móveis",
+      "ok": true,
+      "detail": "120/120 contratos"
+    },
+    {
+      "name": "Instâncias das bases compartilhadas",
+      "ok": true,
+      "detail": "80/80 módulos"
+    },
+    {
+      "name": "Encaixe contínuo sem lacuna ou sobreposição",
+      "ok": true,
+      "detail": "80/80 conjuntos dentro de 0,001 BU"
+    },
+    {
+      "name": "Tampas laterais alinhadas do rodapé ao tampo",
+      "ok": true,
+      "detail": "10/10 terminações"
+    },
+    {
+      "name": "Móveis sem comida incorporada",
+      "ok": true,
+      "detail": "violações: nenhuma"
+    }
+  ]
+}

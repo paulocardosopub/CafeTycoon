@@ -1,0 +1,2615 @@
+{
+  "method": "64-bit difference hash over SW idle frame",
+  "pairs": [
+    {
+      "left": "char_v003_customer_005",
+      "right": "char_v003_customer_012",
+      "distance": 0,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_005",
+      "right": "char_v003_customer_025",
+      "distance": 0,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_012",
+      "right": "char_v003_customer_025",
+      "distance": 0,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_005",
+      "right": "char_v003_customer_011",
+      "distance": 1,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_005",
+      "right": "char_v003_customer_028",
+      "distance": 1,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_008",
+      "right": "char_v003_customer_020",
+      "distance": 1,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_011",
+      "right": "char_v003_customer_012",
+      "distance": 1,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_011",
+      "right": "char_v003_customer_025",
+      "distance": 1,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_012",
+      "right": "char_v003_customer_028",
+      "distance": 1,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_019",
+      "right": "char_v003_customer_028",
+      "distance": 1,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_025",
+      "right": "char_v003_customer_028",
+      "distance": 1,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_001",
+      "right": "char_v003_customer_002",
+      "distance": 2,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_005",
+      "right": "char_v003_customer_008",
+      "distance": 2,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_005",
+      "right": "char_v003_customer_019",
+      "distance": 2,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_005",
+      "right": "char_v003_customer_027",
+      "distance": 2,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_008",
+      "right": "char_v003_customer_012",
+      "distance": 2,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_008",
+      "right": "char_v003_customer_025",
+      "distance": 2,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_008",
+      "right": "char_v003_customer_027",
+      "distance": 2,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_011",
+      "right": "char_v003_customer_028",
+      "distance": 2,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_012",
+      "right": "char_v003_customer_019",
+      "distance": 2,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_012",
+      "right": "char_v003_customer_027",
+      "distance": 2,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_013",
+      "right": "char_v003_customer_018",
+      "distance": 2,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_019",
+      "right": "char_v003_customer_025",
+      "distance": 2,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_025",
+      "right": "char_v003_customer_027",
+      "distance": 2,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_001",
+      "right": "char_v003_customer_019",
+      "distance": 3,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_002",
+      "right": "char_v003_customer_013",
+      "distance": 3,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_005",
+      "right": "char_v003_customer_020",
+      "distance": 3,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_008",
+      "right": "char_v003_customer_011",
+      "distance": 3,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_008",
+      "right": "char_v003_customer_028",
+      "distance": 3,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_010",
+      "right": "char_v003_customer_013",
+      "distance": 3,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_010",
+      "right": "char_v003_customer_018",
+      "distance": 3,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_010",
+      "right": "char_v003_customer_029",
+      "distance": 3,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_011",
+      "right": "char_v003_customer_019",
+      "distance": 3,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_011",
+      "right": "char_v003_customer_027",
+      "distance": 3,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_012",
+      "right": "char_v003_customer_020",
+      "distance": 3,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_015",
+      "right": "char_v003_customer_029",
+      "distance": 3,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_018",
+      "right": "char_v003_customer_024",
+      "distance": 3,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_020",
+      "right": "char_v003_customer_025",
+      "distance": 3,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_020",
+      "right": "char_v003_customer_027",
+      "distance": 3,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_027",
+      "right": "char_v003_customer_028",
+      "distance": 3,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_001",
+      "right": "char_v003_customer_028",
+      "distance": 4,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_002",
+      "right": "char_v003_customer_016",
+      "distance": 4,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_002",
+      "right": "char_v003_customer_028",
+      "distance": 4,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_003",
+      "right": "char_v003_customer_013",
+      "distance": 4,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_003",
+      "right": "char_v003_customer_027",
+      "distance": 4,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_004",
+      "right": "char_v003_customer_024",
+      "distance": 4,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_006",
+      "right": "char_v003_customer_027",
+      "distance": 4,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_007",
+      "right": "char_v003_customer_030",
+      "distance": 4,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_008",
+      "right": "char_v003_customer_019",
+      "distance": 4,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_009",
+      "right": "char_v003_customer_017",
+      "distance": 4,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_009",
+      "right": "char_v003_customer_021",
+      "distance": 4,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_009",
+      "right": "char_v003_customer_030",
+      "distance": 4,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_011",
+      "right": "char_v003_customer_020",
+      "distance": 4,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_013",
+      "right": "char_v003_customer_023",
+      "distance": 4,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_013",
+      "right": "char_v003_customer_029",
+      "distance": 4,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_016",
+      "right": "char_v003_customer_022",
+      "distance": 4,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_016",
+      "right": "char_v003_customer_028",
+      "distance": 4,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_017",
+      "right": "char_v003_customer_030",
+      "distance": 4,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_018",
+      "right": "char_v003_customer_026",
+      "distance": 4,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_019",
+      "right": "char_v003_customer_027",
+      "distance": 4,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_020",
+      "right": "char_v003_customer_028",
+      "distance": 4,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_001",
+      "right": "char_v003_customer_003",
+      "distance": 5,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_001",
+      "right": "char_v003_customer_005",
+      "distance": 5,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_001",
+      "right": "char_v003_customer_009",
+      "distance": 5,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_001",
+      "right": "char_v003_customer_012",
+      "distance": 5,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_001",
+      "right": "char_v003_customer_013",
+      "distance": 5,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_001",
+      "right": "char_v003_customer_025",
+      "distance": 5,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_001",
+      "right": "char_v003_customer_027",
+      "distance": 5,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_002",
+      "right": "char_v003_customer_003",
+      "distance": 5,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_002",
+      "right": "char_v003_customer_005",
+      "distance": 5,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_002",
+      "right": "char_v003_customer_008",
+      "distance": 5,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_002",
+      "right": "char_v003_customer_009",
+      "distance": 5,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_002",
+      "right": "char_v003_customer_012",
+      "distance": 5,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_002",
+      "right": "char_v003_customer_018",
+      "distance": 5,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_002",
+      "right": "char_v003_customer_019",
+      "distance": 5,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_002",
+      "right": "char_v003_customer_025",
+      "distance": 5,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_002",
+      "right": "char_v003_customer_027",
+      "distance": 5,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_003",
+      "right": "char_v003_customer_028",
+      "distance": 5,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_004",
+      "right": "char_v003_customer_018",
+      "distance": 5,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_005",
+      "right": "char_v003_customer_016",
+      "distance": 5,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_006",
+      "right": "char_v003_customer_014",
+      "distance": 5,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_008",
+      "right": "char_v003_customer_014",
+      "distance": 5,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_008",
+      "right": "char_v003_customer_016",
+      "distance": 5,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_009",
+      "right": "char_v003_customer_011",
+      "distance": 5,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_009",
+      "right": "char_v003_customer_028",
+      "distance": 5,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_010",
+      "right": "char_v003_customer_030",
+      "distance": 5,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_012",
+      "right": "char_v003_customer_016",
+      "distance": 5,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_013",
+      "right": "char_v003_customer_024",
+      "distance": 5,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_015",
+      "right": "char_v003_customer_023",
+      "distance": 5,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_016",
+      "right": "char_v003_customer_017",
+      "distance": 5,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_016",
+      "right": "char_v003_customer_019",
+      "distance": 5,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_016",
+      "right": "char_v003_customer_025",
+      "distance": 5,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_016",
+      "right": "char_v003_customer_027",
+      "distance": 5,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_019",
+      "right": "char_v003_customer_020",
+      "distance": 5,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_001",
+      "right": "char_v003_customer_011",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_001",
+      "right": "char_v003_customer_016",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_002",
+      "right": "char_v003_customer_010",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_002",
+      "right": "char_v003_customer_011",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_002",
+      "right": "char_v003_customer_020",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_002",
+      "right": "char_v003_customer_024",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_003",
+      "right": "char_v003_customer_005",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_003",
+      "right": "char_v003_customer_007",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_003",
+      "right": "char_v003_customer_008",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_003",
+      "right": "char_v003_customer_009",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_003",
+      "right": "char_v003_customer_012",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_003",
+      "right": "char_v003_customer_018",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_003",
+      "right": "char_v003_customer_019",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_003",
+      "right": "char_v003_customer_021",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_003",
+      "right": "char_v003_customer_023",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_003",
+      "right": "char_v003_customer_025",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_003",
+      "right": "char_v003_customer_029",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_003",
+      "right": "char_v003_customer_030",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_005",
+      "right": "char_v003_customer_006",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_005",
+      "right": "char_v003_customer_009",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_006",
+      "right": "char_v003_customer_008",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_006",
+      "right": "char_v003_customer_012",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_006",
+      "right": "char_v003_customer_019",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_006",
+      "right": "char_v003_customer_025",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_007",
+      "right": "char_v003_customer_009",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_007",
+      "right": "char_v003_customer_017",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_007",
+      "right": "char_v003_customer_018",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_007",
+      "right": "char_v003_customer_021",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_008",
+      "right": "char_v003_customer_013",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_008",
+      "right": "char_v003_customer_023",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_009",
+      "right": "char_v003_customer_012",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_009",
+      "right": "char_v003_customer_019",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_009",
+      "right": "char_v003_customer_025",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_009",
+      "right": "char_v003_customer_027",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_010",
+      "right": "char_v003_customer_015",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_010",
+      "right": "char_v003_customer_024",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_011",
+      "right": "char_v003_customer_016",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_013",
+      "right": "char_v003_customer_026",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_013",
+      "right": "char_v003_customer_027",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_013",
+      "right": "char_v003_customer_030",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_014",
+      "right": "char_v003_customer_020",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_014",
+      "right": "char_v003_customer_022",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_016",
+      "right": "char_v003_customer_020",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_017",
+      "right": "char_v003_customer_021",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_018",
+      "right": "char_v003_customer_023",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_018",
+      "right": "char_v003_customer_029",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_018",
+      "right": "char_v003_customer_030",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_021",
+      "right": "char_v003_customer_030",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_023",
+      "right": "char_v003_customer_027",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_023",
+      "right": "char_v003_customer_029",
+      "distance": 6,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_001",
+      "right": "char_v003_customer_006",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_001",
+      "right": "char_v003_customer_008",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_001",
+      "right": "char_v003_customer_018",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_001",
+      "right": "char_v003_customer_023",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_002",
+      "right": "char_v003_customer_017",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_002",
+      "right": "char_v003_customer_023",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_002",
+      "right": "char_v003_customer_029",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_002",
+      "right": "char_v003_customer_030",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_003",
+      "right": "char_v003_customer_010",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_003",
+      "right": "char_v003_customer_011",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_003",
+      "right": "char_v003_customer_016",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_003",
+      "right": "char_v003_customer_020",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_004",
+      "right": "char_v003_customer_007",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_004",
+      "right": "char_v003_customer_013",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_004",
+      "right": "char_v003_customer_021",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_005",
+      "right": "char_v003_customer_014",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_005",
+      "right": "char_v003_customer_022",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_006",
+      "right": "char_v003_customer_011",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_006",
+      "right": "char_v003_customer_020",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_006",
+      "right": "char_v003_customer_022",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_006",
+      "right": "char_v003_customer_028",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_007",
+      "right": "char_v003_customer_024",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_008",
+      "right": "char_v003_customer_022",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_009",
+      "right": "char_v003_customer_016",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_009",
+      "right": "char_v003_customer_024",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_010",
+      "right": "char_v003_customer_023",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_010",
+      "right": "char_v003_customer_026",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_012",
+      "right": "char_v003_customer_014",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_012",
+      "right": "char_v003_customer_022",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_013",
+      "right": "char_v003_customer_015",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_013",
+      "right": "char_v003_customer_016",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_013",
+      "right": "char_v003_customer_020",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_013",
+      "right": "char_v003_customer_028",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_014",
+      "right": "char_v003_customer_019",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_014",
+      "right": "char_v003_customer_023",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_014",
+      "right": "char_v003_customer_025",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_014",
+      "right": "char_v003_customer_027",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_015",
+      "right": "char_v003_customer_018",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_019",
+      "right": "char_v003_customer_022",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_020",
+      "right": "char_v003_customer_023",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_020",
+      "right": "char_v003_customer_030",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_022",
+      "right": "char_v003_customer_023",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_022",
+      "right": "char_v003_customer_025",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_022",
+      "right": "char_v003_customer_027",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_024",
+      "right": "char_v003_customer_026",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_024",
+      "right": "char_v003_customer_030",
+      "distance": 7,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_001",
+      "right": "char_v003_customer_010",
+      "distance": 8,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_001",
+      "right": "char_v003_customer_020",
+      "distance": 8,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_001",
+      "right": "char_v003_customer_022",
+      "distance": 8,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_001",
+      "right": "char_v003_customer_024",
+      "distance": 8,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_002",
+      "right": "char_v003_customer_022",
+      "distance": 8,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_003",
+      "right": "char_v003_customer_006",
+      "distance": 8,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_003",
+      "right": "char_v003_customer_017",
+      "distance": 8,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_004",
+      "right": "char_v003_customer_010",
+      "distance": 8,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_005",
+      "right": "char_v003_customer_013",
+      "distance": 8,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_005",
+      "right": "char_v003_customer_023",
+      "distance": 8,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_006",
+      "right": "char_v003_customer_023",
+      "distance": 8,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_006",
+      "right": "char_v003_customer_026",
+      "distance": 8,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_007",
+      "right": "char_v003_customer_013",
+      "distance": 8,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_007",
+      "right": "char_v003_customer_029",
+      "distance": 8,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_008",
+      "right": "char_v003_customer_009",
+      "distance": 8,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_008",
+      "right": "char_v003_customer_017",
+      "distance": 8,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_008",
+      "right": "char_v003_customer_018",
+      "distance": 8,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_008",
+      "right": "char_v003_customer_030",
+      "distance": 8,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_009",
+      "right": "char_v003_customer_013",
+      "distance": 8,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_009",
+      "right": "char_v003_customer_018",
+      "distance": 8,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_010",
+      "right": "char_v003_customer_020",
+      "distance": 8,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_011",
+      "right": "char_v003_customer_014",
+      "distance": 8,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_011",
+      "right": "char_v003_customer_022",
+      "distance": 8,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_012",
+      "right": "char_v003_customer_013",
+      "distance": 8,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_012",
+      "right": "char_v003_customer_023",
+      "distance": 8,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_013",
+      "right": "char_v003_customer_017",
+      "distance": 8,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_013",
+      "right": "char_v003_customer_019",
+      "distance": 8,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_013",
+      "right": "char_v003_customer_025",
+      "distance": 8,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_014",
+      "right": "char_v003_customer_015",
+      "distance": 8,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_014",
+      "right": "char_v003_customer_028",
+      "distance": 8,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_015",
+      "right": "char_v003_customer_020",
+      "distance": 8,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_017",
+      "right": "char_v003_customer_018",
+      "distance": 8,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_017",
+      "right": "char_v003_customer_027",
+      "distance": 8,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_018",
+      "right": "char_v003_customer_027",
+      "distance": 8,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_019",
+      "right": "char_v003_customer_023",
+      "distance": 8,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_020",
+      "right": "char_v003_customer_022",
+      "distance": 8,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_021",
+      "right": "char_v003_customer_027",
+      "distance": 8,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_022",
+      "right": "char_v003_customer_028",
+      "distance": 8,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_023",
+      "right": "char_v003_customer_025",
+      "distance": 8,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_023",
+      "right": "char_v003_customer_026",
+      "distance": 8,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_027",
+      "right": "char_v003_customer_030",
+      "distance": 8,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_029",
+      "right": "char_v003_customer_030",
+      "distance": 8,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_001",
+      "right": "char_v003_customer_017",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_001",
+      "right": "char_v003_customer_021",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_001",
+      "right": "char_v003_customer_029",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_001",
+      "right": "char_v003_customer_030",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_002",
+      "right": "char_v003_customer_006",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_002",
+      "right": "char_v003_customer_007",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_002",
+      "right": "char_v003_customer_021",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_002",
+      "right": "char_v003_customer_026",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_003",
+      "right": "char_v003_customer_004",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_003",
+      "right": "char_v003_customer_014",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_003",
+      "right": "char_v003_customer_015",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_003",
+      "right": "char_v003_customer_022",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_003",
+      "right": "char_v003_customer_024",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_004",
+      "right": "char_v003_customer_023",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_004",
+      "right": "char_v003_customer_026",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_004",
+      "right": "char_v003_customer_029",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_004",
+      "right": "char_v003_customer_030",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_006",
+      "right": "char_v003_customer_016",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_007",
+      "right": "char_v003_customer_010",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_007",
+      "right": "char_v003_customer_014",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_007",
+      "right": "char_v003_customer_015",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_008",
+      "right": "char_v003_customer_010",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_008",
+      "right": "char_v003_customer_015",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_009",
+      "right": "char_v003_customer_010",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_009",
+      "right": "char_v003_customer_020",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_010",
+      "right": "char_v003_customer_017",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_010",
+      "right": "char_v003_customer_027",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_011",
+      "right": "char_v003_customer_013",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_011",
+      "right": "char_v003_customer_017",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_011",
+      "right": "char_v003_customer_021",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_011",
+      "right": "char_v003_customer_023",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_011",
+      "right": "char_v003_customer_030",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_013",
+      "right": "char_v003_customer_014",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_013",
+      "right": "char_v003_customer_022",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_014",
+      "right": "char_v003_customer_018",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_014",
+      "right": "char_v003_customer_026",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_015",
+      "right": "char_v003_customer_026",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_015",
+      "right": "char_v003_customer_027",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_016",
+      "right": "char_v003_customer_018",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_016",
+      "right": "char_v003_customer_023",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_016",
+      "right": "char_v003_customer_030",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_017",
+      "right": "char_v003_customer_020",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_017",
+      "right": "char_v003_customer_022",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_017",
+      "right": "char_v003_customer_024",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_017",
+      "right": "char_v003_customer_028",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_018",
+      "right": "char_v003_customer_020",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_018",
+      "right": "char_v003_customer_022",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_018",
+      "right": "char_v003_customer_028",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_020",
+      "right": "char_v003_customer_029",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_021",
+      "right": "char_v003_customer_028",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_022",
+      "right": "char_v003_customer_026",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_023",
+      "right": "char_v003_customer_024",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_023",
+      "right": "char_v003_customer_028",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_024",
+      "right": "char_v003_customer_029",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_028",
+      "right": "char_v003_customer_030",
+      "distance": 9,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_001",
+      "right": "char_v003_customer_014",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_002",
+      "right": "char_v003_customer_004",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_002",
+      "right": "char_v003_customer_014",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_002",
+      "right": "char_v003_customer_015",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_003",
+      "right": "char_v003_customer_026",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_004",
+      "right": "char_v003_customer_015",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_005",
+      "right": "char_v003_customer_017",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_005",
+      "right": "char_v003_customer_018",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_005",
+      "right": "char_v003_customer_021",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_005",
+      "right": "char_v003_customer_030",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_006",
+      "right": "char_v003_customer_009",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_006",
+      "right": "char_v003_customer_013",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_006",
+      "right": "char_v003_customer_018",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_007",
+      "right": "char_v003_customer_008",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_007",
+      "right": "char_v003_customer_023",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_007",
+      "right": "char_v003_customer_026",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_007",
+      "right": "char_v003_customer_027",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_008",
+      "right": "char_v003_customer_021",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_008",
+      "right": "char_v003_customer_026",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_008",
+      "right": "char_v003_customer_029",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_010",
+      "right": "char_v003_customer_016",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_010",
+      "right": "char_v003_customer_028",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_012",
+      "right": "char_v003_customer_017",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_012",
+      "right": "char_v003_customer_018",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_012",
+      "right": "char_v003_customer_021",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_012",
+      "right": "char_v003_customer_030",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_013",
+      "right": "char_v003_customer_021",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_014",
+      "right": "char_v003_customer_016",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_015",
+      "right": "char_v003_customer_022",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_015",
+      "right": "char_v003_customer_024",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_016",
+      "right": "char_v003_customer_024",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_017",
+      "right": "char_v003_customer_019",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_017",
+      "right": "char_v003_customer_025",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_017",
+      "right": "char_v003_customer_026",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_018",
+      "right": "char_v003_customer_019",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_018",
+      "right": "char_v003_customer_021",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_018",
+      "right": "char_v003_customer_025",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_019",
+      "right": "char_v003_customer_021",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_019",
+      "right": "char_v003_customer_030",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_021",
+      "right": "char_v003_customer_025",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_022",
+      "right": "char_v003_customer_024",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_023",
+      "right": "char_v003_customer_030",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_024",
+      "right": "char_v003_customer_028",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_025",
+      "right": "char_v003_customer_030",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_026",
+      "right": "char_v003_customer_027",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_026",
+      "right": "char_v003_customer_029",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_026",
+      "right": "char_v003_customer_030",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_027",
+      "right": "char_v003_customer_029",
+      "distance": 10,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_001",
+      "right": "char_v003_customer_007",
+      "distance": 11,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_001",
+      "right": "char_v003_customer_026",
+      "distance": 11,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_004",
+      "right": "char_v003_customer_009",
+      "distance": 11,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_004",
+      "right": "char_v003_customer_017",
+      "distance": 11,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_005",
+      "right": "char_v003_customer_010",
+      "distance": 11,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_005",
+      "right": "char_v003_customer_015",
+      "distance": 11,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_005",
+      "right": "char_v003_customer_024",
+      "distance": 11,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_006",
+      "right": "char_v003_customer_015",
+      "distance": 11,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_007",
+      "right": "char_v003_customer_011",
+      "distance": 11,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_007",
+      "right": "char_v003_customer_016",
+      "distance": 11,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_007",
+      "right": "char_v003_customer_020",
+      "distance": 11,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_007",
+      "right": "char_v003_customer_022",
+      "distance": 11,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_007",
+      "right": "char_v003_customer_028",
+      "distance": 11,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_008",
+      "right": "char_v003_customer_024",
+      "distance": 11,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_009",
+      "right": "char_v003_customer_022",
+      "distance": 11,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_010",
+      "right": "char_v003_customer_012",
+      "distance": 11,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_010",
+      "right": "char_v003_customer_019",
+      "distance": 11,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_010",
+      "right": "char_v003_customer_021",
+      "distance": 11,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_010",
+      "right": "char_v003_customer_025",
+      "distance": 11,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_011",
+      "right": "char_v003_customer_018",
+      "distance": 11,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_012",
+      "right": "char_v003_customer_015",
+      "distance": 11,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_012",
+      "right": "char_v003_customer_024",
+      "distance": 11,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_014",
+      "right": "char_v003_customer_029",
+      "distance": 11,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_014",
+      "right": "char_v003_customer_030",
+      "distance": 11,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_015",
+      "right": "char_v003_customer_025",
+      "distance": 11,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_015",
+      "right": "char_v003_customer_030",
+      "distance": 11,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_016",
+      "right": "char_v003_customer_021",
+      "distance": 11,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_016",
+      "right": "char_v003_customer_026",
+      "distance": 11,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_016",
+      "right": "char_v003_customer_029",
+      "distance": 11,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_019",
+      "right": "char_v003_customer_024",
+      "distance": 11,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_020",
+      "right": "char_v003_customer_021",
+      "distance": 11,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_020",
+      "right": "char_v003_customer_026",
+      "distance": 11,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_021",
+      "right": "char_v003_customer_024",
+      "distance": 11,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_022",
+      "right": "char_v003_customer_030",
+      "distance": 11,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_024",
+      "right": "char_v003_customer_025",
+      "distance": 11,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_024",
+      "right": "char_v003_customer_027",
+      "distance": 11,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_028",
+      "right": "char_v003_customer_029",
+      "distance": 11,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_001",
+      "right": "char_v003_customer_004",
+      "distance": 12,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_001",
+      "right": "char_v003_customer_015",
+      "distance": 12,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_005",
+      "right": "char_v003_customer_007",
+      "distance": 12,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_005",
+      "right": "char_v003_customer_026",
+      "distance": 12,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_005",
+      "right": "char_v003_customer_029",
+      "distance": 12,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_006",
+      "right": "char_v003_customer_007",
+      "distance": 12,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_006",
+      "right": "char_v003_customer_017",
+      "distance": 12,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_006",
+      "right": "char_v003_customer_021",
+      "distance": 12,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_006",
+      "right": "char_v003_customer_030",
+      "distance": 12,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_007",
+      "right": "char_v003_customer_012",
+      "distance": 12,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_007",
+      "right": "char_v003_customer_019",
+      "distance": 12,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_007",
+      "right": "char_v003_customer_025",
+      "distance": 12,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_009",
+      "right": "char_v003_customer_023",
+      "distance": 12,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_009",
+      "right": "char_v003_customer_026",
+      "distance": 12,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_009",
+      "right": "char_v003_customer_029",
+      "distance": 12,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_010",
+      "right": "char_v003_customer_011",
+      "distance": 12,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_010",
+      "right": "char_v003_customer_014",
+      "distance": 12,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_010",
+      "right": "char_v003_customer_022",
+      "distance": 12,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_011",
+      "right": "char_v003_customer_015",
+      "distance": 12,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_011",
+      "right": "char_v003_customer_024",
+      "distance": 12,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_012",
+      "right": "char_v003_customer_026",
+      "distance": 12,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_012",
+      "right": "char_v003_customer_029",
+      "distance": 12,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_014",
+      "right": "char_v003_customer_024",
+      "distance": 12,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_015",
+      "right": "char_v003_customer_016",
+      "distance": 12,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_015",
+      "right": "char_v003_customer_028",
+      "distance": 12,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_017",
+      "right": "char_v003_customer_023",
+      "distance": 12,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_017",
+      "right": "char_v003_customer_029",
+      "distance": 12,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_019",
+      "right": "char_v003_customer_029",
+      "distance": 12,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_020",
+      "right": "char_v003_customer_024",
+      "distance": 12,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_021",
+      "right": "char_v003_customer_023",
+      "distance": 12,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_021",
+      "right": "char_v003_customer_029",
+      "distance": 12,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_025",
+      "right": "char_v003_customer_026",
+      "distance": 12,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_025",
+      "right": "char_v003_customer_029",
+      "distance": 12,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_004",
+      "right": "char_v003_customer_008",
+      "distance": 13,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_004",
+      "right": "char_v003_customer_027",
+      "distance": 13,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_006",
+      "right": "char_v003_customer_010",
+      "distance": 13,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_006",
+      "right": "char_v003_customer_024",
+      "distance": 13,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_009",
+      "right": "char_v003_customer_014",
+      "distance": 13,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_011",
+      "right": "char_v003_customer_026",
+      "distance": 13,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_011",
+      "right": "char_v003_customer_029",
+      "distance": 13,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_014",
+      "right": "char_v003_customer_017",
+      "distance": 13,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_015",
+      "right": "char_v003_customer_019",
+      "distance": 13,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_022",
+      "right": "char_v003_customer_029",
+      "distance": 13,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_026",
+      "right": "char_v003_customer_028",
+      "distance": 13,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_004",
+      "right": "char_v003_customer_014",
+      "distance": 14,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_004",
+      "right": "char_v003_customer_016",
+      "distance": 14,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_004",
+      "right": "char_v003_customer_020",
+      "distance": 14,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_004",
+      "right": "char_v003_customer_022",
+      "distance": 14,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_004",
+      "right": "char_v003_customer_028",
+      "distance": 14,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_006",
+      "right": "char_v003_customer_029",
+      "distance": 14,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_019",
+      "right": "char_v003_customer_026",
+      "distance": 14,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_021",
+      "right": "char_v003_customer_026",
+      "distance": 14,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_004",
+      "right": "char_v003_customer_005",
+      "distance": 15,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_004",
+      "right": "char_v003_customer_006",
+      "distance": 15,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_004",
+      "right": "char_v003_customer_012",
+      "distance": 15,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_004",
+      "right": "char_v003_customer_019",
+      "distance": 15,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_004",
+      "right": "char_v003_customer_025",
+      "distance": 15,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_009",
+      "right": "char_v003_customer_015",
+      "distance": 15,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_014",
+      "right": "char_v003_customer_021",
+      "distance": 15,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_015",
+      "right": "char_v003_customer_017",
+      "distance": 15,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_015",
+      "right": "char_v003_customer_021",
+      "distance": 15,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_021",
+      "right": "char_v003_customer_022",
+      "distance": 15,
+      "exact": false
+    },
+    {
+      "left": "char_v003_customer_004",
+      "right": "char_v003_customer_011",
+      "distance": 16,
+      "exact": false
+    }
+  ]
+}

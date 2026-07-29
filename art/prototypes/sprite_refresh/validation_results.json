@@ -1,0 +1,131 @@
+{
+  "passed": 25,
+  "failed": 0,
+  "results": [
+    {
+      "validation": "Quantidade de PNGs individuais",
+      "status": "PASS",
+      "details": "personagens=44/44, animações=48/48, móveis=52/52"
+    },
+    {
+      "validation": "Todos os PNGs individuais usam RGBA",
+      "status": "PASS",
+      "details": "144 arquivos verificados"
+    },
+    {
+      "validation": "Transparência real sem fundo incorporado",
+      "status": "PASS",
+      "details": "alpha contém pixels 0 e pixels opacos em todo sprite individual"
+    },
+    {
+      "validation": "Nenhum quadro vazio",
+      "status": "PASS",
+      "details": "144 quadros com conteúdo opaco"
+    },
+    {
+      "validation": "Nenhum sprite cortado",
+      "status": "PASS",
+      "details": "bbox opaco mantém pelo menos 1 px de margem"
+    },
+    {
+      "validation": "Resoluções consistentes por conjunto",
+      "status": "PASS",
+      "details": "personagens=[(112, 168)], móveis=[(192, 192)]"
+    },
+    {
+      "validation": "Âncoras visuais na linha de piso",
+      "status": "PASS",
+      "details": "pés min/max=156/160 alvo=158; móveis min/max=167/176 alvo=174"
+    },
+    {
+      "validation": "Quatro direções presentes e na ordem manifestada",
+      "status": "PASS",
+      "details": "personagens SW/NW/NE/SE; móveis SW/SE/NE/NW"
+    },
+    {
+      "validation": "Quatro frames por direção e animação",
+      "status": "PASS",
+      "details": "3 animações × 4 direções × 4 frames"
+    },
+    {
+      "validation": "Movimento diferente nos quatro frames",
+      "status": "PASS",
+      "details": "hash binário distinto em cada ciclo/direção"
+    },
+    {
+      "validation": "Frames 1 e 3 usam contatos de pernas opostos",
+      "status": "PASS",
+      "details": "diferença raster mensurável > 0,012 nos ciclos de caminhada"
+    },
+    {
+      "validation": "Canvas e enquadramento constantes entre frames",
+      "status": "PASS",
+      "details": "todos em 112×168"
+    },
+    {
+      "validation": "Estados ligados/desligados são visualmente distintos",
+      "status": "PASS",
+      "details": "diferenças=0.0005,0.0006,0.0008,0.0027"
+    },
+    {
+      "validation": "Câmera ortográfica isométrica exata",
+      "status": "PASS",
+      "details": "azimute=45.000000°, elevação=35.264390°"
+    },
+    {
+      "validation": "Pivôs e escala de gameplay dos personagens",
+      "status": "PASS",
+      "details": "11 personagens, altura 2,200 BU, pés em z=0"
+    },
+    {
+      "validation": "Esqueleto compartilhado masculino/feminino",
+      "status": "PASS",
+      "details": "11 rigs usam SpriteRefresh_Humanoid_Shared"
+    },
+    {
+      "validation": "Ações do rig do personagem-protótipo",
+      "status": "PASS",
+      "details": "walk, walk_tray e cook: 4 poses gravadas no .blend"
+    },
+    {
+      "validation": "Bandeja totalmente vazia e nivelada",
+      "status": "PASS",
+      "details": "sem filhos/itens proibidos; normal da superfície alinhada ao eixo Z global"
+    },
+    {
+      "validation": "Dimensões estruturais idênticas dos balcões",
+      "status": "PASS",
+      "details": "5 módulos = (1.0, 1.0, 1.1), tolerância 0.001"
+    },
+    {
+      "validation": "Altura de bancada idêntica",
+      "status": "PASS",
+      "details": "altura=1.100 BU"
+    },
+    {
+      "validation": "Base mestra compartilhada por instância",
+      "status": "PASS",
+      "details": "baseIds=['COUNTER_BASE_MASTER_1x1']"
+    },
+    {
+      "validation": "Sem lacuna ou sobreposição entre balcões",
+      "status": "PASS",
+      "details": "gaps=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]"
+    },
+    {
+      "validation": "Bases e footprints do protótipo respeitam o catálogo",
+      "status": "PASS",
+      "details": "mesa, cadeira, geladeira e módulos = 1×1"
+    },
+    {
+      "validation": "Sprites sem tile, piso ou cenário incorporado",
+      "status": "PASS",
+      "details": "geometria técnica existe apenas nas coleções TECH_*"
+    },
+    {
+      "validation": "Sistema modular 5× cabelo/cor/pele",
+      "status": "PASS",
+      "details": "cabelos=['bun', 'coily', 'curls', 'short', 'wave'], cores=['chestnut', 'copper', 'espresso', 'midnight', 'silver'], peles=['cocoa', 'ebony', 'honey', 'porcelain', 'warm']"
+    }
+  ]
+}

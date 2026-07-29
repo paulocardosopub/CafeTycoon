@@ -14,6 +14,7 @@ import { getApproachSlotCells, getSpriteAnchor, getVisualScale } from '../grid/S
 import { seatFacingTowardTable } from '../map/initialMap';
 import { STAFF_BY_ID, STAFF_CATALOG } from '../data/staff';
 import { availableStaffFurniture, linkedStaffStart, syncLinkedStaffStarts } from '../systems/construction/StaffStartSystem';
+import { clampFurnitureLevel } from '../data/furniture/levels';
 import { applyProgressionThroughLevel, sanitizeProgressionState } from '../progression/RewardService';
 
 const STORAGE_REMOVAL_MIGRATION = '0.0.8: móveis físicos de armazenamento removidos e reembolsados';
@@ -245,7 +246,7 @@ export function migrateGraphics004ToConstruction(
 function sanitizePlaced(item: PlacedFurniture): PlacedFurniture {
   const definition = FURNITURE_BY_ID[item.definitionId];
   const orientation = definition?.allowedOrientations.includes(item.orientation) ? item.orientation : definition?.allowedOrientations[0] ?? 'sw';
-  const normalized: PlacedFurniture = { ...item, gridX: Math.round(Number(item.gridX) || 0), gridY: Math.round(Number(item.gridY) || 0), orientation, skinId: definition?.skinIds.includes(item.skinId) ? item.skinId : definition?.skinIds[0] ?? item.skinId, level: Math.max(1, Math.floor(Number(item.level) || 1)), state: item.state && typeof item.state === 'object' ? { ...item.state } : {}, purchasePricePaid: Math.max(0, Math.floor(Number(item.purchasePricePaid) || definition?.price || 0)) };
+  const normalized: PlacedFurniture = { ...item, gridX: Math.round(Number(item.gridX) || 0), gridY: Math.round(Number(item.gridY) || 0), orientation, skinId: definition?.skinIds.includes(item.skinId) ? item.skinId : definition?.skinIds[0] ?? item.skinId, level: clampFurnitureLevel(item.level), state: item.state && typeof item.state === 'object' ? { ...item.state } : {}, purchasePricePaid: Math.max(0, Math.floor(Number(item.purchasePricePaid) || definition?.price || 0)) };
   if (!definition) return normalized;
   normalized.footprint = orientedFootprint(definition, orientation);
   normalized.anchor = getSpriteAnchor(definition);

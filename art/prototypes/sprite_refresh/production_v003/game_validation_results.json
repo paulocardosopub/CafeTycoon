@@ -1,0 +1,26 @@
+{
+  "version": "v003",
+  "lint": {
+    "ok": true
+  },
+  "build": {
+    "ok": true
+  },
+  "targeted": {
+    "ok": true,
+    "passed": 6,
+    "failed": 0,
+    "total": 6
+  },
+  "full": {
+    "passed": 251,
+    "failed": 64,
+    "total": 315,
+    "historicalBaseline": {
+      "passed": 245,
+      "failed": 64
+    },
+    "noAdditionalFailures": true
+  },
+  "ok": true
+}

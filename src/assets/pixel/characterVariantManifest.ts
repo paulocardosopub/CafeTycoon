@@ -1,5 +1,6 @@
 import type { C3BrRenderedAsset } from './c3brManifest';
 import { STAGE_2C_CHARACTER_ASSETS } from './stage2cCharacterManifest';
+import { PRODUCTION_V003_CUSTOMER_ASSET_IDS } from './productionV003Manifest';
 
 interface VariantSpec { assetId: string; baseAssetId: string; displayName: string; }
 
@@ -46,4 +47,5 @@ export const CUSTOMER_CHARACTER_ASSET_IDS = [
   ...STAGE_2C_CHARACTER_ASSETS.filter((asset) => asset.role === 'customer').map((asset) => asset.assetId),
   ...C3_BR_VARIANT_SPECS.filter((variant) => variant.assetId.startsWith('char_variant_customer_')).map((variant) => variant.assetId),
   'char_player_male_01',
+  ...PRODUCTION_V003_CUSTOMER_ASSET_IDS,
 ] as readonly string[];

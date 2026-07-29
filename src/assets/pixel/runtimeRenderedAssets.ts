@@ -5,6 +5,7 @@ import { STAGE_2C_CHARACTER_ASSETS } from './stage2cCharacterManifest';
 import { STAGE_2D_FOOD_ASSETS } from './stage2dFoodManifest';
 import { renderedDirectionRow } from './RenderedDirection';
 import type { Direction } from '../../core/types';
+import { PRODUCTION_V003_RENDERED_ASSETS, PRODUCTION_V003_RENDERED_ASSET_IDS } from './productionV003Manifest';
 
 const REMOVED_DINING_SKINS = new Set([
   'chair', 'chair_bistro', 'chair_bistro_back', 'chair_bistro_front',
@@ -21,12 +22,13 @@ const EXACT_COUNTER_ASSET_IDS = new Set(BLENDER_RENDERED_ASSETS
 // frames per direction. Keeping both records made every rotation request an
 // invalid frame and Phaser fell back to the first/back view.
 export const RUNTIME_RENDERED_ASSETS = [
-  ...BLENDER_RENDERED_ASSETS.filter((asset) => asset.kind !== 'character'
+  ...PRODUCTION_V003_RENDERED_ASSETS,
+  ...BLENDER_RENDERED_ASSETS.filter((asset) => !PRODUCTION_V003_RENDERED_ASSET_IDS.has(asset.assetId) && asset.kind !== 'character'
     && (!STAGE_2B_RENDERED_ASSET_IDS.has(asset.assetId) || EXACT_COUNTER_ASSET_IDS.has(asset.assetId))
     && !REMOVED_DINING_SKINS.has(asset.assetId)),
-  ...STAGE_2C_CHARACTER_ASSETS,
-  ...C3_BR_VARIANT_ASSETS,
-  ...STAGE_2B_FURNITURE_ASSETS.filter((asset) => !EXACT_COUNTER_ASSET_IDS.has(asset.assetId)),
+  ...STAGE_2C_CHARACTER_ASSETS.filter((asset) => !PRODUCTION_V003_RENDERED_ASSET_IDS.has(asset.assetId)),
+  ...C3_BR_VARIANT_ASSETS.filter((asset) => !PRODUCTION_V003_RENDERED_ASSET_IDS.has(asset.assetId)),
+  ...STAGE_2B_FURNITURE_ASSETS.filter((asset) => !PRODUCTION_V003_RENDERED_ASSET_IDS.has(asset.assetId) && !EXACT_COUNTER_ASSET_IDS.has(asset.assetId)),
   ...STAGE_2D_FOOD_ASSETS,
 ];
 

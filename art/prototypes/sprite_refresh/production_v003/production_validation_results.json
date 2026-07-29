@@ -1,0 +1,101 @@
+{
+  "version": "v003",
+  "passed": 17,
+  "failed": 0,
+  "ok": true,
+  "results": [
+    {
+      "name": "30 novos clientes",
+      "ok": true,
+      "detail": "30 registros; 30 assinaturas modulares"
+    },
+    {
+      "name": "12 profissões canônicas",
+      "ok": true,
+      "detail": "12 profissões; 12 assets"
+    },
+    {
+      "name": "15 móveis × cinco níveis",
+      "ok": true,
+      "detail": "15 definições; 100 folhas"
+    },
+    {
+      "name": "Cena Blender editável",
+      "ok": true,
+      "detail": "2901486 bytes"
+    },
+    {
+      "name": "Preservação byte a byte v001/v002",
+      "ok": true,
+      "detail": "300 arquivos verificados"
+    },
+    {
+      "name": "Manifesto estrutural",
+      "ok": true,
+      "detail": "contratos, pivôs, direções e matriz de produção"
+    },
+    {
+      "name": "Estrutura interna da cena Blender",
+      "ok": true,
+      "detail": "7/7 verificações"
+    },
+    {
+      "name": "PNGs individuais de personagens",
+      "ok": true,
+      "detail": "14664/14664 RGBA 112×168"
+    },
+    {
+      "name": "PNGs individuais de móveis",
+      "ok": true,
+      "detail": "1120/1120 RGBA 192×192"
+    },
+    {
+      "name": "Conteúdo sem corte no canvas",
+      "ok": true,
+      "detail": "cortes/bordas tocadas: 0"
+    },
+    {
+      "name": "Contato visual dos balcões com o tile por footprint",
+      "ok": true,
+      "detail": "1060/1.060; falhas 0"
+    },
+    {
+      "name": "Continuidade projetada entre módulos 1×1",
+      "ok": true,
+      "detail": "20/20; desvio máximo 1 px"
+    },
+    {
+      "name": "Linha dos pés idêntica à v002",
+      "ok": true,
+      "detail": "184/184; falhas 0"
+    },
+    {
+      "name": "Manifesto dos arquivos individuais",
+      "ok": true,
+      "detail": "15784/15.784 registros com hash"
+    },
+    {
+      "name": "146 atlases de runtime",
+      "ok": true,
+      "detail": "146/146; falhas 0"
+    },
+    {
+      "name": "Diferença visual dos clientes",
+      "ok": true,
+      "detail": "435 pares; distância mínima 0; duplicatas exatas 0"
+    },
+    {
+      "name": "Integração pública",
+      "ok": true,
+      "detail": "292/292 arquivos publicados; ausentes 0"
+    }
+  ],
+  "expectedCounts": {
+    "newCustomers": 30,
+    "professions": 12,
+    "activeFurniture": 15,
+    "furnitureAtlases": 100,
+    "allAtlases": 146,
+    "individualPngs": 15784
+  }
+}

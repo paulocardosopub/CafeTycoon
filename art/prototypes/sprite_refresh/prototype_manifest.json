@@ -1,0 +1,967 @@
+{
+  "package": "cafe-tycoon-sprite-refresh-approval-v1",
+  "productionIntegrated": false,
+  "source": "Blender 5.2 original geometry",
+  "grid": {
+    "tilePixels": [
+      64,
+      32
+    ],
+    "blenderUnitsPerTile": 1.0
+  },
+  "camera": {
+    "projection": "orthographic",
+    "azimuthDegrees": 45.0,
+    "elevationDegrees": 35.264389682754654
+  },
+  "counterMaster": {
+    "width": 1.0,
+    "depth": 1.0,
+    "height": 1.1,
+    "top_thickness": 0.1,
+    "plinth_height": 0.12,
+    "pivot": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "tolerance": 0.001
+  },
+  "modularOptions": {
+    "hairStyles": [
+      "short",
+      "bun",
+      "coily",
+      "curls",
+      "wave"
+    ],
+    "hairColors": [
+      "espresso",
+      "chestnut",
+      "copper",
+      "midnight",
+      "silver"
+    ],
+    "skinTones": [
+      "porcelain",
+      "warm",
+      "honey",
+      "cocoa",
+      "ebony"
+    ]
+  },
+  "characters": [
+    {
+      "id": "player_01_male_short",
+      "type": "character",
+      "role": "player",
+      "label": "Homem · curto castanho",
+      "presentation": "male",
+      "footprint": [
+        1,
+        1
+      ],
+      "dimensionsBlender": [
+        1,
+        1,
+        2.2
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        56,
+        158
+      ],
+      "frameSize": [
+        112,
+        168
+      ],
+      "directions": [
+        "sw",
+        "nw",
+        "ne",
+        "se"
+      ],
+      "skin": "porcelain",
+      "hair": "short",
+      "hairColor": "chestnut",
+      "face": "square",
+      "body": "average",
+      "outfit": "apron_green",
+      "sourceCollection": "SRC_player_01_male_short",
+      "sourceBlend": "art_source/blender/sprite_refresh/cafe_tycoon_sprite_refresh_approval.blend",
+      "spritePath": "sprites/characters/player_01_male_short/idle/{direction}.png",
+      "animations": [
+        "walk",
+        "walk_tray",
+        "cook"
+      ]
+    },
+    {
+      "id": "player_02_female_bun",
+      "type": "character",
+      "role": "player",
+      "label": "Mulher · coque escuro",
+      "presentation": "female",
+      "footprint": [
+        1,
+        1
+      ],
+      "dimensionsBlender": [
+        1,
+        1,
+        2.2
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        56,
+        158
+      ],
+      "frameSize": [
+        112,
+        168
+      ],
+      "directions": [
+        "sw",
+        "nw",
+        "ne",
+        "se"
+      ],
+      "skin": "warm",
+      "hair": "bun",
+      "hairColor": "espresso",
+      "face": "oval",
+      "body": "average",
+      "outfit": "apron_green",
+      "sourceCollection": "SRC_player_02_female_bun",
+      "sourceBlend": "art_source/blender/sprite_refresh/cafe_tycoon_sprite_refresh_approval.blend",
+      "spritePath": "sprites/characters/player_02_female_bun/idle/{direction}.png",
+      "animations": [
+        "idle"
+      ]
+    },
+    {
+      "id": "player_03_male_coily",
+      "type": "character",
+      "role": "player",
+      "label": "Homem · crespo curto",
+      "presentation": "male",
+      "footprint": [
+        1,
+        1
+      ],
+      "dimensionsBlender": [
+        1,
+        1,
+        2.2
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        56,
+        158
+      ],
+      "frameSize": [
+        112,
+        168
+      ],
+      "directions": [
+        "sw",
+        "nw",
+        "ne",
+        "se"
+      ],
+      "skin": "ebony",
+      "hair": "coily",
+      "hairColor": "midnight",
+      "face": "broad",
+      "body": "athletic",
+      "outfit": "apron_green",
+      "sourceCollection": "SRC_player_03_male_coily",
+      "sourceBlend": "art_source/blender/sprite_refresh/cafe_tycoon_sprite_refresh_approval.blend",
+      "spritePath": "sprites/characters/player_03_male_coily/idle/{direction}.png",
+      "animations": [
+        "idle"
+      ]
+    },
+    {
+      "id": "player_04_female_curls",
+      "type": "character",
+      "role": "player",
+      "label": "Mulher · cacheado cobre",
+      "presentation": "female",
+      "footprint": [
+        1,
+        1
+      ],
+      "dimensionsBlender": [
+        1,
+        1,
+        2.2
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        56,
+        158
+      ],
+      "frameSize": [
+        112,
+        168
+      ],
+      "directions": [
+        "sw",
+        "nw",
+        "ne",
+        "se"
+      ],
+      "skin": "cocoa",
+      "hair": "curls",
+      "hairColor": "copper",
+      "face": "heart",
+      "body": "curvy",
+      "outfit": "apron_green",
+      "sourceCollection": "SRC_player_04_female_curls",
+      "sourceBlend": "art_source/blender/sprite_refresh/cafe_tycoon_sprite_refresh_approval.blend",
+      "spritePath": "sprites/characters/player_04_female_curls/idle/{direction}.png",
+      "animations": [
+        "idle"
+      ]
+    },
+    {
+      "id": "player_05_male_wave",
+      "type": "character",
+      "role": "player",
+      "label": "Homem · ondulado prata",
+      "presentation": "male",
+      "footprint": [
+        1,
+        1
+      ],
+      "dimensionsBlender": [
+        1,
+        1,
+        2.2
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        56,
+        158
+      ],
+      "frameSize": [
+        112,
+        168
+      ],
+      "directions": [
+        "sw",
+        "nw",
+        "ne",
+        "se"
+      ],
+      "skin": "honey",
+      "hair": "wave",
+      "hairColor": "silver",
+      "face": "long",
+      "body": "slim",
+      "outfit": "apron_green",
+      "sourceCollection": "SRC_player_05_male_wave",
+      "sourceBlend": "art_source/blender/sprite_refresh/cafe_tycoon_sprite_refresh_approval.blend",
+      "spritePath": "sprites/characters/player_05_male_wave/idle/{direction}.png",
+      "animations": [
+        "idle"
+      ]
+    },
+    {
+      "id": "staff_barista_nina",
+      "type": "character",
+      "role": "barista",
+      "label": "Barista",
+      "presentation": "female",
+      "footprint": [
+        1,
+        1
+      ],
+      "dimensionsBlender": [
+        1,
+        1,
+        2.2
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        56,
+        158
+      ],
+      "frameSize": [
+        112,
+        168
+      ],
+      "directions": [
+        "sw",
+        "nw",
+        "ne",
+        "se"
+      ],
+      "skin": "warm",
+      "hair": "bun",
+      "hairColor": "espresso",
+      "face": "oval",
+      "body": "average",
+      "outfit": "barista",
+      "sourceCollection": "SRC_staff_barista_nina",
+      "sourceBlend": "art_source/blender/sprite_refresh/cafe_tycoon_sprite_refresh_approval.blend",
+      "spritePath": "sprites/characters/staff_barista_nina/idle/{direction}.png",
+      "animations": [
+        "idle"
+      ]
+    },
+    {
+      "id": "staff_attendant_caio",
+      "type": "character",
+      "role": "attendant",
+      "label": "Atendente",
+      "presentation": "male",
+      "footprint": [
+        1,
+        1
+      ],
+      "dimensionsBlender": [
+        1,
+        1,
+        2.2
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        56,
+        158
+      ],
+      "frameSize": [
+        112,
+        168
+      ],
+      "directions": [
+        "sw",
+        "nw",
+        "ne",
+        "se"
+      ],
+      "skin": "cocoa",
+      "hair": "short",
+      "hairColor": "midnight",
+      "face": "long",
+      "body": "slim",
+      "outfit": "attendant",
+      "sourceCollection": "SRC_staff_attendant_caio",
+      "sourceBlend": "art_source/blender/sprite_refresh/cafe_tycoon_sprite_refresh_approval.blend",
+      "spritePath": "sprites/characters/staff_attendant_caio/idle/{direction}.png",
+      "animations": [
+        "idle"
+      ]
+    },
+    {
+      "id": "customer_approval_01",
+      "type": "character",
+      "role": "customer",
+      "label": "Cliente 1",
+      "presentation": "female",
+      "footprint": [
+        1,
+        1
+      ],
+      "dimensionsBlender": [
+        1,
+        1,
+        2.2
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        56,
+        158
+      ],
+      "frameSize": [
+        112,
+        168
+      ],
+      "directions": [
+        "sw",
+        "nw",
+        "ne",
+        "se"
+      ],
+      "skin": "porcelain",
+      "hair": "wave",
+      "hairColor": "silver",
+      "face": "oval",
+      "body": "average",
+      "outfit": "customer_red",
+      "sourceCollection": "SRC_customer_approval_01",
+      "sourceBlend": "art_source/blender/sprite_refresh/cafe_tycoon_sprite_refresh_approval.blend",
+      "spritePath": "sprites/characters/customer_approval_01/idle/{direction}.png",
+      "animations": [
+        "idle"
+      ]
+    },
+    {
+      "id": "customer_approval_02",
+      "type": "character",
+      "role": "customer",
+      "label": "Cliente 2",
+      "presentation": "male",
+      "footprint": [
+        1,
+        1
+      ],
+      "dimensionsBlender": [
+        1,
+        1,
+        2.2
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        56,
+        158
+      ],
+      "frameSize": [
+        112,
+        168
+      ],
+      "directions": [
+        "sw",
+        "nw",
+        "ne",
+        "se"
+      ],
+      "skin": "ebony",
+      "hair": "coily",
+      "hairColor": "midnight",
+      "face": "broad",
+      "body": "athletic",
+      "outfit": "customer_gold",
+      "sourceCollection": "SRC_customer_approval_02",
+      "sourceBlend": "art_source/blender/sprite_refresh/cafe_tycoon_sprite_refresh_approval.blend",
+      "spritePath": "sprites/characters/customer_approval_02/idle/{direction}.png",
+      "animations": [
+        "idle"
+      ]
+    },
+    {
+      "id": "customer_approval_03",
+      "type": "character",
+      "role": "customer",
+      "label": "Cliente 3",
+      "presentation": "female",
+      "footprint": [
+        1,
+        1
+      ],
+      "dimensionsBlender": [
+        1,
+        1,
+        2.2
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        56,
+        158
+      ],
+      "frameSize": [
+        112,
+        168
+      ],
+      "directions": [
+        "sw",
+        "nw",
+        "ne",
+        "se"
+      ],
+      "skin": "honey",
+      "hair": "curls",
+      "hairColor": "chestnut",
+      "face": "heart",
+      "body": "curvy",
+      "outfit": "customer_teal",
+      "sourceCollection": "SRC_customer_approval_03",
+      "sourceBlend": "art_source/blender/sprite_refresh/cafe_tycoon_sprite_refresh_approval.blend",
+      "spritePath": "sprites/characters/customer_approval_03/idle/{direction}.png",
+      "animations": [
+        "idle"
+      ]
+    },
+    {
+      "id": "customer_approval_04",
+      "type": "character",
+      "role": "customer",
+      "label": "Cliente 4",
+      "presentation": "male",
+      "footprint": [
+        1,
+        1
+      ],
+      "dimensionsBlender": [
+        1,
+        1,
+        2.2
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        56,
+        158
+      ],
+      "frameSize": [
+        112,
+        168
+      ],
+      "directions": [
+        "sw",
+        "nw",
+        "ne",
+        "se"
+      ],
+      "skin": "warm",
+      "hair": "short",
+      "hairColor": "silver",
+      "face": "square",
+      "body": "broad",
+      "outfit": "customer_blue",
+      "sourceCollection": "SRC_customer_approval_04",
+      "sourceBlend": "art_source/blender/sprite_refresh/cafe_tycoon_sprite_refresh_approval.blend",
+      "spritePath": "sprites/characters/customer_approval_04/idle/{direction}.png",
+      "animations": [
+        "idle"
+      ]
+    }
+  ],
+  "furniture": [
+    {
+      "id": "dining_table_basic",
+      "canonicalId": "dining.table.basic",
+      "type": "furniture",
+      "subtype": "table",
+      "footprint": [
+        1,
+        1
+      ],
+      "dimensionsBlender": [
+        1.0,
+        1.0,
+        0.82
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        0.5,
+        0.90625
+      ],
+      "frameSize": [
+        192,
+        192
+      ],
+      "directions": [
+        "sw",
+        "se",
+        "ne",
+        "nw"
+      ],
+      "states": [
+        "idle"
+      ],
+      "counterBaseAssetId": null,
+      "sourceCollection": "SRC_dining_table_basic",
+      "sourceBlend": "art_source/blender/sprite_refresh/cafe_tycoon_sprite_refresh_approval.blend",
+      "spritePath": "sprites/furniture/dining_table_basic/{state}/{direction}.png"
+    },
+    {
+      "id": "dining_chair_basic",
+      "canonicalId": "dining.chair.basic",
+      "type": "furniture",
+      "subtype": "chair",
+      "footprint": [
+        1,
+        1
+      ],
+      "dimensionsBlender": [
+        1.0,
+        1.0,
+        0.82
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        0.5,
+        0.90625
+      ],
+      "frameSize": [
+        192,
+        192
+      ],
+      "directions": [
+        "sw",
+        "se",
+        "ne",
+        "nw"
+      ],
+      "states": [
+        "idle"
+      ],
+      "counterBaseAssetId": null,
+      "sourceCollection": "SRC_dining_chair_basic",
+      "sourceBlend": "art_source/blender/sprite_refresh/cafe_tycoon_sprite_refresh_approval.blend",
+      "spritePath": "sprites/furniture/dining_chair_basic/{state}/{direction}.png"
+    },
+    {
+      "id": "industrial_fridge",
+      "canonicalId": "refrigeration.b1.fridge",
+      "type": "furniture",
+      "subtype": "fridge",
+      "footprint": [
+        1,
+        1
+      ],
+      "dimensionsBlender": [
+        1.0,
+        1.0,
+        2.2
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        0.5,
+        0.90625
+      ],
+      "frameSize": [
+        192,
+        192
+      ],
+      "directions": [
+        "sw",
+        "se",
+        "ne",
+        "nw"
+      ],
+      "states": [
+        "closed"
+      ],
+      "counterBaseAssetId": null,
+      "sourceCollection": "SRC_industrial_fridge",
+      "sourceBlend": "art_source/blender/sprite_refresh/cafe_tycoon_sprite_refresh_approval.blend",
+      "spritePath": "sprites/furniture/industrial_fridge/{state}/{direction}.png"
+    },
+    {
+      "id": "counter_service",
+      "canonicalId": "service.c1.isolated",
+      "type": "furniture",
+      "subtype": "counter_service",
+      "footprint": [
+        1,
+        1
+      ],
+      "dimensionsBlender": [
+        1.0,
+        1.0,
+        1.1
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        0.5,
+        0.90625
+      ],
+      "frameSize": [
+        192,
+        192
+      ],
+      "directions": [
+        "sw",
+        "se",
+        "ne",
+        "nw"
+      ],
+      "states": [
+        "idle"
+      ],
+      "counterBaseAssetId": "COUNTER_BASE_MASTER_1x1",
+      "sourceCollection": "SRC_counter_service",
+      "sourceBlend": "art_source/blender/sprite_refresh/cafe_tycoon_sprite_refresh_approval.blend",
+      "spritePath": "sprites/furniture/counter_service/{state}/{direction}.png"
+    },
+    {
+      "id": "counter_stove",
+      "canonicalId": "cooking.a1.stove",
+      "type": "furniture",
+      "subtype": "counter_stove",
+      "footprint": [
+        1,
+        1
+      ],
+      "dimensionsBlender": [
+        1.0,
+        1.0,
+        1.1
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        0.5,
+        0.90625
+      ],
+      "frameSize": [
+        192,
+        192
+      ],
+      "directions": [
+        "sw",
+        "se",
+        "ne",
+        "nw"
+      ],
+      "states": [
+        "off",
+        "on"
+      ],
+      "counterBaseAssetId": "COUNTER_BASE_MASTER_1x1",
+      "sourceCollection": "SRC_counter_stove",
+      "sourceBlend": "art_source/blender/sprite_refresh/cafe_tycoon_sprite_refresh_approval.blend",
+      "spritePath": "sprites/furniture/counter_stove/{state}/{direction}.png"
+    },
+    {
+      "id": "counter_coffee",
+      "canonicalId": "cooking.a8.coffee",
+      "type": "furniture",
+      "subtype": "counter_coffee",
+      "footprint": [
+        1,
+        1
+      ],
+      "dimensionsBlender": [
+        1.0,
+        1.0,
+        1.1
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        0.5,
+        0.90625
+      ],
+      "frameSize": [
+        192,
+        192
+      ],
+      "directions": [
+        "sw",
+        "se",
+        "ne",
+        "nw"
+      ],
+      "states": [
+        "idle",
+        "active_1",
+        "active_2"
+      ],
+      "counterBaseAssetId": "COUNTER_BASE_MASTER_1x1",
+      "sourceCollection": "SRC_counter_coffee",
+      "sourceBlend": "art_source/blender/sprite_refresh/cafe_tycoon_sprite_refresh_approval.blend",
+      "spritePath": "sprites/furniture/counter_coffee/{state}/{direction}.png"
+    },
+    {
+      "id": "counter_sink",
+      "canonicalId": "washing.b5.sink",
+      "type": "furniture",
+      "subtype": "counter_sink",
+      "footprint": [
+        1,
+        1
+      ],
+      "dimensionsBlender": [
+        1.0,
+        1.0,
+        1.1
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        0.5,
+        0.90625
+      ],
+      "frameSize": [
+        192,
+        192
+      ],
+      "directions": [
+        "sw",
+        "se",
+        "ne",
+        "nw"
+      ],
+      "states": [
+        "idle",
+        "active"
+      ],
+      "counterBaseAssetId": "COUNTER_BASE_MASTER_1x1",
+      "sourceCollection": "SRC_counter_sink",
+      "sourceBlend": "art_source/blender/sprite_refresh/cafe_tycoon_sprite_refresh_approval.blend",
+      "spritePath": "sprites/furniture/counter_sink/{state}/{direction}.png"
+    },
+    {
+      "id": "counter_fryer",
+      "canonicalId": "cooking.a4.fryer",
+      "type": "furniture",
+      "subtype": "counter_fryer",
+      "footprint": [
+        1,
+        1
+      ],
+      "dimensionsBlender": [
+        1.0,
+        1.0,
+        1.1
+      ],
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "anchor": [
+        0.5,
+        0.90625
+      ],
+      "frameSize": [
+        192,
+        192
+      ],
+      "directions": [
+        "sw",
+        "se",
+        "ne",
+        "nw"
+      ],
+      "states": [
+        "off",
+        "on"
+      ],
+      "counterBaseAssetId": "COUNTER_BASE_MASTER_1x1",
+      "sourceCollection": "SRC_counter_fryer",
+      "sourceBlend": "art_source/blender/sprite_refresh/cafe_tycoon_sprite_refresh_approval.blend",
+      "spritePath": "sprites/furniture/counter_fryer/{state}/{direction}.png"
+    }
+  ],
+  "animationSheets": {
+    "walk": {
+      "frames": 4,
+      "fps": 8,
+      "loop": true,
+      "sheet": "approval_walk_sheet.png",
+      "directions": [
+        "sw",
+        "nw",
+        "ne",
+        "se"
+      ],
+      "frameSize": [
+        112,
+        168
+      ]
+    },
+    "walk_tray": {
+      "frames": 4,
+      "fps": 8,
+      "loop": true,
+      "sheet": "approval_walk_tray_sheet.png",
+      "directions": [
+        "sw",
+        "nw",
+        "ne",
+        "se"
+      ],
+      "frameSize": [
+        112,
+        168
+      ]
+    },
+    "cook": {
+      "frames": 4,
+      "fps": 8,
+      "loop": true,
+      "sheet": "approval_cook_sheet.png",
+      "directions": [
+        "sw",
+        "nw",
+        "ne",
+        "se"
+      ],
+      "frameSize": [
+        112,
+        168
+      ]
+    }
+  },
+  "approvalBoards": [
+    "approval_player_presets.png",
+    "approval_player_turnaround.png",
+    "approval_character_family.png",
+    "approval_counter_alignment.png",
+    "approval_furniture_scale.png",
+    "approval_active_states.png"
+  ]
+}

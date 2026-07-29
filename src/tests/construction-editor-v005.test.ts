@@ -9,7 +9,7 @@ import { FURNITURE_BY_ID } from '../game/data/furniture/catalog';
 import { calculateCounterConnections, modulesFromFurniture, ServiceCounterStore } from '../game/systems/service-counter/ServiceCounterSystem';
 import { RestaurantSimulation } from '../game/simulation/RestaurantSimulation';
 import { INGREDIENTS } from '../content/ingredients/ingredients';
-import { STAFF_ROLE_CHARACTER_ASSETS } from '../assets/pixel/characterVariantManifest';
+import { PRODUCTION_V003_STAFF_ASSET_BY_DEFINITION_ID } from '../assets/pixel/productionV003Manifest';
 import { ENTRANCE, RESTAURANT_SIZE } from '../game/map/initialMap';
 
 const item = (id: string, definitionId: string, gridX: number, gridY: number, orientation: PlacedFurniture['orientation'] = 'sw'): PlacedFurniture => ({
@@ -203,7 +203,7 @@ describe('editor físico e loja da 0.0.5', () => {
     expect(editor.confirm().ok).toBe(true);
     const simulation = new RestaurantSimulation(state);
     expect(simulation.actors.filter((actor) => actor.kind === 'cook')).toHaveLength(2);
-    expect(simulation.actors.find((actor) => actor.assetId === STAFF_ROLE_CHARACTER_ASSETS.cook && actor.name === 'Lúcia')?.position).toEqual({ x: 12, y: 15 });
+    expect(simulation.actors.find((actor) => actor.assetId === PRODUCTION_V003_STAFF_ASSET_BY_DEFINITION_ID['cook-1'] && actor.name === 'Lúcia')?.position).toEqual({ x: 12, y: 15 });
   });
 
   it('pré-visualiza quadrados da ampliação e só cobra após o ✓', () => {

@@ -10,6 +10,7 @@ import type { RestaurantSimulation } from '../game/simulation/RestaurantSimulati
 import { availableStaffFurniture, staffFurnitureRequirement } from '../game/systems/construction/StaffStartSystem';
 import { C3_BR_LEGACY_ALIASES } from '../assets/pixel/c3brManifest';
 import { playerSkinAsset } from '../content/characters/playerSkins';
+import { furnitureLevelAssetId, furnitureUpgradeCost, furnitureUpgradeUnlockLevel, MAX_FURNITURE_LEVEL } from '../game/data/furniture/levels';
 
 const CONSTRUCTION_RELOAD_SESSION_KEY = 'bistro-bloom-construction-reload';
 const ASSET_VERSION = '0.0.8-exact-service-counter-3';
@@ -306,6 +307,7 @@ export class ConstructionShop {
     else if (action === 'confirm-item') this.confirmSelectedEdit();
     else if (action === 'cancel-item') this.cancelSelectedEdit();
     else if (action === 'store' && this.selectedItemId) this.apply(this.editor.store(this.selectedItemId, true), 'Móvel guardado sem perder a compra.');
+    else if (action === 'upgrade' && this.selectedItemId) this.apply(this.editor.upgradeFurniture(this.selectedItemId, this.state.restaurantLevel), 'Nível visual adquirido sem alterar posição ou orientação.');
     else if (action === 'sell' && this.selectedItemId) {
       if (!window.confirm('Vender este móvel pelo valor de revenda?')) return;
       this.apply(this.editor.sell(this.selectedItemId, true), 'Móvel vendido.');
@@ -521,6 +523,8 @@ export class ConstructionShop {
     const selectedDefinition = selected ? FURNITURE_BY_ID[selected.definitionId] : undefined;
     const editSession = this.editor.editSession;
     const selectedCounter = selected ? draft.construction.serviceCounters.find((module) => module.id === selected.id) : undefined;
+    const selectedUpgradeCost = selected ? furnitureUpgradeCost(selected.definitionId, selected.level) : undefined;
+    const selectedUpgradeUnlock = selected && selected.level < MAX_FURNITURE_LEVEL ? furnitureUpgradeUnlockLevel(selected.level + 1) : undefined;
     const groupedCatalog = FURNITURE_DEFINITIONS.filter((definition) => !['storage', 'refrigeration'].includes(definition.category) && definition.functionId !== 'storage')
       .filter((definition) => matchesGroup(definition.category, this.group))
       .filter((definition) => !['service.c2.left', 'service.c3.middle', 'service.c4.right'].includes(definition.id))
@@ -531,15 +535,15 @@ export class ConstructionShop {
     const pendingExpansion = this.editor.pendingExpansion;
     const selectedPanel = selected && selectedDefinition ? `
       <article class="construction-selected">
-        <img src="${thumbnail(selectedDefinition.spriteSet[selected.orientation])}" alt="" />
-        <div><small>${selectedDefinition.code} · ${selectedDefinition.footprintWidth}×${selectedDefinition.footprintDepth}</small><strong>${escapeHtml(selectedDefinition.name)}</strong><span>Posição ${selected.gridX},${selected.gridY} · ${directionLabel(selected.orientation)}</span></div>
-        <div class="construction-actions contextual"><button data-editor-action="rotate">↻ Girar e salvar</button><button data-editor-action="store">Guardar</button><button data-editor-action="sell">Vender ${selectedDefinition.resaleValue}</button></div>
+        <img src="${thumbnail(furnitureLevelAssetId(selectedDefinition.id, selected.level) ?? selectedDefinition.spriteSet[selected.orientation])}" alt="" />
+        <div><small>${selectedDefinition.code} · ${selectedDefinition.footprintWidth}×${selectedDefinition.footprintDepth}</small><strong>${escapeHtml(selectedDefinition.name)}</strong><span>Posição ${selected.gridX},${selected.gridY} · ${directionLabel(selected.orientation)} · Nível ${selected.level}/5</span></div>
+        <div class="construction-actions contextual"><button data-editor-action="rotate">↻ Girar e salvar</button>${selectedUpgradeCost !== undefined ? `<button data-editor-action="upgrade" ${this.state.restaurantLevel < selectedUpgradeUnlock! || draft.coins < selectedUpgradeCost ? 'disabled' : ''}>Evoluir para L${selected.level + 1} · ${selectedUpgradeCost} moedas${this.state.restaurantLevel < selectedUpgradeUnlock! ? ` · libera no ${selectedUpgradeUnlock}` : ''}</button>` : `<button disabled>${selected.level >= MAX_FURNITURE_LEVEL ? 'Nível máximo' : 'Sem evolução visual v003'}</button>`}<button data-editor-action="store">Guardar</button><button data-editor-action="sell">Vender ${selectedDefinition.resaleValue}</button></div>
         ${editSession?.validationErrors.length ? `<p class="placement-error">${escapeHtml(editSession.validationErrors[0])}</p>` : ''}
         <div class="skin-actions">${selectedDefinition.skinIds.map((skin) => `<button data-editor-action="skin" data-id="${skin}" class="${selected.skinId === skin ? 'active' : ''}">${skin.replaceAll('-', ' ')}</button>`).join('')}${selectedCounter ? RECIPES.filter((recipe) => recipe.requiredLevel <= this.state.restaurantLevel).map((recipe) => `<button data-editor-action="counter-recipe" data-id="${recipe.id}" class="${selectedCounter.assignedRecipeId === recipe.id ? 'active' : ''}">${recipe.icon} ${escapeHtml(recipe.name)}</button>`).join('') : ''}</div>
       </article>` : '<div class="construction-empty-selection">Selecione um móvel colocado para editar.</div>';
     const stored = draft.construction.storedFurniture.map((item) => {
       const definition = FURNITURE_BY_ID[item.definitionId];
-      return definition ? `<button class="stored-card" data-editor-action="stored" data-id="${item.id}" data-definition="${definition.id}"><img src="${thumbnail(definition.spriteSet.sw)}" alt=""/><span><b>${definition.code}</b>${escapeHtml(definition.name)}</span></button>` : '';
+      return definition ? `<button class="stored-card" data-editor-action="stored" data-id="${item.id}" data-definition="${definition.id}"><img src="${thumbnail(furnitureLevelAssetId(definition.id, item.level) ?? definition.spriteSet.sw)}" alt=""/><span><b>${definition.code} · L${item.level}</b>${escapeHtml(definition.name)}</span></button>` : '';
     }).join('');
     const selectedShopDefinition = this.selectedShopDefinitionId ? FURNITURE_BY_ID[this.selectedShopDefinitionId] : undefined;
     const pendingPurchase = this.pendingPurchaseDefinitionId ? FURNITURE_BY_ID[this.pendingPurchaseDefinitionId] : undefined;
@@ -553,11 +557,11 @@ export class ConstructionShop {
       ${tutorialKit}
       <div class="catalog-tabs">${GROUPS.map((group) => `<button data-editor-action="category" data-id="${group.id}" class="${this.group === group.id ? 'active' : ''}">${group.label}</button>`).join('')}</div>
       <div class="catalog-items">${visibleCatalog.length ? visibleCatalog.map((definition) => { const price = furniturePurchasePrice(definition, ownedFurniture); return `<article class="catalog-card shop-card ${this.selectedShopDefinitionId === definition.id ? 'selected' : ''}">
-        <button class="shop-card-info" data-editor-action="shop-info" data-id="${definition.id}" ${definition.level > this.state.restaurantLevel ? 'disabled' : ''}><img src="${thumbnail(definition.spriteSet.sw)}" alt=""/><span><small>${definition.code} · ${definition.footprintWidth}×${definition.footprintDepth}</small><b>${escapeHtml(definition.name)}</b><em>${escapeHtml(furniturePurpose(definition.functionId))}</em></span></button>
+        <button class="shop-card-info" data-editor-action="shop-info" data-id="${definition.id}" ${definition.level > this.state.restaurantLevel ? 'disabled' : ''}><img src="${thumbnail(furnitureLevelAssetId(definition.id, 1) ?? definition.spriteSet.sw)}" alt=""/><span><small>${definition.code} · ${definition.footprintWidth}×${definition.footprintDepth}</small><b>${escapeHtml(definition.name)}</b><em>${escapeHtml(furniturePurpose(definition.functionId))}</em></span></button>
         <p>${escapeHtml(furnitureDescription(definition.id, definition.functionId))}</p><button class="shop-buy" data-editor-action="purchase" data-id="${definition.id}" ${definition.level > this.state.restaurantLevel || draft.coins < price ? 'disabled' : ''}>Comprar · ${price} moedas</button>
       </article>`; }).join('') : '<p class="catalog-empty">Nenhum móvel funcional nesta categoria por enquanto.</p>'}</div>
       ${selectedShopDefinition ? `<section class="shop-detail"><strong>${escapeHtml(selectedShopDefinition.name)}</strong><span>${escapeHtml(furniturePurpose(selectedShopDefinition.functionId))}</span><p>${escapeHtml(furnitureDescription(selectedShopDefinition.id, selectedShopDefinition.functionId))}</p></section>` : ''}
-      ${pendingPurchase ? `<div class="shop-purchase-confirm" role="dialog" aria-modal="true"><section><small>CONFIRMAR COMPRA</small><img src="${thumbnail(pendingPurchase.spriteSet.sw)}" alt=""/><strong>${escapeHtml(pendingPurchase.name)}</strong><p>${furniturePurchasePrice(pendingPurchase, ownedFurniture)} moedas serão descontadas uma única vez. O item ficará guardado.</p><div><button data-editor-action="cancel-purchase">Cancelar</button><button class="primary" data-editor-action="confirm-purchase">Confirmar compra</button></div></section></div>` : ''}
+      ${pendingPurchase ? `<div class="shop-purchase-confirm" role="dialog" aria-modal="true"><section><small>CONFIRMAR COMPRA</small><img src="${thumbnail(furnitureLevelAssetId(pendingPurchase.id, 1) ?? pendingPurchase.spriteSet.sw)}" alt=""/><strong>${escapeHtml(pendingPurchase.name)}</strong><p>${furniturePurchasePrice(pendingPurchase, ownedFurniture)} moedas serão descontadas uma única vez. O item ficará guardado.</p><div><button data-editor-action="cancel-purchase">Cancelar</button><button class="primary" data-editor-action="confirm-purchase">Confirmar compra</button></div></section></div>` : ''}
       ${this.pendingTutorialKitPurchase ? `<div class="shop-purchase-confirm" role="dialog" aria-modal="true"><section><small>CONFIRMAR KIT INICIAL</small><strong>6 itens essenciais</strong><p>${tutorialKitTotal} moedas serão descontadas uma única vez. Depois, um único clique colocará todos nos locais recomendados.</p><div><button data-editor-action="cancel-tutorial-kit">Cancelar</button><button class="primary" data-editor-action="confirm-tutorial-kit">Confirmar kit</button></div></section></div>` : ''}
       ${unavailableCatalog.length ? `<details class="unavailable-catalog"><summary>Indisponíveis por enquanto (${unavailableCatalog.length})</summary><p>Alternativas sem função exclusiva nas receitas atuais.</p><div class="catalog-items unavailable-items">${unavailableCatalog.map((definition) => `<button class="catalog-card" disabled><img src="${thumbnail(definition.spriteSet.sw)}" alt=""/><span><small>${definition.code} · futuro</small><b>${escapeHtml(definition.name)}</b><em>Indisponível</em></span></button>`).join('')}</div></details>` : ''}`;
     const organizeCatalog = `<section class="organize-owned"><h2>Seus itens</h2><p>Somente móveis que você já comprou ou guardou aparecem aqui.</p><div class="stored-list">${stored || '<p>Nenhum item guardado. Compre um item na Loja para vê-lo aqui.</p>'}</div></section>`;
@@ -616,7 +620,12 @@ function matchesGroup(category: FurnitureCategory, group: CatalogGroup): boolean
   return category === group;
 }
 
-function thumbnail(assetId: string): string { return `/assets/pixel/rendered/thumbnails/${C3_BR_LEGACY_ALIASES[assetId] ?? assetId}.png?v=${ASSET_VERSION}`; }
+function thumbnail(assetId: string): string {
+  const canonical = C3_BR_LEGACY_ALIASES[assetId] ?? assetId;
+  return canonical.startsWith('v003_') || canonical.startsWith('char_v003_')
+    ? `/assets/pixel/rendered/production_v003/thumbnails/${canonical}.png?v=production-v003`
+    : `/assets/pixel/rendered/thumbnails/${canonical}.png?v=${ASSET_VERSION}`;
+}
 function escapeHtml(value: string): string { const element = document.createElement('div'); element.textContent = value; return element.innerHTML; }
 function directionLabel(direction: Direction): string { return ({ ne: 'nordeste', nw: 'noroeste', se: 'sudeste', sw: 'sudoeste' } as Record<Direction, string>)[direction]; }
 function furniturePurpose(functionId?: string): string {

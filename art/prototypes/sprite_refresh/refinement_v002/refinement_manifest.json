@@ -1,0 +1,122 @@
+{
+  "version": "v002",
+  "scope": "approval character refinement only",
+  "sourceBlend": "art_source/blender/sprite_refresh/cafe_tycoon_sprite_refresh_refinement_v002.blend",
+  "preservedBlend": "art_source/blender/sprite_refresh/cafe_tycoon_sprite_refresh_approval.blend",
+  "unchangedContract": {
+    "frameSize": [
+      112,
+      168
+    ],
+    "feetAnchor": [
+      56,
+      158
+    ],
+    "directions": [
+      "sw",
+      "nw",
+      "ne",
+      "se"
+    ],
+    "characterOrthoScale": 2.8,
+    "gameplayHeight": 2.2
+  },
+  "changed": {
+    "models": [
+      "player_01_male_short",
+      "player_02_female_bun",
+      "player_03_male_coily",
+      "player_04_female_curls",
+      "player_05_male_wave",
+      "staff_barista_nina",
+      "staff_attendant_caio",
+      "customer_approval_01",
+      "customer_approval_02",
+      "customer_approval_03",
+      "customer_approval_04"
+    ],
+    "materials": [
+      "Fabric_Blue",
+      "Fabric_Cream",
+      "Fabric_Denim",
+      "Fabric_Gold",
+      "Fabric_Green",
+      "Fabric_GreenLight",
+      "Fabric_Ivory",
+      "Fabric_Pants",
+      "Fabric_Red",
+      "Fabric_Sage",
+      "Fabric_Sky",
+      "Fabric_Stitch",
+      "Fabric_Teal",
+      "Fabric_Wine",
+      "HairBase_chestnut",
+      "HairBase_copper",
+      "HairBase_espresso",
+      "HairBase_midnight",
+      "HairBase_silver",
+      "HairHighlight_chestnut",
+      "HairHighlight_copper",
+      "HairHighlight_espresso",
+      "HairHighlight_midnight",
+      "HairHighlight_silver",
+      "Leather_Sole",
+      "Leather_Toe",
+      "Leather_Upper",
+      "Metal_Brass",
+      "Metal_Silver",
+      "SkinBlush_cocoa",
+      "SkinBlush_ebony",
+      "SkinBlush_honey",
+      "SkinBlush_porcelain",
+      "SkinBlush_warm",
+      "SkinSoft_cocoa",
+      "SkinSoft_ebony",
+      "SkinSoft_honey",
+      "SkinSoft_porcelain",
+      "SkinSoft_warm"
+    ],
+    "rigControls": [
+      "hand_ik.L",
+      "hand_ik.R",
+      "elbow_pole.L",
+      "elbow_pole.R"
+    ],
+    "animationChannels": {
+      "walk": [],
+      "cook": [],
+      "walk_tray": [
+        "upper arms solved by IK",
+        "forearms solved by IK",
+        "hand targets",
+        "elbow poles",
+        "IK influence"
+      ]
+    }
+  },
+  "components": [
+    "BODY",
+    "HEAD",
+    "FACE",
+    "HAIR",
+    "CLOTHING",
+    "APRON",
+    "ACCESSORIES"
+  ],
+  "outputs": {
+    "sprites": "sprites/characters/{assetId}/idle/{direction}.png",
+    "animations": "animation_frames/{animation}/{direction}/{frame}.png",
+    "boards": [
+      "approval_character_detail_comparison.png",
+      "approval_tray_arm_pose_comparison.png",
+      "approval_player_presets.png",
+      "approval_player_turnaround.png",
+      "approval_character_family.png",
+      "approval_characters_enlarged.png",
+      "approval_walk_sheet.png",
+      "approval_walk_tray_sheet.png",
+      "approval_cook_sheet.png"
+    ],
+    "gif": "previews/walk_tray_4_directions.gif"
+  }
+}
